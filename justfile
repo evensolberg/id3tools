@@ -116,8 +116,11 @@ alias fmt := format
     cargo add clap
     cargo add log
     cargo add env_logger
+    touch README.md
+    git remote add {{application}} https://github.com/evensolberg/{{application}}
+    git tag Initial
+    git commit -m Initial
     git-chglog --init
-    git tag Initialt
 
 # Read the documentation
 @read:

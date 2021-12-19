@@ -12,12 +12,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = App::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
-        // .author(clap::crate_authors!("\n"))
-        .long_about("This program will do something.")
+        .author(clap::crate_authors!("\n"))
+        .long_about(clap::crate_description!())
         .arg(
             Arg::with_name("read")
                 .value_name("FILE(S)")
-                .help("One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.pdf 2020*.pdf) are supported.")
+                .help("One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.")
                 .takes_value(true)
                 .multiple(true),
         )
@@ -76,7 +76,6 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Everything is a-okay in the end
     Ok(())
 } // fn run()
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// The actual executable function that gets called when the program in invoked.
