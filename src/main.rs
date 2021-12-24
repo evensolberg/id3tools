@@ -7,8 +7,10 @@ use env_logger::{Builder, Target};
 use log::LevelFilter;
 
 // Local modules
+mod args;
+mod default_values;
 mod flac;
-use crate::flac::*;
+use crate::default_values::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -24,7 +26,8 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .value_name("FILE(S)")
                 .help("One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.")
                 .takes_value(true)
-                .multiple(true),
+                .multiple(true)
+                .required(true),
         )
         .arg( // Hidden debug parameter
             Arg::with_name("debug")
@@ -76,12 +79,132 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .help("Don't export detailed information about each file processed.")
                 .takes_value(false)
         )
+        .arg( // Config file
+            Arg::with_name("config-file")
+                .short("c")
+                .long("config-file")
+                .help("The name of the config file to be read.")
+                .long_help("The name of the config file to be read. Note that this is specified WITHOUT the '=', eg. -c myconfig.toml")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+                .default_value("~/.id3tag-config.toml")
+                .display_order(1)
+        )
+        //////////////////////////////////////////////
+        // Options
+        .arg( // Album artist
+            Arg::with_name("album-artist")
+                .long("album-artist")
+                .visible_alias("aa")
+                .help("The name of the album artist. Use quotation marks for multi-word names.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Album title
+            Arg::with_name("album-title")
+                .long("album-title")
+                .visible_alias("at")
+                .help("The title of the album. Use quotation marks for multi-word titles.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Album genre
+            Arg::with_name("album-genre")
+                .long("album-genre")
+                .visible_alias("ag")
+                .help("The genre of the album. Use quotation marks for multi-word genres.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Album date
+            Arg::with_name("album-date")
+                .long("album-date")
+                .visible_alias("ad")
+                .help("The release date for the album.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Disc number
+            Arg::with_name("disc-number")
+                .long("disc-number")
+                .visible_alias("dn")
+                .help("The disc number.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Disc total
+            Arg::with_name("disc-total")
+                .long("disc-total")
+                .visible_alias("dt")
+                .help("The total number of discs for the album.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Track artist
+            Arg::with_name("track-artist")
+                .long("track-artist")
+                .visible_alias("ta")
+                .help("The name of the track artist. Use quotation marks for multi-word names.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Track title
+            Arg::with_name("track-title")
+                .long("track-title")
+                .visible_alias("tt")
+                .help("The title of the track. Use quotation marks for multi-word titles.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Track number
+            Arg::with_name("track-number")
+                .long("track-number")
+                .visible_alias("tn")
+                .help("The track number.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Track total
+            Arg::with_name("track-total")
+                .long("track-total")
+                .visible_alias("to")
+                .help("The total number of track for the album.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Front cover picture
+            Arg::with_name("picture-front")
+                .long("picture-front")
+                .visible_alias("pf")
+                .help("The front cover picture.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Back cover picture
+            Arg::with_name("picture-back")
+                .long("picture-back")
+                .visible_alias("pb")
+                .help("The back cover picture.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
         .get_matches();
 
-    // create a log builder
+    // Configure logging
     let mut logbuilder = Builder::new();
-
-    // Figure out what log level to use.
     if cli_args.is_present("quiet") {
         logbuilder.filter_level(LevelFilter::Off);
     } else {
@@ -91,21 +214,33 @@ fn run() -> Result<(), Box<dyn Error>> {
             _ => logbuilder.filter_level(LevelFilter::Trace),
         };
     }
-
-    // Turn off logs from the metaflac module
-    logbuilder.filter_module("metaflac::block", LevelFilter::Off);
-
-    // Initialize logging
+    logbuilder.filter_module("metaflac::block", LevelFilter::Warn);
     logbuilder.target(Target::Stdout).init();
 
-    let stop_on_error = cli_args.is_present("stop");
-    if stop_on_error {
-        log::debug!("Stop on error flag set. Will stop if errors occur.");
-    } else {
-        log::debug!("Stop on error flag not set. Will attempt to continue in case of errors.");
+    // Read the config file if asked to
+    let mut config = DefaultValues::new();
+    if cli_args.is_present("config-file") {
+        let config_filename = shellexpand::tilde(
+            cli_args
+                .value_of("config-file")
+                .unwrap_or("~/.id3tag-config.toml"),
+        )
+        .to_string();
+        log::debug!("Config filename: {}", config_filename);
+        config = DefaultValues::load_config(&config_filename)?;
+        log::debug!("main::config = {:?}", &config);
     }
 
-    let show_detail_info = !cli_args.is_present("detail-off");
+    // Configure behaviour values
+    let stop_on_error = args::stop_on_error(&config, &cli_args);
+    let print_summary = args::print_summary(&config, &cli_args);
+    let quiet = args::quiet(&config, &cli_args);
+
+    if quiet {
+        logbuilder.filter_level(LevelFilter::Off);
+    }
+
+    // let show_detail_info = !cli_args.is_present("detail-off");
     let dry_run = cli_args.is_present("dry-run");
     if dry_run {
         log::info!("Dry-run starting.");
@@ -119,6 +254,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     let file_list = cli_args.values_of("files").unwrap();
     log::debug!("File list: {:?}", file_list);
 
+    // Read the new tags from the CLI arguments
+    let new_tags = args::parse_tags(&config, &cli_args)?;
+    log::debug!("New tags: {:?}", new_tags);
+
     for filename in file_list {
         match Path::new(&filename)
             .extension()
@@ -128,7 +267,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             .unwrap()
         {
             "flac" => {
-                process_flac(&filename)?;
+                flac::process_flac(&filename)?;
                 processed_file_count += 1;
             }
             "mp3" => {
@@ -144,7 +283,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Print summary information
-    if cli_args.is_present("print-summary") {
+    if print_summary {
         log::info!("Total files examined:        {:5}", total_file_count);
         log::info!("Files processed:             {:5}", processed_file_count);
         log::info!("Files skipped due to errors: {:5}", skipped_file_count);
