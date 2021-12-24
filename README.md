@@ -34,6 +34,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--album-artist`|`--aa`|Set the name of the (main) artist on the album.
 |`--album-title`|`--at`|Sets the name of the album.
 |`--album-genre`|`--ag`|Sets the genre for the album, eg. "Rock", "Metal", "R&B", etc.
+|`--album-composer`|`--ac`|Sets the composer(s) for the album, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc.
 |`--album-date`|`--ad`|Sets the release date for the album, eg. "2021", "2010-09-27".
 |`--disc-number`|`--dn`|Sets the number of the disc from which the files are taken, usually 1.
 |`--disc-total`|`--dt`|Sets the total number of discs for this album, usually 1.
@@ -66,8 +67,21 @@ This file describes the configuration parameters found in the config file. You c
 |`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.
 |`quiet`|`true`/`false`|`false`|Don't produce any output except errors while working.
 |`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
-|`genre`|Any text||The album genre.
+|`genre`|Any text||The album genre. Will be applied to each track.
+|`composer`|Any text||The album composer. Will be applied to each track.
 `picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 `picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 
 Note that any flags or options provided via the command line will override the default from the config file.
+
+### Sample Configuration File
+
+```toml
+detail-off=false
+print-summary=true
+quiet=false
+stop-on-error=false
+genre="Metal"
+composer="Hendrix, Jimi"
+picture-front="cover-small.jpg"
+```

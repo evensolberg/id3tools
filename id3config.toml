@@ -3,3 +3,4 @@ print_summary=true
 quiet=false
 stop_on_error=false
 genre="Classical"
+picture_front="cover-small.jpg"

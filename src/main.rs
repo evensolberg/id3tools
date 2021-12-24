@@ -1,6 +1,5 @@
 use clap::{App, Arg}; // Command line
-use std::path::Path;
-use std::{error::Error, ffi::OsStr};
+use std::error::Error;
 
 // Logging
 use env_logger::{Builder, Target};
@@ -50,17 +49,16 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("stop")
                 .short("s")
                 .long("stop-on-error")
-                .multiple(true)
+                .multiple(false)
                 .help("Stop on error. If this flag isn't set, the application will attempt to continue in case of error.")
-                .takes_value(false)
-                .hidden(false),
+                .takes_value(false),
         )
         .arg( // Dry-run
             Arg::with_name("dry-run")
                 .short("r")
                 .long("dry-run")
-                .multiple(false)
                 .help("Iterate through the files and produce output without actually processing anything.")
+                .multiple(false)
                 .takes_value(false)
         )
         .arg( // Print summary information
@@ -68,15 +66,15 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .short("p")
                 .long("print-summary")
                 .multiple(false)
-                .help("Print summary detail for each session processed.")
+                .help("Print summary after all files are processed.")
                 .takes_value(false)
         )
         .arg( // Don't export detail information
             Arg::with_name("detail-off")
                 .short("o")
                 .long("detail-off")
+                .help("Don't display detailed information about each file processed.")
                 .multiple(false)
-                .help("Don't export detailed information about each file processed.")
                 .takes_value(false)
         )
         .arg( // Config file
@@ -97,7 +95,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("album-artist")
                 .long("album-artist")
                 .visible_alias("aa")
-                .help("The name of the album artist. Use quotation marks for multi-word names.")
+                .help("The name of the album artist. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -106,7 +104,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("album-title")
                 .long("album-title")
                 .visible_alias("at")
-                .help("The title of the album. Use quotation marks for multi-word titles.")
+                .help("The title of the album. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -115,7 +113,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("album-genre")
                 .long("album-genre")
                 .visible_alias("ag")
-                .help("The genre of the album. Use quotation marks for multi-word genres.")
+                .help("The genre of the album. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -125,6 +123,15 @@ fn run() -> Result<(), Box<dyn Error>> {
                 .long("album-date")
                 .visible_alias("ad")
                 .help("The release date for the album.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
+        .arg( // Album date
+            Arg::with_name("album-composer")
+                .long("album-composer")
+                .visible_alias("ac")
+                .help("The composer(s) for the album. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -151,7 +158,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("track-artist")
                 .long("track-artist")
                 .visible_alias("ta")
-                .help("The name of the track artist. Use quotation marks for multi-word names.")
+                .help("The name of the track artist. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -160,7 +167,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("track-title")
                 .long("track-title")
                 .visible_alias("tt")
-                .help("The title of the track. Use quotation marks for multi-word titles.")
+                .help("The title of the track. Use quotation marks for multi-word entries.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -187,7 +194,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             Arg::with_name("picture-front")
                 .long("picture-front")
                 .visible_alias("pf")
-                .help("The front cover picture.")
+                .help("The front cover picture file name.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
@@ -228,13 +235,18 @@ fn run() -> Result<(), Box<dyn Error>> {
         .to_string();
         log::debug!("Config filename: {}", config_filename);
         config = DefaultValues::load_config(&config_filename)?;
-        log::debug!("main::config = {:?}", &config);
+        log::debug!("Loaded config: {:?}", &config);
     }
 
     // Configure behaviour values
     let stop_on_error = args::stop_on_error(&config, &cli_args);
     let print_summary = args::print_summary(&config, &cli_args);
     let quiet = args::quiet(&config, &cli_args);
+
+    config.quiet = Some(quiet);
+    config.stop_on_error = Some(stop_on_error);
+    config.print_summary = Some(print_summary);
+    log::debug!("Working config: {:?}", &config);
 
     if quiet {
         logbuilder.filter_level(LevelFilter::Off);
@@ -259,13 +271,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::debug!("New tags: {:?}", new_tags);
 
     for filename in file_list {
-        match Path::new(&filename)
-            .extension()
-            .unwrap_or(OsStr::new("unknown"))
-            .to_ascii_lowercase()
-            .to_str()
-            .unwrap()
-        {
+        match args::get_extension(&filename).as_ref() {
             "flac" => {
                 flac::process_flac(&filename)?;
                 processed_file_count += 1;

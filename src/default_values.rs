@@ -22,6 +22,9 @@ pub struct DefaultValues {
     /// Default value for the album's genre
     pub genre: Option<String>,
 
+    /// Default value for the album's composer(s)
+    pub composer: Option<String>,
+
     /// Default value for the albums front cover
     pub picture_front: Option<String>,
 
@@ -36,6 +39,7 @@ impl Default for DefaultValues {
             quiet: None,
             stop_on_error: None,
             genre: None,
+            composer: None,
             picture_front: None,
             picture_back: None,
         }
@@ -63,11 +67,15 @@ impl DefaultValues {
         let config = match toml::from_str(&config_toml) {
             Ok(config) => config,
             Err(err) => {
-                log::warn!("default_values::load_config - Unable to read config from {}. Using defaults. Error message: {}", filename, err.to_string());
+                log::warn!(
+                    "Unable to read config from {}. Using defaults. Error message: {}",
+                    filename,
+                    err.to_string()
+                );
                 Self::new()
             }
         };
-        log::debug!("config DefaultValues = {:?}", config);
+        log::debug!("{:?}", config);
 
         Ok(config)
     } // pub fn load_config

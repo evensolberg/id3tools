@@ -1,0 +1,152 @@
+# NOTE: Placeholder only. Currently not used.
+name: id3tag
+version: "0.1.0"
+author: Even Solberg <even.solberg@gmail.com>
+about: A simple application for updating ID3 information in FLAC and MP3 files.
+args:
+  - files:
+    value_name: FILE(S)
+    help: One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.
+    takes_value: true
+    multiple: true
+    required: true
+  - debug:
+    short: d
+    long: debug
+    help: Output debug information as we go. Supply it twice for trace-level logs.
+    multiple: true
+    takes_value: false
+    hidden: true
+  - quiet:
+    short: q
+    long: quiet
+    help: Don't produce any output except errors while working.
+    multiple: false
+    takes_value: false
+  - stop:
+    short: s
+    long: stop-on-error
+    help: Stop on error. If this flag isn't set, the application will attempt to continue in case of error.
+    multiple: false
+    takes_value: false
+  - dry-run:
+    short: r
+    long: dry-run
+    help: Iterate through the files and produce output without actually processing anything.
+    multiple: false
+    takes_value: false
+  - print-summary:
+    short: p
+    long: print-summary
+    help: Print summary after all files are processed.
+    multiple: false
+    takes_value: false
+  - detail-off:
+    short: o
+    long: detail-off
+    help: Don't display detailed information about each file processed.
+    multiple: false
+    takes_value: false
+  - config-file:
+    short: c
+    long: config-file
+    help: The name of the config file to be read.
+    long_help: The name of the config file to be read. Note that this is specified WITHOUT the '=', eg. -c myconfig.toml
+    takes_value: true
+    multiple: false
+    require_equals: false
+    default-value: ~/id3tag-config.toml
+    display_order: 1
+
+    # Options - these are the actual ID3 tags that can be set.
+  - album-artist:
+    long: album-artist
+    visible_alias: aa
+    help: The name of the album artist. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - album-title:
+    long: album-title
+    visible_alias: at
+    help: The title of the album. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - album-genre:
+    long: album-genre
+    visible_alias: ag
+    help: The genre of the album. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - album-date:
+    long: album-date
+    visible_alias: ad
+    help: The release date for the album.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - album-composer:
+    long: album-composer
+    visible_alias: ac
+    help: The composer(s) for the album. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - disc-number:
+    long: disc-number
+    visible_alias: dn
+    help: The disc number.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - disc-total:
+    long: disc-total
+    visible_alias: dt
+    help: The total number of discs for the album.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - track-artist:
+    long: track-artist
+    visible_alias: ta
+    help: The name of the track artist. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - track-title:
+    long: track-title
+    visible_alias: tt
+    help: The title of the track. Use quotation marks for multi-word entries.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - track-number:
+    long: track-number
+    visible_alias: tn
+    help: The track number.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - track-total:
+    long: track-total
+    visible_alias: tt
+    help: The total number of track for the album.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - picture-front:
+    long: picture-front
+    visible_alias: pf
+    help: The front cover picture file name.
+    takes_value: true
+    multiple: false
+    require_equals: false
+  - picture-back:
+    long: picture-back
+    visible_alias: pb
+    help: The back cover picture file name.
+    takes_value: true
+    multiple: false
+    require_equals: false
