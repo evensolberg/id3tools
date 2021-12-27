@@ -23,7 +23,11 @@ pub fn process_flac(
             }
         }
         for (key, value) in new_tags {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            if !(config.detail_off.unwrap()) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
+            }
             if !(config.dry_run.unwrap()) {
                 file_tags.set_vorbis(key.clone(), vec![value.clone()])
             }
