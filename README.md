@@ -31,19 +31,24 @@ These are the values that can be set for each file. Note that all of these shoul
 
 |Option|Alias|Description|
 |------|-----|-----------|
-|`--album-artist`|`--aa`|Set the name of the (main) artist on the album.
-|`--album-title`|`--at`|Sets the name of the album.
-|`--album-genre`|`--ag`|Sets the genre for the album, eg. "Rock", "Metal", "R&B", etc.
-|`--album-composer`|`--ac`|Sets the composer(s) for the album, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc.
-|`--album-date`|`--ad`|Sets the release date for the album, eg. "2021", "2010-09-27".
-|`--disc-number`|`--dn`|Sets the number of the disc from which the files are taken, usually 1.
-|`--disc-total`|`--dt`|Sets the total number of discs for this album, usually 1.
-|`--track-artist`|`--ta`|Sets the track artist.
-|`--track-title`|`--tt`|Sets the name of the track.
+|`--album-artist`|`--aa`|Set the name of the (main) artist on the album. This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
+|`--album-artist-sort`|`--aas`|The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the `artist_sort` may be "Keys, Alicia". This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
+|`--album-title`|`--at`|Sets the name of the album. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--album-title-sort`|`--ats`|Album title sort. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--disc-number`|`--dn`|Sets the number of the disc from which the files are taken, usually 1.  This is often set to be the same for all tracks on an album.
+|`--disc-total`|`--dt`|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
+|`--track-artist`|`--ta`|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-artist-sort`|`--tas`|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-title`|`--tt`|Sets the name of the track. Use quotation marks for multi-word entries.
+|`--track-title-sort`|`--tts`|Track title sort. Use quotation marks for multi-word entries.
 |`--track-number`|`--tn`|Sets the track number.
-|`--track-total`|`--to`|Sets the total number of tracks.
-|`--picture-front`|`--pf`|Sets the front cover picture.
-|`--picture-back`|`--pb`|Sets the back cover picture.
+|`--track-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
+|`--track-genre`|`--tg`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
+|`--track-composer`|`--tc`|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
+|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album.
+|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 
@@ -51,8 +56,7 @@ Any values omitted are left as-is. Note that for artists and titles, multi-word 
 
 |Argument|Description|
 |--------|:----------|
-`<FILE(S)>`|One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are
-                    supported.
+`<FILE(S)>`|One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.
 
 ## Configuration File
 
@@ -67,10 +71,21 @@ This file describes the configuration parameters found in the config file. You c
 |`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.
 |`quiet`|`true`/`false`|`false`|Don't produce any output except errors while working.
 |`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
-|`genre`|Any text||The album genre. Will be applied to each track.
-|`composer`|Any text||The album composer. Will be applied to each track.
-`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
-`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
+|`album_artist`|||The name of the album artist.
+|`album_artist_sort`|||The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
+|`album_title`|||The title of the album.
+|`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
+|`album_date`|||The release date for the album
+|`disc_number`|||The default value for the disc number, usually 1. 
+|`disc_number`|||The total number of discs that comprise the album, usually 1.
+|`track_artist`|||The default value for the track's artist.
+|`track_artist_sort`|||The default value for the track's artist sort.
+|`track_title`|||The default value for the track's title.
+|`track_title_sort`|||The default value for the track's title sort. Not commonly used.
+|`track_genre`|Any text||The track genre. Will be applied to each track.
+|`track_composer`|Any text||The track composer. Will be applied to each track.
+|`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
+|`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 
 Note that any flags or options provided via the command line will override the default from the config file.
 
@@ -81,7 +96,7 @@ detail-off=false
 print-summary=true
 quiet=false
 stop-on-error=false
-genre="Metal"
-composer="Hendrix, Jimi"
+track_genre="Metal"
+track_composer="Hendrix, Jimi"
 picture-front="cover-small.jpg"
 ```

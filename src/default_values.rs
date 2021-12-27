@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Read;
 
 /// The default values for the flags and options.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 pub struct DefaultValues {
     /// Flag: Do not output detail about each item processed.
     pub detail_off: Option<bool>,
@@ -19,31 +19,63 @@ pub struct DefaultValues {
     /// Flag: Stop immediately if an error occurs, otherwise continue
     pub stop_on_error: Option<bool>,
 
-    /// Default value for the album's genre
-    pub genre: Option<String>,
+    /// Flag: Don't actually write any changes.
+    pub dry_run: Option<bool>,
 
-    /// Default value for the album's composer(s)
-    pub composer: Option<String>,
+    // Options //
+    /// The default album artist.
+    pub album_artist: Option<String>,
+
+    /// The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
+    pub album_artist_sort: Option<String>,
+
+    /// Album title
+    pub album_title: Option<String>,
+
+    /// Album title sort
+    pub album_title_sort: Option<String>,
+
+    /// Default value for the disc number, usually 1
+    pub disc_number: Option<u16>,
+
+    /// The total number of discs that comprise the album, usually 1
+    pub disc_total: Option<u16>,
+
+    /// Default value for the track's artist
+    pub track_artist: Option<String>,
+
+    /// Default value for the track's artist sort
+    pub track_artist_sort: Option<String>,
+
+    /// Default value for the track's title
+    pub track_title: Option<String>,
+
+    /// Default value for the track's title sort
+    pub track_title_sort: Option<String>,
+
+    /// Default value for the track number, usually not set to a default value.
+    pub track_number: Option<u16>,
+
+    /// Default value for the total number of tracks
+    pub track_total: Option<u16>,
+
+    /// Default value for the track's genre
+    pub track_genre: Option<String>,
+
+    /// Default value for the track's composer(s)
+    pub track_composer: Option<String>,
+
+    /// Default value for the track's composer(s)
+    pub track_composer_sort: Option<String>,
+
+    /// Default value for the track's composer(s)
+    pub track_date: Option<String>,
 
     /// Default value for the albums front cover
     pub picture_front: Option<String>,
 
     /// Default value for the album's back cover
     pub picture_back: Option<String>,
-}
-impl Default for DefaultValues {
-    fn default() -> Self {
-        Self {
-            detail_off: None,
-            print_summary: None,
-            quiet: None,
-            stop_on_error: None,
-            genre: None,
-            composer: None,
-            picture_front: None,
-            picture_back: None,
-        }
-    }
 }
 
 impl DefaultValues {

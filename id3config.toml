@@ -1,6 +1,5 @@
 detail_off=true
-print_summary=true
 quiet=false
 stop_on_error=false
-genre="Classical"
+track_genre="Classical"
 picture_front="cover-small.jpg"
