@@ -206,10 +206,22 @@ pub fn build_cli() -> ArgMatches<'static> {
                 .long("track-genre")
                 .visible_alias("tg")
                 .help("The track music genre.")
-                .long_help("The track music genre (eg. 'Rock', 'R&B', 'Classical'). This is usually set to the same value for all tracks on a disc or album. Use quotation marks for multi-word entries.")
+                .long_help("The track music genre (eg. 'Rock', 'R&B', 'Classical'). This is usually set to the same value for all tracks on a disc or album. Use quotation marks for multi-word entries. Cannot be combined with '--track-genre-number'.")
                 .takes_value(true)
                 .multiple(false)
                 .require_equals(false)
+        )
+        .arg( // Track genre number
+            Arg::with_name("track-genre-number")
+                .long("track-genre-number")
+                .visible_alias("tgn")
+                .help("The track music genre number.")
+                .long_help("The track music genre number (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with '--track-genre'. Whichever is passed LAST is used.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+                .conflicts_with("track-genre") // works both ways
+                .validator(genre_number_validator)
         )
         .arg( // Track composer
             Arg::with_name("track-composer")
@@ -272,4 +284,20 @@ pub fn build_cli() -> ArgMatches<'static> {
                 .hidden(true)
         )
         .get_matches()
+}
+
+fn genre_number_validator(input: String) -> Result<(), String> {
+    let genre_num = u16::from_str_radix(&input, 16);
+    match genre_num {
+        Ok(gn) => {
+            if gn <= 191 {
+                return Ok(());
+            } else {
+                Err(String::from("track-genre-number must be 0-191."))
+            }
+        }
+        Err(_) => Err(String::from(
+            "Unable to parse the input provided to --track-genre-number.",
+        )),
+    }
 }

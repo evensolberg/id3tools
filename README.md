@@ -44,6 +44,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-number`|`--tn`|Sets the track number.
 |`--track-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
 |`--track-genre`|`--tg`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
+|`--track-genre-number`|`--tgn`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. based on the [ID3 Numerical Tag](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D) (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with '--track-genre'. Note that whichever of the two is passed LAST is used.
 |`--track-composer`|`--tc`|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
@@ -51,6 +52,17 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
+
+#### A note on Genres
+
+If both the `--track-genre` and `--track-genre-number` are passed, whichever value is passed _last_ is used.
+
+Examples:
+
+- `--track-genre Rock --track-genre-number 9` results in the genre represented by the number `9` (Metal) being used.
+- `--track-genre-number 32 --track-genre "Chamber Music"` results in "Chamber Music".
+
+If both `track_genre` and `track_genre_number` are present in a config file, the latter is used.
 
 ### Arguments
 
@@ -76,13 +88,14 @@ This file describes the configuration parameters found in the config file. You c
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
 |`album_date`|||The release date for the album
-|`disc_number`|||The default value for the disc number, usually 1. 
+|`disc_number`|||The default value for the disc number, usually 1.
 |`disc_number`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The default value for the track's artist.
 |`track_artist_sort`|||The default value for the track's artist sort.
 |`track_title`|||The default value for the track's title.
 |`track_title_sort`|||The default value for the track's title sort. Not commonly used.
 |`track_genre`|Any text||The track genre. Will be applied to each track.
+|`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.
 |`track_composer`|Any text||The track composer. Will be applied to each track.
 |`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 |`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.

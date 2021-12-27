@@ -62,6 +62,10 @@ pub struct DefaultValues {
     /// Default value for the track's genre
     pub track_genre: Option<String>,
 
+    /// Default numerical value for the track's genre
+    /// Ref: https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D
+    pub track_genre_number: Option<u16>,
+
     /// Default value for the track's composer(s)
     pub track_composer: Option<String>,
 
