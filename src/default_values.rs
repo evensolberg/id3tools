@@ -13,10 +13,10 @@ pub struct DefaultValues {
     /// Flag: Print a summary of how many files were processed, skipped, etc.
     pub print_summary: Option<bool>,
 
-    /// Flag: Only output warnings and errors
+    /// Flag: Only output warnings and errors.
     pub quiet: Option<bool>,
 
-    /// Flag: Stop immediately if an error occurs, otherwise continue
+    /// Flag: Stop immediately if an error occurs, otherwise continue.
     pub stop_on_error: Option<bool>,
 
     /// Flag: Don't actually write any changes.
@@ -29,56 +29,56 @@ pub struct DefaultValues {
     /// The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
     pub album_artist_sort: Option<String>,
 
-    /// Album title
+    /// Album title.
     pub album_title: Option<String>,
 
-    /// Album title sort
+    /// Album title sort.
     pub album_title_sort: Option<String>,
 
-    /// Default value for the disc number, usually 1
+    /// Default value for the disc number, usually 1.
     pub disc_number: Option<u16>,
 
-    /// The total number of discs that comprise the album, usually 1
+    /// The total number of discs that comprise the album, usually 1.
     pub disc_total: Option<u16>,
 
-    /// Default value for the track's artist
+    /// Default value for the track's artist.
     pub track_artist: Option<String>,
 
-    /// Default value for the track's artist sort
+    /// Default value for the track's artist sort.
     pub track_artist_sort: Option<String>,
 
-    /// Default value for the track's title
+    /// Default value for the track's title.
     pub track_title: Option<String>,
 
-    /// Default value for the track's title sort
+    /// Default value for the track's title sort.
     pub track_title_sort: Option<String>,
 
     /// Default value for the track number, usually not set to a default value.
     pub track_number: Option<u16>,
 
-    /// Default value for the total number of tracks
+    /// Default value for the total number of tracks.
     pub track_total: Option<u16>,
 
-    /// Default value for the track's genre
+    /// Default value for the track's genre.
     pub track_genre: Option<String>,
 
-    /// Default numerical value for the track's genre
-    /// Ref: https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D
+    /// Default numerical value for the track's genre.
+    /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
     pub track_genre_number: Option<u16>,
 
-    /// Default value for the track's composer(s)
+    /// Default value for the track's composer(s).
     pub track_composer: Option<String>,
 
-    /// Default value for the track's composer(s)
+    /// Default value for the track's composer(s).
     pub track_composer_sort: Option<String>,
 
-    /// Default value for the track's composer(s)
+    /// Default value for the track's composer(s).
     pub track_date: Option<String>,
 
-    /// Default value for the albums front cover
+    /// Default value for the albums front cover.
     pub picture_front: Option<String>,
 
-    /// Default value for the album's back cover
+    /// Default value for the album's back cover.
     pub picture_back: Option<String>,
 }
 

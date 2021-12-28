@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -21,3 +21,5 @@ serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0.132"
 shellexpand = "2.1.0"
 toml = "0.5.8"
+
+[features]

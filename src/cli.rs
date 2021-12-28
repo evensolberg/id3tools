@@ -286,12 +286,13 @@ pub fn build_cli() -> ArgMatches<'static> {
         .get_matches()
 }
 
+/// Checks that the specified genre number is in the valid range (0..=191)
 fn genre_number_validator(input: String) -> Result<(), String> {
     let genre_num = u16::from_str_radix(&input, 16);
     match genre_num {
         Ok(gn) => {
             if gn <= 191 {
-                return Ok(());
+                Ok(())
             } else {
                 Err(String::from("track-genre-number must be 0-191."))
             }

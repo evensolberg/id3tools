@@ -9,6 +9,7 @@ mod args;
 mod cli;
 mod default_values;
 mod flac;
+mod mp3;
 use crate::default_values::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
             "mp3" => {
                 log::debug!("Processing MP3. Cool.");
+                mp3::process_mp3(filename, &new_tags, &config)?;
                 processed_file_count += 1;
             }
             _ => {
