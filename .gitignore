@@ -2,3 +2,9 @@
 /music
 /toto
 .DS_Store
+**/*.jpg
+**/*.png
+**/*.flac
+**/*.mp3
+*.jpg
+*.png
