@@ -1,4 +1,8 @@
 
+<a name="v0.4.0"></a>
+## [v0.4.0](https://github.com/evensolberg/id3tag/compare/v0.3.0...v0.4.0) (2021-12-29)
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0](https://github.com/evensolberg/id3tag/compare/Initial...v0.3.0) (2021-12-28)
 
