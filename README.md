@@ -84,19 +84,23 @@ This file describes the configuration parameters found in the config file. You c
 |`quiet`|`true`/`false`|`false`|Don't produce any output except errors while working.
 |`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
 |`album_artist`|||The name of the album artist.
-|`album_artist_sort`|||The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
+|`album_artist_sort`|||The name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
-|`album_date`|||The release date for the album
-|`disc_number`|||The default value for the disc number, usually 1.
-|`disc_number`|||The total number of discs that comprise the album, usually 1.
-|`track_artist`|||The default value for the track's artist.
-|`track_artist_sort`|||The default value for the track's artist sort.
-|`track_title`|||The default value for the track's title.
-|`track_title_sort`|||The default value for the track's title sort. Not commonly used.
+|`disc_number`|||The disc number, usually 1.
+|`disc_number_total`|||The total number of discs that comprise the album, usually 1.
+|`track_artist`|||The track's artist.
+|`track_artist_sort`|||The track's artist sort.
+|`track_title`|||The track's title.
+|`track_title_sort`|||The track's title sort. Not commonly used.
+|`track_number`|||The tracks on this disc.
+|`track_number_total`|||The total number of tracks on this disc.
 |`track_genre`|Any text||The track genre. Will be applied to each track.
 |`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.
+|`track_date`|||The release date for the album
 |`track_composer`|Any text||The track composer. Will be applied to each track.
+|`track_composer_sort`|Any text||The track composer. Will be applied to each track.
+|`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.
 |`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 |`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
 
@@ -113,3 +117,34 @@ track_genre="Metal"
 track_composer="Hendrix, Jimi"
 picture_front="cover-small.jpg"
 ```
+
+## Options and Tags
+
+These are the tags in various formats that are set using the different command line options:
+
+|Option|Config File Value|FLAC Tag|MP3 Tag|MP4 Tag|
+|:-----|:-----|:---|:--|:--|
+|`--album-artist`|`album_artist`|`ALBUMARTIST`|`TPE2`|`aART`|
+|`--album-artist-sort`|`album_artist_sort`|`ALBUMARTISTSORT`|`TSO2`|`soaa`|
+|`--album-title`|`album_title`|`ALBUM`|`TALB`|`©alb`|
+|`--album-title-sort`|`album_title_sort`|`ALBUMTITLESORT`|`TSOA`|`soal`|
+|`--disc-number`|`disc_number`|`DISCNUMBER`|`TPOS`|`disk` [^2]|
+|`--disc-number-total`|`disc_number_total`|`DISCTOTAL`|`TPOS` [^2]|`disk` [^2]|
+|`--track-artist`|`track_artist`|`ARTIST`|`TPE1`|`©ART`|
+|`--track-artist-sort`|`track_artist_sort`|`ARTISTSORT`|`TSOP`|`soar`|
+|`--track-title`|`track_title`|`TITLE`|`TIT2`|`©nam`|
+|`--track-title-sort`|`track_title_sort`|`TITLESORT`|`TSOT`|`sonm`|
+|`--track-genre`|`track_genre`|`GENRE`|`TCON`|`©gen`|
+|`--track-genre-number`|`track_genre_number`|[^1]|[^1]|[^1]|
+|`--track-date`|`track_date`|`DATE`|`TDRC`|`©day`|
+|`--track-composer`|`track_composer`|`COMPOSER`|`TCOM`|`©wrt`|
+|`--track-composer-sort`|`track_composer_sort`|`COMPOSERSORT`|`TSOC`|`soco`|
+|`--track-comment`|`track_comment`|`DESCRIPTION`|`COMM`|`©cmt`|
+|`--picture-front`|`picture_front`|`PICTUREFRONT`|`APIC` [^2]|`covr` [^3]|
+|`--picture-back`|`picture_back`|`PICTUREBACK`|`APIC` [^2]|NA [^3]|
+
+[^1]: This looks up a value which is then inserted into `track_genre`.
+
+[^2]: A modified version is actually used in the code, and the value is set using a dedicated function.
+
+[^3]: While MP4 does allow one to set one or more images using the `covr` tag, there is no way to specify whether it's a front cover, back cover, etc. Hence, we currently only allow for the front image to be set.

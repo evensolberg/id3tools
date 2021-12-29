@@ -133,7 +133,7 @@ pub fn build_cli() -> ArgMatches<'static> {
             )
         .arg( // Disc total
             Arg::with_name("disc-total")
-                .long("disc-total")
+                .long("disc-number-total")
                 .visible_alias("dt")
                 .help("The total number of discs for the album.")
                 .long_help("The total number of discs that make up this album. This would take the form of 'DISCNUMBER of TOTALDISCS (this value)'.")
@@ -193,7 +193,7 @@ pub fn build_cli() -> ArgMatches<'static> {
             )
         .arg( // Track total
             Arg::with_name("track-total")
-                .long("track-total")
+                .long("track-number-total")
                 .visible_alias("to")
                 .help("The total number of tracks for the disc.")
                 .help("The total number of tracks for the disc. Takes the form of 'TRACKNUMBER of TOTALTRACKS (this value)'.")
