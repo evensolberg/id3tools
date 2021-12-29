@@ -10,6 +10,7 @@ mod cli;
 mod default_values;
 mod flac;
 mod mp3;
+mod mp4;
 mod shared;
 use crate::default_values::*;
 
@@ -95,6 +96,13 @@ fn run() -> Result<(), Box<dyn Error>> {
                 let new_tags = args::parse_options(args::FileType::MP3, &config, &cli_args)?;
                 log::debug!("New tags: {:?}", new_tags);
                 mp3::process_mp3(filename, &new_tags, &config)?;
+                processed_file_count += 1;
+            }
+            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => {
+                log::debug!("Processing MP4.");
+                let new_tags = args::parse_options(args::FileType::MP4, &config, &cli_args)?;
+                log::debug!("New tags: {:?}", new_tags);
+                mp4::process_mp4(filename, &new_tags, &config)?;
                 processed_file_count += 1;
             }
             _ => {

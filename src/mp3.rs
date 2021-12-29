@@ -58,11 +58,7 @@ pub fn process_mp3(
     Ok(())
 }
 
-fn add_picture(
-    tags: &mut id3::Tag,
-    value: &str,
-    cover_type: PictureType,
-) -> Result<(), Box<dyn Error>> {
+fn add_picture(tags: &mut Tag, value: &str, cover_type: PictureType) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(cover_type);
     log::debug!("Reading image file {}", value);
