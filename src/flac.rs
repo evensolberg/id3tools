@@ -1,5 +1,5 @@
-use crate::args::get_extension;
 use crate::default_values::DefaultValues;
+use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
@@ -81,26 +81,6 @@ pub fn process_flac(
     Ok(())
 }
 
-/// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
-fn mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
-    let ext = get_extension(filename);
-    let fmt_str = match ext.as_ref() {
-        "bmp" => "image/bmp",
-        "gif" => "image/gif",
-        "jpg" | "jpeg" => "image/jpeg",
-        "png" => "image/png",
-        "tif" | "tiff" => "image/tiff",
-        _ => {
-            return Err(
-                "Image format not supported. Must be one of BMP, GIF, JPEG, PNG or TIFF.".into(),
-            )
-        }
-    };
-
-    // Return safely
-    Ok(fmt_str.to_string())
-}
-
 /// Set the front or back cover (for now)
 fn add_picture(
     tags: &mut metaflac::Tag,
@@ -112,7 +92,7 @@ fn add_picture(
     log::debug!("Reading image file {}", value);
 
     // Read the file and check the mime type
-    let mime_fmt = mime_type(value)?;
+    let mime_fmt = shared::mime_type(value)?;
     log::debug!("Image format: {}", mime_fmt);
     log::debug!("Setting picture to {}", value);
     tags.add_picture(mime_fmt, cover_type, fs::read(&value)?);

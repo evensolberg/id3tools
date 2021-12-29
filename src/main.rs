@@ -10,6 +10,7 @@ mod cli;
 mod default_values;
 mod flac;
 mod mp3;
+mod shared;
 use crate::default_values::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,17 +80,20 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Read the new tags from the CLI arguments
-    let new_tags = args::parse_options(&config, &cli_args)?;
-    log::debug!("New tags: {:?}", new_tags);
 
     for filename in file_list {
-        match args::get_extension(filename).as_ref() {
+        match shared::get_extension(filename).as_ref() {
             "flac" => {
+                log::debug!("Processing FLAC.");
+                let new_tags = args::parse_options(args::FileType::FLAC, &config, &cli_args)?;
+                log::debug!("New tags: {:?}", new_tags);
                 flac::process_flac(filename, &new_tags, &config)?;
                 processed_file_count += 1;
             }
             "mp3" => {
-                log::debug!("Processing MP3. Cool.");
+                log::debug!("Processing MP3.");
+                let new_tags = args::parse_options(args::FileType::MP3, &config, &cli_args)?;
+                log::debug!("New tags: {:?}", new_tags);
                 mp3::process_mp3(filename, &new_tags, &config)?;
                 processed_file_count += 1;
             }

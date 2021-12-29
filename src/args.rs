@@ -1,85 +1,119 @@
 // Process the CLI arguments and find out which flags to set
 use std::collections::HashMap;
 use std::error::Error;
-use std::ffi::OsStr;
 use std::path::Path;
 
 use crate::default_values::DefaultValues;
 use clap::ArgMatches;
 
+/// The types of files we can process
+pub enum FileType {
+    FLAC,
+    MP3,
+    MP4,
+    Unknown,
+}
+
+/// Used to store the various tag names based on the file type
+#[derive(Debug, Default, Clone)]
+struct TagNames {
+    album_artist: String,
+    album_artist_sort: String,
+    album_title: String,
+    album_title_sort: String,
+    disc_number: String,
+    disc_total: String,
+    track_artist: String,
+    track_artist_sort: String,
+    track_title: String,
+    track_title_sort: String,
+    track_number: String,
+    track_number_total: String,
+    track_genre: String,
+    track_composer: String,
+    track_composer_sort: String,
+    track_date: String,
+    picture_front: String,
+    picture_back: String,
+}
+
 /// Collect the various options submitted into a HashMap for later use.
 /// Also checks the default values loaded from a config file.
 pub fn parse_options(
+    file_type: FileType,
     defaults: &DefaultValues,
     args: &ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut new_tags = HashMap::new();
 
+    // Set tag names based on file type -- see tag_names function below
+    let tag_names = get_tag_names(file_type);
+
     // TODO: Refactor to check for -c and use, and then for parameter and overwrite.
 
     if args.is_present("album-artist") {
         new_tags.insert(
-            "ALBUMARTIST".to_string(),
+            tag_names.album_artist,
             args.value_of("album-artist").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.album_artist {
-            new_tags.insert("ALBUMARTIST".to_string(), val.to_string());
+            new_tags.insert(tag_names.album_artist, val.to_string());
         }
     }
 
     if args.is_present("album-artist-sort") {
         new_tags.insert(
-            "ALBUMARTISTSORT".to_string(),
+            tag_names.album_artist_sort,
             args.value_of("album-artist-sort").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.album_artist_sort {
-            new_tags.insert("ALBUMARTISTSORT".to_string(), val.to_string());
+            new_tags.insert(tag_names.album_artist_sort, val.to_string());
         }
     }
 
     if args.is_present("album-title") {
         new_tags.insert(
-            "ALBUM".to_string(),
+            tag_names.album_title,
             args.value_of("album-title").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.album_title {
-            new_tags.insert("ALBUM".to_string(), val.to_string());
+            new_tags.insert(tag_names.album_title, val.to_string());
         }
     }
 
     if args.is_present("album-title-sort") {
         new_tags.insert(
-            "ALBUMTITLESORT".to_string(),
+            tag_names.album_title_sort,
             args.value_of("album-title-sort").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.album_title {
-            new_tags.insert("ALBUMTITLESORT".to_string(), val.to_string());
+            new_tags.insert(tag_names.album_title_sort, val.to_string());
         }
     }
 
     if args.is_present("disc-number") {
         new_tags.insert(
-            "DISCNUMBER".to_string(),
+            tag_names.disc_number,
             args.value_of("disc-number").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.disc_number {
-            new_tags.insert("DISCNUMBER".to_string(), val.to_string());
+            new_tags.insert(tag_names.disc_number, val.to_string());
         }
     }
 
     if args.is_present("disc-total") {
         new_tags.insert(
-            "DISCTOTAL".to_string(),
+            tag_names.disc_total,
             args.value_of("disc-total").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.disc_total {
-            new_tags.insert("DISCTOTAL".to_string(), val.to_string());
+            new_tags.insert(tag_names.disc_total, val.to_string());
         }
     }
 
@@ -87,78 +121,78 @@ pub fn parse_options(
 
     if args.is_present("track-artist") {
         new_tags.insert(
-            "ARTIST".to_string(),
+            tag_names.track_artist,
             args.value_of("track-artist").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_artist {
-            new_tags.insert("ARTIST".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_artist, val.to_string());
         }
     }
 
     if args.is_present("track-artist-sort") {
         new_tags.insert(
-            "ARTISTSORT".to_string(),
+            tag_names.track_artist_sort,
             args.value_of("track-artist-sort").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_artist_sort {
-            new_tags.insert("ARTISTSORT".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_artist_sort, val.to_string());
         }
     }
 
     if args.is_present("track-title") {
         new_tags.insert(
-            "TITLE".to_string(),
+            tag_names.track_title,
             args.value_of("track-title").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_title {
-            new_tags.insert("TITLE".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_title, val.to_string());
         }
     }
 
     if args.is_present("track-title-sort") {
         new_tags.insert(
-            "TITLESORT".to_string(),
+            tag_names.track_title_sort,
             args.value_of("track-title-sort").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_title_sort {
-            new_tags.insert("TITLESORT".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_title_sort, val.to_string());
         }
     }
 
     if args.is_present("track-number") {
         new_tags.insert(
-            "TRACKNUMBER".to_string(),
+            tag_names.track_number,
             args.value_of("track-number").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_number {
-            new_tags.insert("TRACKNUMBER".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_number, val.to_string());
         }
     }
 
     if args.is_present("track-total") {
         new_tags.insert(
-            "TRACKTOTAL".to_string(),
+            tag_names.track_number_total,
             args.value_of("track-total").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_total {
-            new_tags.insert("TRACKTOTAL".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_number_total, val.to_string());
         }
     }
 
     if args.is_present("track-genre") {
         new_tags.insert(
-            "GENRE".to_string(),
+            tag_names.track_genre.clone(),
             args.value_of("track-genre").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_genre {
-            new_tags.insert("GENRE".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_genre.clone(), val.to_string());
         }
     }
 
@@ -166,48 +200,48 @@ pub fn parse_options(
     if args.is_present("track-genre-number") {
         // Turn the numeric tag into a string
         new_tags.insert(
-            "GENRE".to_string(),
-            convert_id3_tag(u16::from_str_radix(
+            tag_names.track_genre.clone(),
+            get_genre_name(u16::from_str_radix(
                 &args.value_of("track-genre-number").unwrap().to_string(),
                 16,
             )?),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_genre_number {
-            new_tags.insert("GENRE".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_genre.clone(), get_genre_name(*val));
         }
     }
 
     if args.is_present("track-composer") {
         new_tags.insert(
-            "COMPOSER".to_string(),
+            tag_names.track_composer,
             args.value_of("track-composer").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_composer {
-            new_tags.insert("COMPOSER".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_composer, val.to_string());
         }
     }
 
     if args.is_present("track-composer-sort") {
         new_tags.insert(
-            "COMPOSERSORT".to_string(),
+            tag_names.track_composer_sort,
             args.value_of("track-composer-sort").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_composer_sort {
-            new_tags.insert("COMPOSERSORT".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_composer_sort, val.to_string());
         }
     }
 
     if args.is_present("track-date") {
         new_tags.insert(
-            "DATE".to_string(),
+            tag_names.track_date,
             args.value_of("track-date").unwrap().to_string(),
         );
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_date {
-            new_tags.insert("DATE".to_string(), val.to_string());
+            new_tags.insert(tag_names.track_date, val.to_string());
         }
     }
 
@@ -232,7 +266,7 @@ pub fn parse_options(
                 );
             }
         } else {
-            new_tags.insert("PICTUREFRONT".to_string(), picture_front.to_string());
+            new_tags.insert(tag_names.picture_front, picture_front.to_string());
         }
     } else if args.is_present("config") {
         if let Some(picture_front) = &defaults.picture_front {
@@ -250,7 +284,7 @@ pub fn parse_options(
                     );
                 }
             } else {
-                new_tags.insert("PICTUREFRONT".to_string(), picture_front.to_string());
+                new_tags.insert(tag_names.picture_front, picture_front.to_string());
                 log::debug!("Picture insertion is not yet implemented.");
             }
         }
@@ -273,7 +307,7 @@ pub fn parse_options(
                 );
             }
         } else {
-            new_tags.insert("PICTUREBACK".to_string(), picture_back.to_string());
+            new_tags.insert(tag_names.picture_back, picture_back.to_string());
         }
     } else if args.is_present("config") {
         if let Some(picture_back) = &defaults.picture_back {
@@ -291,7 +325,7 @@ pub fn parse_options(
                     );
                 }
             } else {
-                new_tags.insert("PICTUREBACK".to_string(), picture_back.to_string());
+                new_tags.insert(tag_names.picture_back, picture_back.to_string());
             }
         }
     }
@@ -424,20 +458,9 @@ pub fn dry_run(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     return_value
 }
 
-/// Get the extension part of the filename and return it as a string
-pub fn get_extension(filename: &str) -> String {
-    Path::new(&filename)
-        .extension()
-        .unwrap_or_else(|| OsStr::new("unknown"))
-        .to_ascii_lowercase()
-        .to_str()
-        .unwrap()
-        .to_string()
-}
-
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
-pub fn convert_id3_tag(tagnumber: u16) -> String {
+pub fn get_genre_name(tagnumber: u16) -> String {
     let return_string = match tagnumber {
         0 => "Blues",
         1 => "Classic Rock",
@@ -637,4 +660,90 @@ pub fn convert_id3_tag(tagnumber: u16) -> String {
 
     // return the value
     return_string.to_string()
+}
+
+/// Gets the tag names based on the file type
+fn get_tag_names(file_type: FileType) -> TagNames {
+    match file_type {
+        FileType::FLAC => TagNames {
+            album_artist: "ALBUMARTIST".to_string(),
+            album_artist_sort: "ALBUMARTISTSORT".to_string(),
+            album_title: "ALBUM".to_string(),
+            album_title_sort: "ALBUMTITLESORT".to_string(),
+            disc_number: "DISCNUMBER".to_string(),
+            disc_total: "DISCTOTAL".to_string(),
+            track_artist: "ARTIST".to_string(),
+            track_artist_sort: "ARTISTSORT".to_string(),
+            track_title: "TITLE".to_string(),
+            track_title_sort: "TITLESORT".to_string(),
+            track_number: "TRACKNUMBER".to_string(),
+            track_number_total: "TRACKTOTAL".to_string(),
+            track_genre: "GENRE".to_string(),
+            track_composer: "COMPOSER".to_string(),
+            track_composer_sort: "COMPOSERSORT".to_string(),
+            track_date: "DATE".to_string(),
+            picture_front: "PICTUREFRONT".to_string(),
+            picture_back: "PICTUREBACK".to_string(),
+        },
+        FileType::MP3 => TagNames {
+            album_artist: "TPE2".to_string(),
+            album_artist_sort: "TSO2".to_string(),
+            album_title: "TALB".to_string(),
+            album_title_sort: "TSOA".to_string(),
+            disc_number: "TPOS".to_string(),
+            disc_total: "TPOS-T".to_string(),
+            track_artist: "TPE1".to_string(),
+            track_artist_sort: "TSOP".to_string(),
+            track_title: "TIT2".to_string(),
+            track_title_sort: "TSOT".to_string(),
+            track_number: "TRCK".to_string(),
+            track_number_total: "TRCK-T".to_string(),
+            track_genre: "TCON".to_string(),
+            track_composer: "TCOM".to_string(),
+            track_composer_sort: "TSOC".to_string(),
+            track_date: "TDRC".to_string(),
+            picture_front: "APIC-F".to_string(),
+            picture_back: "APIC-B".to_string(),
+        },
+        FileType::MP4 => TagNames {
+            album_artist: "".to_string(),
+            album_artist_sort: "".to_string(),
+            album_title: "".to_string(),
+            album_title_sort: "".to_string(),
+            disc_number: "".to_string(),
+            disc_total: "".to_string(),
+            track_artist: "".to_string(),
+            track_artist_sort: "".to_string(),
+            track_title: "".to_string(),
+            track_title_sort: "".to_string(),
+            track_number: "".to_string(),
+            track_number_total: "".to_string(),
+            track_genre: "".to_string(),
+            track_composer: "".to_string(),
+            track_composer_sort: "".to_string(),
+            track_date: "".to_string(),
+            picture_front: "".to_string(),
+            picture_back: "".to_string(),
+        },
+        FileType::Unknown => TagNames {
+            album_artist: "".to_string(),
+            album_artist_sort: "".to_string(),
+            album_title: "".to_string(),
+            album_title_sort: "".to_string(),
+            disc_number: "".to_string(),
+            disc_total: "".to_string(),
+            track_artist: "".to_string(),
+            track_artist_sort: "".to_string(),
+            track_title: "".to_string(),
+            track_title_sort: "".to_string(),
+            track_number: "".to_string(),
+            track_number_total: "".to_string(),
+            track_genre: "".to_string(),
+            track_composer: "".to_string(),
+            track_composer_sort: "".to_string(),
+            track_date: "".to_string(),
+            picture_front: "".to_string(),
+            picture_back: "".to_string(),
+        },
+    }
 }
