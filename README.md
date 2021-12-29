@@ -36,17 +36,18 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--album-title`|`--at`|Sets the name of the album. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--album-title-sort`|`--ats`|Album title sort. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--disc-number`|`--dn`|Sets the number of the disc from which the files are taken, usually 1.  This is often set to be the same for all tracks on an album.
-|`--disc-total`|`--dt`|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
+|`--disc-number-total`|`--dt`|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
 |`--track-artist`|`--ta`|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-artist-sort`|`--tas`|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-title`|`--tt`|Sets the name of the track. Use quotation marks for multi-word entries.
 |`--track-title-sort`|`--tts`|Track title sort. Use quotation marks for multi-word entries.
 |`--track-number`|`--tn`|Sets the track number.
-|`--track-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
+|`--track-number-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
 |`--track-genre`|`--tg`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
 |`--track-genre-number`|`--tgn`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. based on the [ID3 Numerical Tag](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D) (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with '--track-genre'. Note that whichever of the two is passed LAST is used.
 |`--track-composer`|`--tc`|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-comment`|`--tm`|Any comments related to the track (or album).
 |`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
 |`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album.
 |`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album.
