@@ -253,6 +253,16 @@ pub fn build_cli() -> ArgMatches<'static> {
                 .multiple(false)
                 .require_equals(false)
         )
+        .arg( // Track comments
+            Arg::with_name("track-comments")
+                .long("track-comments")
+                .visible_alias("tm")
+                .help("The comments for the track.")
+                .help("The comments for the track. Use quotation marks for multi-word entries.")
+                .takes_value(true)
+                .multiple(false)
+                .require_equals(false)
+        )
         .arg( // Front cover picture
             Arg::with_name("picture-front")
                 .long("picture-front")

@@ -33,6 +33,7 @@ struct TagNames {
     track_composer: String,
     track_composer_sort: String,
     track_date: String,
+    track_comments: String,
     picture_front: String,
     picture_back: String,
 }
@@ -242,6 +243,17 @@ pub fn parse_options(
     } else if args.is_present("config") {
         if let Some(val) = &defaults.track_date {
             new_tags.insert(tag_names.track_date, val.to_string());
+        }
+    }
+
+    if args.is_present("track-comments") {
+        new_tags.insert(
+            tag_names.track_comments,
+            args.value_of("track-comments").unwrap().to_string(),
+        );
+    } else if args.is_present("config") {
+        if let Some(val) = &defaults.track_comments {
+            new_tags.insert(tag_names.track_comments, val.to_string());
         }
     }
 
@@ -682,6 +694,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             track_composer: "COMPOSER".to_string(),
             track_composer_sort: "COMPOSERSORT".to_string(),
             track_date: "DATE".to_string(),
+            track_comments: "DESCRIPTION".to_string(),
             picture_front: "PICTUREFRONT".to_string(),
             picture_back: "PICTUREBACK".to_string(),
         },
@@ -702,6 +715,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             track_composer: "TCOM".to_string(),
             track_composer_sort: "TSOC".to_string(),
             track_date: "TDRC".to_string(),
+            track_comments: "COMM".to_string(),
             picture_front: "APIC-F".to_string(),
             picture_back: "APIC-B".to_string(),
         },
@@ -722,6 +736,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             track_composer: "".to_string(),
             track_composer_sort: "".to_string(),
             track_date: "".to_string(),
+            track_comments: "".to_string(),
             picture_front: "".to_string(),
             picture_back: "".to_string(),
         },
@@ -742,6 +757,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             track_composer: "".to_string(),
             track_composer_sort: "".to_string(),
             track_date: "".to_string(),
+            track_comments: "".to_string(),
             picture_front: "".to_string(),
             picture_back: "".to_string(),
         },

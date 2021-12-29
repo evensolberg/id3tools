@@ -111,5 +111,5 @@ quiet=false
 stop-on-error=false
 track_genre="Metal"
 track_composer="Hendrix, Jimi"
-picture-front="cover-small.jpg"
+picture_front="cover-small.jpg"
 ```

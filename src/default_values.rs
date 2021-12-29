@@ -75,6 +75,9 @@ pub struct DefaultValues {
     /// Default value for the track's composer(s).
     pub track_date: Option<String>,
 
+    /// Default value for the track's comments.
+    pub track_comments: Option<String>,
+
     /// Default value for the albums front cover.
     pub picture_front: Option<String>,
 
