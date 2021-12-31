@@ -2,6 +2,8 @@
 
 A simple application for updating ID3 tags in APE, FLAC, MP3 and MP4 files.
 
+The main purpose of this application is to be able to (easily) process files in bulk, so some of the functionality is optimized towards this.
+
 ## Usage
 
 `id3tag [FILE(S)] [FLAGS] [OPTIONS]`
