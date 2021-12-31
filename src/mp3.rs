@@ -18,7 +18,9 @@ pub fn process_mp3(
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
 
+    // Reat the tag - bomb out if it doesn't work.
     let mut tag = Tag::read_from_path(&filename)?;
+
     log::trace!("Tag = {:?}", tag);
     for frame in tag.frames() {
         log::debug!("{} = {}", frame.id(), frame.content());
@@ -26,7 +28,7 @@ pub fn process_mp3(
 
     // Print new tags
     for (key, value) in new_tags {
-        if !(config.detail_off.unwrap()) {
+        if !(config.detail_off.unwrap_or(false)) {
             log::info!("{} :: New {} = {}", &filename, key, value);
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -34,20 +36,166 @@ pub fn process_mp3(
 
         // Process the tags
         match key.as_ref() {
-            "APIC-F" => add_picture(&mut tag, value, PictureType::CoverFront)?,
-            "APIC-B" => add_picture(&mut tag, value, PictureType::CoverBack)?,
-            "COMM" => set_comment(&mut tag, value)?,
-            "TPOS" => tag.set_disc(u32::from_str_radix(value, 32)?),
-            "TPOS-T" => tag.set_total_discs(u32::from_str_radix(value, 32)?),
-            "TRCK" => tag.set_track(u32::from_str_radix(value, 32)?),
-            "TRCK-T" => tag.set_total_tracks(u32::from_str_radix(value, 32)?),
+            "APIC-F" => match add_picture(&mut tag, value, PictureType::CoverFront) {
+                Ok(_) => (),
+                Err(err) => {
+                    if config.stop_on_error.unwrap_or(false) {
+                        return Err(format!(
+                            "Unable to set front cover for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        )
+                        .into());
+                    } else {
+                        log::error!(
+                            "Unable to set front cover for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        );
+                    }
+                }
+            },
+            "APIC-B" => match add_picture(&mut tag, value, PictureType::CoverBack) {
+                Ok(_) => (),
+                Err(err) => {
+                    if config.stop_on_error.unwrap_or(false) {
+                        return Err(format!(
+                            "Unable to set back cover for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        )
+                        .into());
+                    } else {
+                        log::error!(
+                            "Unable to set back cover for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        );
+                    }
+                }
+            },
+            "COMM" => match set_comment(&mut tag, value) {
+                Ok(_) => (),
+                Err(err) => {
+                    if config.stop_on_error.unwrap_or(false) {
+                        return Err(format!(
+                            "Unable to set comment for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        )
+                        .into());
+                    } else {
+                        log::error!(
+                            "Unable to set comment for {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        );
+                    }
+                }
+            },
+            "TPOS" => {
+                let num;
+                match u32::from_str_radix(value, 32) {
+                    Ok(n) => num = n,
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set disc number to {}. Error: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
+                                value,
+                                err.to_string()
+                            );
+                            num = 1
+                        }
+                    }
+                }
+                tag.set_disc(num);
+            }
+            "TPOS-T" => {
+                let num;
+                match u32::from_str_radix(value, 32) {
+                    Ok(n) => num = n,
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set total discs to {}. Error: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
+                                value,
+                                err.to_string()
+                            );
+                            num = 1
+                        }
+                    }
+                }
+                tag.set_total_discs(num);
+            }
+            "TRCK" => {
+                let num;
+                match u32::from_str_radix(value, 32) {
+                    Ok(n) => num = n,
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set track number to {}. Error: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
+                                value,
+                                err.to_string()
+                            );
+                            num = 1
+                        }
+                    }
+                }
+                tag.set_track(num);
+            }
+            "TRCK-T" => {
+                let num;
+                match u32::from_str_radix(value, 32) {
+                    Ok(n) => num = n,
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set total tracks to {}. Error: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
+                                value,
+                                err.to_string()
+                            );
+                            num = 1
+                        }
+                    }
+                }
+                tag.set_total_tracks(num)
+            }
             _ => tag.set_text(key, value),
         }
     }
 
     // Process tags
 
-    if !config.dry_run.unwrap() {
+    if !config.dry_run.unwrap_or(true) {
         log::info!("Writing: {}.", filename);
         tag.write_to_path(filename, Version::Id3v24)?;
     } else {
@@ -58,26 +206,34 @@ pub fn process_mp3(
     Ok(())
 }
 
-fn add_picture(tags: &mut Tag, value: &str, cover_type: PictureType) -> Result<(), Box<dyn Error>> {
+fn add_picture(
+    tags: &mut Tag,
+    value: &str,
+    picture_type: PictureType,
+) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
-    tags.remove_picture_by_type(cover_type);
+    tags.remove_picture_by_type(picture_type);
     log::debug!("Reading image file {}", value);
 
-    let desc = if cover_type == PictureType::CoverFront {
+    let description = if picture_type == PictureType::CoverFront {
         "Front Cover".to_string()
     } else {
         "Back Cover".to_string()
     };
 
     // Read the file and check the mime type
-    let mime_fmt = shared::mime_type(value)?;
-    log::debug!("Image format: {}", mime_fmt);
+    let mime_type = shared::mime_type(value)?;
+    log::debug!("Image format: {}", mime_type);
+
+    log::debug!("Reading image file {}", value);
+    let data = fs::read(&value)?;
+
     log::debug!("Setting picture to {}", value);
     tags.add_picture(Picture {
-        mime_type: mime_fmt,
-        picture_type: cover_type,
-        description: desc,
-        data: fs::read(&value)?,
+        mime_type,
+        picture_type,
+        description,
+        data,
     });
 
     // Return safely

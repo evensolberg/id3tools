@@ -12,7 +12,7 @@ pub fn build_cli() -> ArgMatches<'static> {
             Arg::with_name("files")
                 .value_name("FILE(S)")
                 .help("One or more file(s) to process.")
-                .long_help("One or more files to process.  Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.")
+                .long_help("One or more files to process.  Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported. Use the ** glob to recurse (eg. **/*.mp3). Note: Case sensitive.")
                 .takes_value(true)
                 .multiple(true)
                 .required(true),

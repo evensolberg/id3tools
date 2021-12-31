@@ -26,8 +26,7 @@ pub fn process_flac(
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<(), Box<dyn Error>> {
-    let mut tags = Tag::read_from_path(&filename).unwrap();
-
+    let mut tags = Tag::read_from_path(&filename)?;
     log::debug!("Filename: {}", filename);
 
     // Output existing blocks
@@ -47,7 +46,7 @@ pub fn process_flac(
 
     // Set new tags
     for (key, value) in new_tags {
-        if !(config.detail_off.unwrap()) {
+        if !(config.detail_off.unwrap_or(false)) {
             log::info!("{} :: New {} = {}", &filename, key, value);
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -57,22 +56,58 @@ pub fn process_flac(
         match key.as_ref() {
             "PICTUREFRONT" => {
                 log::debug!("Setting front cover.");
-                add_picture(&mut tags, value, CoverFront)?;
-            }
+                match add_picture(&mut tags, value, CoverFront) {
+                    Ok(_) => log::trace!("Picture set."),
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(true) {
+                            return Err(format!(
+                                "Unable to set front cover to {}. Error message: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set front cover to {}. Continuing. Error message: {}",
+                                value,
+                                err.to_string()
+                            );
+                        }
+                    }
+                } // match
+            } // PICTUREFRONT
             "PICTUREBACK" => {
                 log::debug!("Setting back cover.");
-                add_picture(&mut tags, value, CoverBack)?;
-            }
+                match add_picture(&mut tags, value, CoverBack) {
+                    Ok(_) => log::trace!("Picture set."),
+                    Err(err) => {
+                        if config.stop_on_error.unwrap_or(true) {
+                            return Err(format!(
+                                "Unable to set back cover to {}. Error message: {}",
+                                value,
+                                err.to_string()
+                            )
+                            .into());
+                        } else {
+                            log::error!(
+                                "Unable to set back cover to {}. Error message: {}",
+                                value,
+                                err.to_string()
+                            );
+                        }
+                    }
+                } // match
+            } // PICTUREBACK
             _ => tags.set_vorbis(key.clone(), vec![value.clone()]),
-        }
+        } // match key.as_ref()
     }
 
     // Try to save
-    if !(config.dry_run.unwrap()) {
+    if !config.dry_run.unwrap_or(true) {
         log::debug!("Attempting to save file {}", filename);
         tags.save()?;
     } else {
-        log::debug!("Dry-run. Not saving.")
+        log::debug!("Dry-run. Not saving.");
     }
 
     log::debug!("Picture count: {}", tags.pictures().count());
@@ -89,13 +124,14 @@ fn add_picture(
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_type(cover_type);
-    log::debug!("Reading image file {}", value);
 
     // Read the file and check the mime type
     let mime_fmt = shared::mime_type(value)?;
-    log::debug!("Image format: {}", mime_fmt);
-    log::debug!("Setting picture to {}", value);
-    tags.add_picture(mime_fmt, cover_type, fs::read(&value)?);
+    log::debug!("MIME type: {}", mime_fmt);
+    log::debug!("Reading image file {}", value);
+    let data = fs::read(&value)?;
+    log::debug!("Attempting to set picture.");
+    tags.add_picture(mime_fmt, cover_type, data);
 
     // Return safely
     Ok(())

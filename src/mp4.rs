@@ -13,7 +13,7 @@ pub fn process_mp4(
     log::debug!("Filename: {}", &filename);
 
     // Read existing tags
-    let mut tag = Tag::read_from_path(filename).unwrap();
+    let mut tag = Tag::read_from_path(filename)?;
     log::trace!("Tag: {:?}", tag);
     for (data_ident, data) in tag.data() {
         log::debug!("{:?} = {:?}", data_ident, data);
@@ -25,7 +25,7 @@ pub fn process_mp4(
 
     // Print new tags
     for (key, value) in new_tags {
-        if !(config.detail_off.unwrap()) {
+        if !(config.detail_off.unwrap_or(false)) {
             log::info!("{} :: New {} = {}", &filename, key, value);
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -46,7 +46,7 @@ pub fn process_mp4(
             "soco" => tag.set_data(Fourcc(*b"soco"), Data::Utf8(value.into())), // Composer sort
             "©day" => tag.set_year(value),
             "©cmt" => tag.set_comment(value),
-            "covr-f" => set_picture(&mut tag, &value)?,
+            "covr-f" => set_picture(&mut tag, value)?,
             "covr-b" => log::warn!("Setting back cover on MP4 files is currently not implemented."),
             "disk" => tag.set_disc_number(u16::from_str_radix(value, 16)?),
             "disk-t" => tag.set_total_discs(u16::from_str_radix(value, 16)?),
@@ -61,7 +61,7 @@ pub fn process_mp4(
 
     // Process tags
 
-    if !config.dry_run.unwrap() {
+    if !config.dry_run.unwrap_or(true) {
         log::info!("Writing: {}.", filename);
         tag.write_to_path(filename)?;
     } else {
@@ -75,19 +75,17 @@ pub fn process_mp4(
 fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     let ext = shared::get_extension(value).to_lowercase();
-    let pic_fmt = match ext.as_ref() {
+    let fmt = match ext.as_ref() {
         "jpg" | "jpeg" => ImgFmt::Jpeg,
         "png" => ImgFmt::Png,
         "bmp" => ImgFmt::Bmp,
         _ => return Err("Unsupported image file format.".into()),
     };
     log::debug!("Reading image file {}", value);
+    let data = fs::read(&value)?;
 
     log::debug!("Setting picture to {}", value);
-    tags.set_artwork(mp4ameta::Img {
-        fmt: pic_fmt,
-        data: fs::read(&value)?,
-    });
+    tags.set_artwork(mp4ameta::Img { fmt, data });
 
     // Return safely
     Ok(())

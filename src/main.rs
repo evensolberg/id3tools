@@ -56,21 +56,20 @@ fn run() -> Result<(), Box<dyn Error>> {
     config.dry_run = Some(args::dry_run(&config, &cli_args));
     log::debug!("Working config: {:?}", &config);
 
-    if config.quiet.unwrap() {
+    if config.quiet.unwrap_or(false) {
         logbuilder.filter_level(LevelFilter::Off);
     }
 
     // let show_detail_info = !cli_args.is_present("detail-off");
-    if config.dry_run.unwrap() {
+    if config.dry_run.unwrap_or(true) {
         log::info!("Dry-run starting.");
     }
 
-    let mut total_file_count: usize = 0;
-    let mut processed_file_count: usize = 0;
-    let mut skipped_file_count: usize = 0;
+    let mut counts = shared::Counts::default();
+    log::debug!("counts = {:?}", counts);
 
     // create a list of the files to gather
-    let file_list = cli_args.values_of("files").unwrap();
+    let file_list = cli_args.values_of("files").unwrap_or_default();
     log::debug!("File list: {:?}", file_list);
 
     if cli_args.is_present("tags") {
@@ -84,40 +83,50 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     for filename in file_list {
         match shared::get_extension(filename).as_ref() {
-            "flac" => {
-                log::debug!("Processing FLAC.");
-                let new_tags = args::parse_options(args::FileType::FLAC, &config, &cli_args)?;
-                log::debug!("New tags: {:?}", new_tags);
-                flac::process_flac(filename, &new_tags, &config)?;
-                processed_file_count += 1;
-            }
-            "mp3" => {
-                log::debug!("Processing MP3.");
-                let new_tags = args::parse_options(args::FileType::MP3, &config, &cli_args)?;
-                log::debug!("New tags: {:?}", new_tags);
-                mp3::process_mp3(filename, &new_tags, &config)?;
-                processed_file_count += 1;
-            }
-            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => {
-                log::debug!("Processing MP4.");
-                let new_tags = args::parse_options(args::FileType::MP4, &config, &cli_args)?;
-                log::debug!("New tags: {:?}", new_tags);
-                mp4::process_mp4(filename, &new_tags, &config)?;
-                processed_file_count += 1;
-            }
+            "flac" => process_file(
+                args::FileType::Flac,
+                filename,
+                &config,
+                &cli_args,
+                &mut counts,
+            )?, // process flac
+            "mp3" => process_file(
+                args::FileType::MP3,
+                filename,
+                &config,
+                &cli_args,
+                &mut counts,
+            )?, // process mp3
+            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => process_file(
+                args::FileType::MP4,
+                filename,
+                &config,
+                &cli_args,
+                &mut counts,
+            )?, // process mp4
             _ => {
-                log::debug!("Processing unknown or other.");
-                skipped_file_count += 1;
-            }
+                if config.stop_on_error.unwrap_or(true) {
+                    return Err("Unknown file type. Unable to proceed.".into());
+                } else {
+                    log::debug!("Unknown file type. Skipping.");
+                }
+                counts.skipped_file_count += 1;
+            } // Unknown
         }
-        total_file_count += 1;
+        counts.total_file_count += 1;
     }
 
     // Print summary information
-    if config.print_summary.unwrap() {
-        log::info!("Total files examined:        {:5}", total_file_count);
-        log::info!("Files processed:             {:5}", processed_file_count);
-        log::info!("Files skipped due to errors: {:5}", skipped_file_count);
+    if config.print_summary.unwrap_or(false) {
+        log::info!("Total files examined:        {:5}", counts.total_file_count);
+        log::info!(
+            "Files processed:             {:5}",
+            counts.processed_file_count
+        );
+        log::info!(
+            "Files skipped due to errors: {:5}",
+            counts.skipped_file_count
+        );
     }
 
     // Everything is a-okay in the end
@@ -134,4 +143,86 @@ fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
+}
+
+/// Performs the actual file processing
+///
+/// Parameters:
+///
+/// - `file_type: args::FileType` -- the type of file to process (`Flac`, `MP3` or `MP4`)
+/// - `filename: &str` -- the name of the file
+/// - `config: &DefaultValuess` -- The default config values to use (stop on error, etc)
+/// - `cli_args: &clap::ArgMatches` -- The config values and options supplied from the CLI
+/// - `counts: &mut shared::Counts` -- A struct for various file counters (skipped, processed, total)
+///
+/// Returns:
+///
+/// - `Ok()` if everything goes well.
+/// - `Box<dyn Error>` if we run into problems
+fn process_file(
+    file_type: args::FileType,
+    filename: &str,
+    config: &DefaultValues,
+    cli_args: &clap::ArgMatches,
+    counts: &mut shared::Counts,
+) -> Result<(), Box<dyn Error>> {
+    match file_type {
+        args::FileType::Flac => log::debug!("Processing FLAC."),
+        args::FileType::MP3 => log::debug!("Processing MP3."),
+        args::FileType::MP4 => log::debug!("Processing MP4."),
+    }
+
+    let new_tags_result = args::parse_options(file_type, config, cli_args);
+    log::debug!("new_tags_result: {:?}", new_tags_result);
+    let new_tags;
+    match new_tags_result {
+        Ok(res) => {
+            new_tags = res;
+            log::debug!("New tags: {:?}", new_tags);
+
+            log::debug!("Processing file.");
+            let proc_res = match file_type {
+                args::FileType::Flac => flac::process_flac(filename, &new_tags, config),
+                args::FileType::MP3 => mp3::process_mp3(filename, &new_tags, config),
+                args::FileType::MP4 => mp4::process_mp4(filename, &new_tags, config),
+            };
+
+            match proc_res {
+                Ok(_) => counts.processed_file_count += 1,
+                Err(err) => {
+                    if config.stop_on_error.unwrap_or(true) {
+                        return Err(format!(
+                            "Unable to process {}. Error: {}",
+                            filename,
+                            err.to_string()
+                        )
+                        .into());
+                    } else {
+                        log::error!("Unable to process {}. Error: {}", filename, err.to_string());
+                        counts.skipped_file_count += 1;
+                    }
+                }
+            } // match flag::process_flac
+        } // Ok(_)
+        Err(err) => {
+            if config.stop_on_error.unwrap_or(true) {
+                return Err(format!(
+                    "Unable to parse tags for {}. Error: {}",
+                    filename,
+                    err.to_string()
+                )
+                .into());
+            } else {
+                log::error!(
+                    "Unable to parse tags for {}. Error: {}",
+                    filename,
+                    err.to_string()
+                );
+                counts.skipped_file_count += 1;
+            }
+        } // Err(err)
+    } // match new_tags_result
+
+    // return safely
+    Ok(())
 }

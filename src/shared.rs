@@ -29,6 +29,23 @@ pub fn get_extension(filename: &str) -> String {
         .unwrap_or_else(|| OsStr::new("unknown"))
         .to_ascii_lowercase()
         .to_str()
-        .unwrap()
+        .unwrap_or("")
         .to_string()
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct Counts {
+    pub total_file_count: usize,
+    pub processed_file_count: usize,
+    pub skipped_file_count: usize,
+}
+
+// impl Default for Counts {
+//     fn default() -> Self {
+//         Self {
+//             total_file_count: 0,
+//             processed_file_count: 0,
+//             skipped_file_count: 0,
+//         }
+//     }
+// }
