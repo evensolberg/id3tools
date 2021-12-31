@@ -1,9 +1,9 @@
 // Process the CLI arguments and find out which flags to set
 use std::collections::HashMap;
 use std::error::Error;
-use std::path::Path;
 
 use crate::default_values::DefaultValues;
+use crate::shared;
 use clap::ArgMatches;
 
 /// The types of files we can process
@@ -41,6 +41,7 @@ struct TagNames {
 /// Collect the various options submitted into a HashMap for later use.
 /// Also checks the default values loaded from a config file.
 pub fn parse_options(
+    filename: &str,
     file_type: FileType,
     defaults: &DefaultValues,
     args: &ArgMatches,
@@ -268,35 +269,29 @@ pub fn parse_options(
 
     // Front cover
     if args.is_present("picture-front") {
-        let picture_front = args.value_of("picture-front").unwrap_or("");
-        if Path::new(&picture_front).exists() {
-            new_tags.insert(tag_names.picture_front, picture_front.to_string());
+        let pf_arg = args.value_of("picture-front").unwrap_or("");
+        if let Some(picture) = shared::find_picture(&filename, pf_arg, defaults)? {
+            new_tags.insert(tag_names.picture_front, picture.to_string());
         } else if defaults.stop_on_error.unwrap_or(false) {
-            return Err(format!(
-                "Config file picture_front: file {} not found.",
-                &picture_front
-            )
-            .into());
+            return Err(format!("Argument picture-front file {} not found.", &pf_arg).into());
         } else {
             log::warn!(
-                "Config file picture_front: file {} not found. Continuing.",
-                &picture_front
+                "Argument picture_front: file {} not found. Continuing.",
+                &pf_arg
             );
         }
     } else if args.is_present("config") {
-        if let Some(picture_front) = &defaults.picture_front {
-            if Path::new(&picture_front).exists() {
-                new_tags.insert(tag_names.picture_front, picture_front.to_string());
+        if let Some(pf_arg) = &defaults.picture_front {
+            if let Some(picture) = shared::find_picture(&filename, pf_arg, defaults)? {
+                new_tags.insert(tag_names.picture_front, picture.to_string());
             } else if defaults.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "Config file picture_front: file {} not found.",
-                    &picture_front
-                )
-                .into());
+                return Err(
+                    format!("Config file picture_front: file {} not found.", &pf_arg).into(),
+                );
             } else {
                 log::warn!(
                     "Config file picture_front: file {} not found. Continuing.",
-                    &picture_front
+                    &pf_arg
                 );
             }
         } // if let Some(picture_front)
@@ -304,35 +299,29 @@ pub fn parse_options(
 
     // Back cover
     if args.is_present("picture-back") {
-        let picture_back = args.value_of("picture-back").unwrap_or("");
-        if Path::new(&picture_back).exists() {
-            new_tags.insert(tag_names.picture_back, picture_back.to_string());
+        let pf_arg = args.value_of("picture-back").unwrap_or("");
+        if let Some(picture) = shared::find_picture(&filename, pf_arg, defaults)? {
+            new_tags.insert(tag_names.picture_back, picture.to_string());
         } else if defaults.stop_on_error.unwrap_or(false) {
-            return Err(format!(
-                "Config file picture_back: file {} not found.",
-                &picture_back
-            )
-            .into());
+            return Err(format!("Config file picture_back: file {} not found.", &pf_arg).into());
         } else {
             log::warn!(
                 "Config file picture_back: file {} not found. Continuing.",
-                &picture_back
+                &pf_arg
             );
         }
     } else if args.is_present("config") {
-        if let Some(picture_back) = &defaults.picture_back {
-            if Path::new(&picture_back).exists() {
-                new_tags.insert(tag_names.picture_back, picture_back.to_string());
+        if let Some(pf_arg) = &defaults.picture_back {
+            if let Some(picture) = shared::find_picture(&filename, pf_arg, defaults)? {
+                new_tags.insert(tag_names.picture_back, picture.to_string());
             } else if defaults.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "Config file picture_back: file {} not found.",
-                    &picture_back
-                )
-                .into());
+                return Err(
+                    format!("Config file picture_back: file {} not found.", &pf_arg).into(),
+                );
             } else {
                 log::warn!(
                     "Config file picture_back: file {} not found. Continuing.",
-                    &picture_back
+                    &pf_arg
                 );
             }
         }

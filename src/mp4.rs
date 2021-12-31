@@ -73,13 +73,13 @@ pub fn process_mp4(
 }
 
 fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
-    log::debug!("Removing existing picture.");
-    let ext = shared::get_extension(value).to_lowercase();
+    log::debug!("Checking image file type.");
+    let ext = shared::get_extension(&value);
     let fmt = match ext.as_ref() {
         "jpg" | "jpeg" => ImgFmt::Jpeg,
         "png" => ImgFmt::Png,
         "bmp" => ImgFmt::Bmp,
-        _ => return Err("Unsupported image file format.".into()),
+        _ => return Err("Unsupported image file format. Must be one of BMP, JPEG or PNG.".into()),
     };
     log::debug!("Reading image file {}", value);
     let data = fs::read(&value)?;

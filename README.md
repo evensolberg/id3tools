@@ -49,8 +49,8 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-comment`|`--tm`|Any comments related to the track (or album).
 |`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
-|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album.
-|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album.
+|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory.
+|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 
@@ -102,8 +102,8 @@ This file describes the configuration parameters found in the config file. You c
 |`track_composer`|Any text||The track composer. Will be applied to each track.
 |`track_composer_sort`|Any text||The track composer. Will be applied to each track.
 |`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.
-|`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
-|`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). If just a filename is given, the application will look in the same folder as the file being processed for a file of that name.
+|`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
+|`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
 
 Note that any flags or options provided via the command line will override the default from the config file.
 

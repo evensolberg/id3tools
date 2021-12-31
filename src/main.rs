@@ -172,7 +172,7 @@ fn process_file(
         args::FileType::MP4 => log::debug!("Processing MP4."),
     }
 
-    let new_tags_result = args::parse_options(file_type, config, cli_args);
+    let new_tags_result = args::parse_options(&filename, file_type, config, cli_args);
     log::debug!("new_tags_result: {:?}", new_tags_result);
     let new_tags;
     match new_tags_result {
