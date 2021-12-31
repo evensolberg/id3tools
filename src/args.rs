@@ -8,13 +8,16 @@ use clap::ArgMatches;
 
 /// The types of files we can process
 #[derive(Debug, Copy, Clone)]
-pub enum FileType {
+pub enum FileTypes {
+    Ape,
     Flac,
     MP3,
     MP4,
+    Unknown,
 }
 
-/// Used to store the various tag names based on the file type
+/// Used to store the various tag names based on the file type.
+/// This is used in the `parse_options` function/
 #[derive(Debug, Default, Clone)]
 struct TagNames {
     album_artist: String,
@@ -42,7 +45,7 @@ struct TagNames {
 /// Also checks the default values loaded from a config file.
 pub fn parse_options(
     filename: &str,
-    file_type: FileType,
+    file_type: FileTypes,
     defaults: &DefaultValues,
     args: &ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
@@ -665,9 +668,9 @@ pub fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 }
 
 /// Gets the tag names based on the file type
-fn get_tag_names(file_type: FileType) -> TagNames {
+fn get_tag_names(file_type: FileTypes) -> TagNames {
     match file_type {
-        FileType::Flac => TagNames {
+        FileTypes::Ape | FileTypes::Flac => TagNames {
             album_artist: "ALBUMARTIST".to_string(),
             album_artist_sort: "ALBUMARTISTSORT".to_string(),
             album_title: "ALBUM".to_string(),
@@ -688,7 +691,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             picture_front: "PICTUREFRONT".to_string(),
             picture_back: "PICTUREBACK".to_string(),
         },
-        FileType::MP3 => TagNames {
+        FileTypes::MP3 => TagNames {
             album_artist: "TPE2".to_string(),
             album_artist_sort: "TSO2".to_string(),
             album_title: "TALB".to_string(),
@@ -709,7 +712,7 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             picture_front: "APIC-F".to_string(),
             picture_back: "APIC-B".to_string(),
         },
-        FileType::MP4 => TagNames {
+        FileTypes::MP4 => TagNames {
             album_artist: "aART".to_string(),
             album_artist_sort: "soaa".to_string(),
             album_title: "©alb".to_string(),
@@ -729,6 +732,27 @@ fn get_tag_names(file_type: FileType) -> TagNames {
             track_comments: "©cmt".to_string(),
             picture_front: "covr-f".to_string(),
             picture_back: "covr-b".to_string(),
+        },
+        FileTypes::Unknown => TagNames {
+            album_artist: "".to_string(),
+            album_artist_sort: "".to_string(),
+            album_title: "".to_string(),
+            album_title_sort: "".to_string(),
+            disc_number: "".to_string(),
+            disc_total: "".to_string(),
+            track_artist: "".to_string(),
+            track_artist_sort: "".to_string(),
+            track_title: "".to_string(),
+            track_title_sort: "".to_string(),
+            track_number: "".to_string(),
+            track_number_total: "".to_string(),
+            track_genre: "".to_string(),
+            track_composer: "".to_string(),
+            track_composer_sort: "".to_string(),
+            track_date: "".to_string(),
+            track_comments: "".to_string(),
+            picture_front: "".to_string(),
+            picture_back: "".to_string(),
         },
     }
 }

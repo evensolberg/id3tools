@@ -1,16 +1,16 @@
 # ID3tag
 
-A simple application for updating ID3 tags in FLAC and MP3 files.
+A simple application for updating ID3 tags in APE, FLAC, MP3 and MP4 files.
 
 ## Usage
 
-`id3tag [FLAGS] [OPTIONS] [FILE(S)]...`
+`id3tag [FILE(S)] [FLAGS] [OPTIONS]`
 
 Examples:
 
-- `id3tag -r --album-genre Rock **/*.flac` - dry run that would have set all FLAC files in all subdirectories to have the genre "Rock".
-- `id3tag -q --disc-number 1 --album-artist Adele --album-title 25 *.mp3` - set album artist to "Adele", album title to "25" and disc number to 1 for all MP3 files in the current directory. Do not output anything other than errors.
-- `id3tag -q --dn 1 --aa Adele --at 25 *.mp3` - same as previous, only shorter.
+- `id3tag **/*.flac -r --album-genre Rock` - dry run that would have set all FLAC files in all subdirectories to have the genre "Rock".
+- `id3tag *.mp3 -q --disc-number 1 --album-artist Adele --album-title 25` - set album artist to "Adele", album title to "25" and disc number to 1 for all MP3 files in the current directory. Do not output anything other than errors.
+- `id3tag *.mp3 -q --dn 1 --aa Adele --at 25` - same as previous, only shorter.
 
 ### Flags
 
@@ -49,8 +49,8 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-comment`|`--tm`|Any comments related to the track (or album).
 |`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
-|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory.
-|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory.
+|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
+|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 

@@ -5,6 +5,7 @@ use env_logger::{Builder, Target};
 use log::LevelFilter;
 
 // Local modules
+mod ape;
 mod args;
 mod cli;
 mod default_values;
@@ -12,6 +13,7 @@ mod flac;
 mod mp3;
 mod mp4;
 mod shared;
+
 use crate::default_values::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -82,37 +84,23 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Read the new tags from the CLI arguments
 
     for filename in file_list {
+        let file_type;
         match shared::get_extension(filename).as_ref() {
-            "flac" => process_file(
-                args::FileType::Flac,
-                filename,
-                &config,
-                &cli_args,
-                &mut counts,
-            )?, // process flac
-            "mp3" => process_file(
-                args::FileType::MP3,
-                filename,
-                &config,
-                &cli_args,
-                &mut counts,
-            )?, // process mp3
-            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => process_file(
-                args::FileType::MP4,
-                filename,
-                &config,
-                &cli_args,
-                &mut counts,
-            )?, // process mp4
+            "ape" => file_type = args::FileTypes::Ape,
+            "flac" => file_type = args::FileTypes::Flac, // process flac
+            "mp3" => file_type = args::FileTypes::MP3,
+            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = args::FileTypes::MP4,
             _ => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err("Unknown file type. Unable to proceed.".into());
                 } else {
                     log::debug!("Unknown file type. Skipping.");
+                    file_type = args::FileTypes::Unknown;
                 }
                 counts.skipped_file_count += 1;
             } // Unknown
         }
+        process_file(file_type, filename, &config, &cli_args, &mut counts)?;
         counts.total_file_count += 1;
     }
 
@@ -160,16 +148,18 @@ fn main() {
 /// - `Ok()` if everything goes well.
 /// - `Box<dyn Error>` if we run into problems
 fn process_file(
-    file_type: args::FileType,
+    file_type: args::FileTypes,
     filename: &str,
     config: &DefaultValues,
     cli_args: &clap::ArgMatches,
     counts: &mut shared::Counts,
 ) -> Result<(), Box<dyn Error>> {
     match file_type {
-        args::FileType::Flac => log::debug!("Processing FLAC."),
-        args::FileType::MP3 => log::debug!("Processing MP3."),
-        args::FileType::MP4 => log::debug!("Processing MP4."),
+        args::FileTypes::Ape => log::debug!("Processing APE."),
+        args::FileTypes::Flac => log::debug!("Processing FLAC."),
+        args::FileTypes::MP3 => log::debug!("Processing MP3."),
+        args::FileTypes::MP4 => log::debug!("Processing MP4."),
+        args::FileTypes::Unknown => log::error!("Unknown file type."),
     }
 
     let new_tags_result = args::parse_options(&filename, file_type, config, cli_args);
@@ -182,9 +172,13 @@ fn process_file(
 
             log::debug!("Processing file.");
             let proc_res = match file_type {
-                args::FileType::Flac => flac::process_flac(filename, &new_tags, config),
-                args::FileType::MP3 => mp3::process_mp3(filename, &new_tags, config),
-                args::FileType::MP4 => mp4::process_mp4(filename, &new_tags, config),
+                args::FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
+                args::FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
+                args::FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
+                args::FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
+                args::FileTypes::Unknown => {
+                    return Err(format!("Unknown file type: {}", filename).into())
+                }
             };
 
             match proc_res {
