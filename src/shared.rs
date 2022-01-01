@@ -109,7 +109,7 @@ pub fn find_picture(
         // No picture found - act accordingly
         return Err(format!("Picture file {} does not exist.", p_filename).into());
     } else {
-        return Ok(None);
+        Ok(None)
     }
 }
 

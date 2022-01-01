@@ -46,7 +46,7 @@ pub fn process_file(
         FileTypes::Unknown => return Err(format!("Unknown file type: {}", filename).into()),
     }
 
-    let new_tags_result = args::parse_options(&filename, file_type, config, cli_args);
+    let new_tags_result = args::parse_options(filename, file_type, config, cli_args);
     log::debug!("new_tags_result: {:?}", new_tags_result);
     let new_tags;
     match new_tags_result {

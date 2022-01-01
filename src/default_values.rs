@@ -137,11 +137,11 @@ impl DefaultValues {
         }
 
         // Collate config file flags and CLI flags and output the right config
-        config.quiet = Some(args::quiet(&config, &cli_args));
-        config.stop_on_error = Some(args::stop_on_error(&config, &cli_args));
-        config.print_summary = Some(args::print_summary(&config, &cli_args));
-        config.detail_off = Some(args::detail_off(&config, &cli_args));
-        config.dry_run = Some(args::dry_run(&config, &cli_args));
+        config.quiet = Some(args::quiet(&config, cli_args));
+        config.stop_on_error = Some(args::stop_on_error(&config, cli_args));
+        config.print_summary = Some(args::print_summary(&config, cli_args));
+        config.detail_off = Some(args::detail_off(&config, cli_args));
+        config.dry_run = Some(args::dry_run(&config, cli_args));
         log::debug!("Working config: {:?}", &config);
 
         Ok(config)

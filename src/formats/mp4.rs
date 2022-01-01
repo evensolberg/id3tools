@@ -74,7 +74,7 @@ pub fn process_mp4(
 
 fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Checking image file type.");
-    let ext = shared::get_extension(&value);
+    let ext = shared::get_extension(value);
     let fmt = match ext.as_ref() {
         "jpg" | "jpeg" => ImgFmt::Jpeg,
         "png" => ImgFmt::Png,
