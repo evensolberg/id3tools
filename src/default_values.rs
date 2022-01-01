@@ -4,8 +4,10 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
+use crate::args;
+
 /// The default values for the flags and options.
-#[derive(Debug, Default, Deserialize)]
+#[derive(Debug, Default, Clone, Deserialize)]
 pub struct DefaultValues {
     /// Flag: Do not output detail about each item processed.
     pub detail_off: Option<bool>,
@@ -92,7 +94,7 @@ impl DefaultValues {
     }
 
     /// Loads the config from the supplied TOML file.
-    pub fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
+    fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
 
         let mut file = match File::open(&filename) {
@@ -118,4 +120,30 @@ impl DefaultValues {
 
         Ok(config)
     } // pub fn load_config
+
+    pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
+        let mut config = DefaultValues::new();
+
+        if cli_args.is_present("config-file") {
+            let config_filename = shellexpand::tilde(
+                cli_args
+                    .value_of("config-file")
+                    .unwrap_or("~/.id3tag-config.toml"),
+            )
+            .to_string();
+            log::debug!("Config filename: {}", config_filename);
+            config = DefaultValues::load_config(&config_filename)?;
+            log::debug!("Loaded config: {:?}", &config);
+        }
+
+        // Collate config file flags and CLI flags and output the right config
+        config.quiet = Some(args::quiet(&config, &cli_args));
+        config.stop_on_error = Some(args::stop_on_error(&config, &cli_args));
+        config.print_summary = Some(args::print_summary(&config, &cli_args));
+        config.detail_off = Some(args::detail_off(&config, &cli_args));
+        config.dry_run = Some(args::dry_run(&config, &cli_args));
+        log::debug!("Working config: {:?}", &config);
+
+        Ok(config)
+    }
 } // impl DefaultValues

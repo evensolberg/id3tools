@@ -1,3 +1,6 @@
+//! Various file format parsers. The different types of file formats (ie. APE, FLAC, MP3, MP4)
+//! all reside under this crate, so they don't have to be exposed to the main body of code.git t
+
 use crate::default_values::DefaultValues;
 use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};

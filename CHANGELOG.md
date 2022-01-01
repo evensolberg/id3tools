@@ -1,4 +1,8 @@
 
+<a name="v0.5.2"></a>
+## [v0.5.2](https://github.com/evensolberg/id3tag/compare/v0.5.0...v0.5.2) (2022-01-01)
+
+
 <a name="v0.5.0"></a>
 ## [v0.5.0](https://github.com/evensolberg/id3tag/compare/v0.4.2...v0.5.0) (2021-12-31)
 

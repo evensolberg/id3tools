@@ -1,17 +1,13 @@
 use std::error::Error;
 
 // Logging
-use env_logger::{Builder, Target};
 use log::LevelFilter;
 
 // Local modules
-mod ape;
 mod args;
 mod cli;
 mod default_values;
-mod flac;
-mod mp3;
-mod mp4;
+mod formats;
 mod shared;
 
 use crate::default_values::*;
@@ -23,43 +19,13 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = cli::build_cli();
 
     // Configure logging
-    let mut logbuilder = Builder::new();
-    if cli_args.is_present("quiet") {
-        logbuilder.filter_level(LevelFilter::Off);
-    } else {
-        match cli_args.occurrences_of("debug") {
-            0 => logbuilder.filter_level(LevelFilter::Info),
-            1 => logbuilder.filter_level(LevelFilter::Debug),
-            _ => logbuilder.filter_level(LevelFilter::Trace),
-        };
-    }
-    logbuilder.filter_module("metaflac::block", LevelFilter::Warn);
-    logbuilder.target(Target::Stdout).init();
+    let mut logs = shared::build_log(&cli_args)?;
 
-    // Read the config file if asked to
-    let mut config = DefaultValues::new();
-    if cli_args.is_present("config-file") {
-        let config_filename = shellexpand::tilde(
-            cli_args
-                .value_of("config-file")
-                .unwrap_or("~/.id3tag-config.toml"),
-        )
-        .to_string();
-        log::debug!("Config filename: {}", config_filename);
-        config = DefaultValues::load_config(&config_filename)?;
-        log::debug!("Loaded config: {:?}", &config);
-    }
-
-    // Collate config file flags and CLI flags and output the right config
-    config.quiet = Some(args::quiet(&config, &cli_args));
-    config.stop_on_error = Some(args::stop_on_error(&config, &cli_args));
-    config.print_summary = Some(args::print_summary(&config, &cli_args));
-    config.detail_off = Some(args::detail_off(&config, &cli_args));
-    config.dry_run = Some(args::dry_run(&config, &cli_args));
-    log::debug!("Working config: {:?}", &config);
+    // Build the config -- read the CLI arguments and the config file if one is provided.
+    let config = DefaultValues::build_config(&cli_args)?;
 
     if config.quiet.unwrap_or(false) {
-        logbuilder.filter_level(LevelFilter::Off);
+        logs.filter_level(LevelFilter::Off);
     }
 
     // let show_detail_info = !cli_args.is_present("detail-off");
@@ -67,8 +33,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::info!("Dry-run starting.");
     }
 
+    // Initialize counters for total files, skipped and processed.
     let mut counts = shared::Counts::default();
-    log::debug!("counts = {:?}", counts);
 
     // create a list of the files to gather
     for file in cli_args.values_of("files").unwrap() {
@@ -81,26 +47,25 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // Read the new tags from the CLI arguments
-
+    // Process things
     for filename in cli_args.values_of("files").unwrap() {
         let file_type;
         match shared::get_extension(filename).as_ref() {
-            "ape" => file_type = args::FileTypes::Ape,
-            "flac" => file_type = args::FileTypes::Flac, // process flac
-            "mp3" => file_type = args::FileTypes::MP3,
-            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = args::FileTypes::MP4,
+            "ape" => file_type = formats::FileTypes::Ape,
+            "flac" => file_type = formats::FileTypes::Flac, // process flac
+            "mp3" => file_type = formats::FileTypes::MP3,
+            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = formats::FileTypes::MP4,
             _ => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err("Unknown file type. Unable to proceed.".into());
                 } else {
                     log::debug!("Unknown file type. Skipping.");
-                    file_type = args::FileTypes::Unknown;
+                    file_type = formats::FileTypes::Unknown;
                 }
                 counts.skipped_file_count += 1;
             } // Unknown
         }
-        process_file(file_type, filename, &config, &cli_args, &mut counts)?;
+        formats::process_file(file_type, filename, &config, &cli_args, &mut counts)?;
         counts.total_file_count += 1;
     }
 
@@ -131,92 +96,4 @@ fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
-}
-
-/// Performs the actual file processing
-///
-/// Parameters:
-///
-/// - `file_type: args::FileType` -- the type of file to process (`Flac`, `MP3` or `MP4`)
-/// - `filename: &str` -- the name of the file
-/// - `config: &DefaultValuess` -- The default config values to use (stop on error, etc)
-/// - `cli_args: &clap::ArgMatches` -- The config values and options supplied from the CLI
-/// - `counts: &mut shared::Counts` -- A struct for various file counters (skipped, processed, total)
-///
-/// Returns:
-///
-/// - `Ok()` if everything goes well.
-/// - `Box<dyn Error>` if we run into problems
-fn process_file(
-    file_type: args::FileTypes,
-    filename: &str,
-    config: &DefaultValues,
-    cli_args: &clap::ArgMatches,
-    counts: &mut shared::Counts,
-) -> Result<(), Box<dyn Error>> {
-    match file_type {
-        args::FileTypes::Ape => log::debug!("Processing APE."),
-        args::FileTypes::Flac => log::debug!("Processing FLAC."),
-        args::FileTypes::MP3 => log::debug!("Processing MP3."),
-        args::FileTypes::MP4 => log::debug!("Processing MP4."),
-        args::FileTypes::Unknown => log::error!("Unknown file type."),
-    }
-
-    let new_tags_result = args::parse_options(&filename, file_type, config, cli_args);
-    log::debug!("new_tags_result: {:?}", new_tags_result);
-    let new_tags;
-    match new_tags_result {
-        Ok(res) => {
-            new_tags = res;
-            log::debug!("New tags: {:?}", new_tags);
-
-            log::debug!("Processing file.");
-            let proc_res = match file_type {
-                args::FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
-                args::FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
-                args::FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
-                args::FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
-                args::FileTypes::Unknown => {
-                    return Err(format!("Unknown file type: {}", filename).into())
-                }
-            };
-
-            match proc_res {
-                Ok(_) => counts.processed_file_count += 1,
-                Err(err) => {
-                    if config.stop_on_error.unwrap_or(true) {
-                        return Err(format!(
-                            "Unable to process {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        )
-                        .into());
-                    } else {
-                        log::error!("Unable to process {}. Error: {}", filename, err.to_string());
-                        counts.skipped_file_count += 1;
-                    }
-                }
-            } // match flag::process_flac
-        } // Ok(_)
-        Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
-                )
-                .into());
-            } else {
-                log::error!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
-                );
-                counts.skipped_file_count += 1;
-            }
-        } // Err(err)
-    } // match new_tags_result
-
-    // return safely
-    Ok(())
 }
