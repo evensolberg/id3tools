@@ -71,19 +71,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::debug!("counts = {:?}", counts);
 
     // create a list of the files to gather
-    let file_list = cli_args.values_of("files").unwrap_or_default();
-    log::debug!("File list: {:?}", file_list);
+    for file in cli_args.values_of("files").unwrap() {
+        log::debug!("file: {:?}", file);
+    }
 
     if cli_args.is_present("tags") {
-        log::debug!("tags = {:?}", cli_args.values_of("tags"));
-        if let Some(tags) = cli_args.values_of("tags") {
-            log::debug!("tag = {:?}", tags);
+        for value in cli_args.values_of("tags").unwrap() {
+            log::debug!("tag = {:?}", value);
         }
     }
 
     // Read the new tags from the CLI arguments
 
-    for filename in file_list {
+    for filename in cli_args.values_of("files").unwrap() {
         let file_type;
         match shared::get_extension(filename).as_ref() {
             "ape" => file_type = args::FileTypes::Ape,
