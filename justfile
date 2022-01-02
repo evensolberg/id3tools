@@ -5,7 +5,7 @@
 # https://github.com/casey/just
 
 # VARIABLES
-application := "reinit"
+application := "id3tag"
 
 # ALIASES
 alias b := build
@@ -133,6 +133,7 @@ alias r := release
     git commit -m doc:Initial
     git tag Initial
     git cliff --init
+    cp ~/CloudStation/Source/_Templates/cliff.toml {{invocation_directory()}}/
 
 # Re-initialize the directory for various services -- stripped down version of init
 
@@ -140,11 +141,10 @@ alias r := release
     git mit-install
     git mit-config lint enable subject-line-not-capitalized
     git mit-config lint enable subject-line-ends-with-period
-    git mit-config lint enable not-conventional-commit
-    git mit-config lint enable not-emoji-log
     git mit-config mit set es "Even Solberg" even.solberg@gmail.com
     git mit es
     git cliff --init
+    cp ~/CloudStation/Source/_Templates/cliff.toml {{invocation_directory()}}/
 
 # Read the documentation
 @read:
@@ -202,7 +202,7 @@ alias r := release
     -cargo install tokei
     -cargo install cargo-semver --vers 1.0.0-alpha.3
     -cargo install cargo-deny
-    -brew tap git-chglog/git-chglog && brew install git-chglog
-    -brew install PurpleBooth/repo/git-mit &&
+    -cargo install git-cliff
+    -brew install PurpleBooth/repo/git-mit
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     echo "Make sure to also install Graphviz."
