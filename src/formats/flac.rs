@@ -1,5 +1,4 @@
-//! Various file format parsers. The different types of file formats (ie. APE, FLAC, MP3, MP4)
-//! all reside under this crate, so they don't have to be exposed to the main body of code.git t
+//! Contains the functionality to process FLAC files.
 
 use crate::default_values::DefaultValues;
 use crate::shared;
@@ -9,7 +8,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 
-/// Process a FLAC file with tags and images.
+/// Performs the actual processing of FLAC files.
 ///
 /// **Parameters:**
 ///

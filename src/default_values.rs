@@ -1,3 +1,5 @@
+//! Contains the struct and functions to maintain the confiuration state.
+
 // Read default values from config file
 use serde::Deserialize;
 use std::error::Error;

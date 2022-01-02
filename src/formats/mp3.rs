@@ -10,7 +10,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 
-/// Process MP3 file - set tags and covers
+/// Performs the actual processing of MP4 files.
 pub fn process_mp3(
     filename: &str,
     new_tags: &HashMap<String, String>,
@@ -206,6 +206,7 @@ pub fn process_mp3(
     Ok(())
 }
 
+/// Adds front or back covers
 fn add_picture(
     tags: &mut Tag,
     value: &str,
@@ -240,6 +241,7 @@ fn add_picture(
     Ok(())
 }
 
+/// Sets the comments field
 fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing {} existing comment(s):", tags.comments().count());
     for comment in tags.comments() {

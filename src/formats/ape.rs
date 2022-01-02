@@ -1,10 +1,11 @@
-//! Processes APE files
+//! Contains the functionality to process APE files.
+
 use crate::default_values::DefaultValues;
 // use crate shared; // for add_pictures
 use ape::{self, Item};
 use std::{collections::HashMap, error::Error};
 
-/// Processes APE files
+/// Performs the actual processing of APE files.
 pub fn process_ape(
     filename: &str,
     new_tags: &HashMap<String, String>,

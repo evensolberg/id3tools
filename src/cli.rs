@@ -1,3 +1,4 @@
+//! Contains a single function to build the CLI
 use clap::{App, Arg, ArgMatches};
 
 /// Builds the CLI so the main file doesn't get cluttered.

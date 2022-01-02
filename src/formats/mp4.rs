@@ -1,3 +1,5 @@
+//! Contains the functionality to process MP4 files.
+//!
 use crate::default_values::DefaultValues;
 use crate::shared;
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
@@ -5,6 +7,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 
+/// Performs the actual processing of MP4 files.
 pub fn process_mp4(
     filename: &str,
     new_tags: &HashMap<String, String>,
@@ -72,6 +75,7 @@ pub fn process_mp4(
     Ok(())
 }
 
+/// Sets the front or back cover
 fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Checking image file type.");
     let ext = shared::get_extension(value);
