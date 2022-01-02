@@ -91,6 +91,33 @@ impl DefaultValues {
         Self::default()
     }
 
+    /// Builds a config based on CLI arguments
+    pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
+        let mut config = DefaultValues::new();
+
+        if cli_args.is_present("config-file") {
+            let config_filename = shellexpand::tilde(
+                cli_args
+                    .value_of("config-file")
+                    .unwrap_or("~/.id3tag-config.toml"),
+            )
+            .to_string();
+            log::debug!("Config filename: {}", config_filename);
+            config = DefaultValues::load_config(&config_filename)?;
+            log::debug!("Loaded config: {:?}", &config);
+        }
+
+        // Collate config file flags and CLI flags and output the right config
+        config.quiet = Some(quiet(&config, cli_args));
+        config.stop_on_error = Some(stop_on_error(&config, cli_args));
+        config.print_summary = Some(print_summary(&config, cli_args));
+        config.detail_off = Some(detail_off(&config, cli_args));
+        config.dry_run = Some(dry_run(&config, cli_args));
+        log::debug!("Working config: {:?}", &config);
+
+        Ok(config)
+    }
+
     /// Loads the config from the supplied TOML file.
     fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
@@ -118,32 +145,6 @@ impl DefaultValues {
 
         Ok(config)
     } // pub fn load_config
-
-    pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
-        let mut config = DefaultValues::new();
-
-        if cli_args.is_present("config-file") {
-            let config_filename = shellexpand::tilde(
-                cli_args
-                    .value_of("config-file")
-                    .unwrap_or("~/.id3tag-config.toml"),
-            )
-            .to_string();
-            log::debug!("Config filename: {}", config_filename);
-            config = DefaultValues::load_config(&config_filename)?;
-            log::debug!("Loaded config: {:?}", &config);
-        }
-
-        // Collate config file flags and CLI flags and output the right config
-        config.quiet = Some(quiet(&config, cli_args));
-        config.stop_on_error = Some(stop_on_error(&config, cli_args));
-        config.print_summary = Some(print_summary(&config, cli_args));
-        config.detail_off = Some(detail_off(&config, cli_args));
-        config.dry_run = Some(dry_run(&config, cli_args));
-        log::debug!("Working config: {:?}", &config);
-
-        Ok(config)
-    }
 } // impl DefaultValues
 
 // Housekeeping functions to check which flags have been set, either here or in the config file.

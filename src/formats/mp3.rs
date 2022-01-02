@@ -222,7 +222,7 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
-    let mime_type = shared::mime_type(value)?;
+    let mime_type = shared::get_mime_type(value)?;
     log::debug!("Image format: {}", mime_type);
 
     log::debug!("Reading image file {}", value);

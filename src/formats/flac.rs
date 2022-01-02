@@ -129,7 +129,7 @@ fn add_picture(
     tags.remove_picture_type(cover_type);
 
     // Read the file and check the mime type
-    let mime_fmt = shared::mime_type(value)?;
+    let mime_fmt = shared::get_mime_type(value)?;
     log::debug!("MIME type: {}", mime_fmt);
     log::debug!("Reading image file {}", value);
     let data = fs::read(value)?;

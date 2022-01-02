@@ -4,7 +4,6 @@ use std::error::Error;
 use log::LevelFilter;
 
 // Local modules
-mod args;
 mod cli;
 mod default_values;
 mod formats;
