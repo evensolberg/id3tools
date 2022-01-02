@@ -113,14 +113,15 @@ alias fmt := format
 @init:
     cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     cp ~/CloudStation/Source/_Templates/main_template.rs {{invocation_directory()}}/src/main.rs
-    cargo add clap
+    cargo add clap --features cargo color
     cargo add log
     cargo add env_logger
-    touch README.md
+    echo "# {{application}}\n\n" > README.md
+    git mit-install
     git remote add {{application}} https://github.com/evensolberg/{{application}}
+    git commit -m doc:Initial
     git tag Initial
-    git commit -m Initial
-    git-chglog --init
+    git cliff --init
 
 # Read the documentation
 @read:
@@ -179,5 +180,6 @@ alias fmt := format
     -cargo install cargo-semver --vers 1.0.0-alpha.3
     -cargo install cargo-deny
     -brew tap git-chglog/git-chglog && brew install git-chglog
+    -brew install PurpleBooth/repo/git-mit &&
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
     echo "Make sure to also install Graphviz."
