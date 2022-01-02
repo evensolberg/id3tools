@@ -1,5 +1,5 @@
 // Read default values from config file
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use std::error::Error;
 use std::fs::File;
 use std::io::Read;

@@ -193,7 +193,6 @@ dependencies = [
  "metaflac",
  "mp4ameta",
  "serde",
- "serde_derive",
  "shellexpand",
  "toml",
 ]
