@@ -4,9 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Chore
+
+- Repo maintenance
+
+### Documentation
+
+- Documentation update
+
 ### Miscellaneous Tasks
 
 - Added git cliff and conventional commits
+- Repo update
 
 ### Refactor
 
