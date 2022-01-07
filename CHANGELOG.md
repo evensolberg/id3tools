@@ -2,11 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.6.1] - 2022-01-07
 
 ### Features
 
 - Added `--track-number-count` option
+- Add config file support for file count
+
+### Miscellaneous Tasks
+
+- Update changelog
 
 ## [0.6.0] - 2022-01-03
 

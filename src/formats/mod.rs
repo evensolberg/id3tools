@@ -1,7 +1,7 @@
 //! Various file format parsers. The different types of file formats (ie. APE, FLAC, MP3, MP4)
 //! all reside under this crate, so they don't have to be exposed to the main body of code.
 
-use std::{collections::HashMap, error::Error, path::Path};
+use std::{collections::HashMap, error::Error, ffi::OsStr, path::Path};
 
 use crate::{default_values::DefaultValues, shared};
 
@@ -807,7 +807,14 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
     let file_list = std::fs::read_dir(Path::new(dir))?
         .into_iter()
         .map(|x| x.unwrap())
-        .filter(|x| x.path().extension().unwrap().to_str().unwrap() == ext);
+        .filter(|x| {
+            x.path()
+                .extension()
+                .unwrap_or(OsStr::new(""))
+                .to_str()
+                .unwrap_or("")
+                == ext
+        });
     log::debug!("file_list = {:?}", &file_list);
 
     // return safely with the number of files found
