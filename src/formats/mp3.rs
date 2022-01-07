@@ -29,7 +29,9 @@ pub fn process_mp3(
     // Print new tags
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            if config.dry_run.unwrap_or(false) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
+            }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -195,11 +197,11 @@ pub fn process_mp3(
 
     // Process tags
 
-    if !config.dry_run.unwrap_or(true) {
-        log::info!("Writing: {}.", filename);
-        tag.write_to_path(filename, Version::Id3v24)?;
-    } else {
+    if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
+    } else {
+        tag.write_to_path(filename, Version::Id3v24)?;
+        log::info!("Processed: {}", filename);
     }
 
     // return safely

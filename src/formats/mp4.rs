@@ -29,7 +29,9 @@ pub fn process_mp4(
     // Print new tags
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            if config.dry_run.unwrap_or(false) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
+            }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -64,11 +66,11 @@ pub fn process_mp4(
 
     // Process tags
 
-    if !config.dry_run.unwrap_or(true) {
-        log::info!("Writing: {}.", filename);
-        tag.write_to_path(filename)?;
-    } else {
+    if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
+    } else {
+        tag.write_to_path(filename)?;
+        log::info!("Processed: {}", filename);
     }
 
     // return safely

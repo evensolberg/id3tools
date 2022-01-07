@@ -49,7 +49,9 @@ pub fn process_flac(
     // Set new tags
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            if config.dry_run.unwrap_or(false) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
+            }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -105,11 +107,11 @@ pub fn process_flac(
     }
 
     // Try to save
-    if !config.dry_run.unwrap_or(true) {
-        log::debug!("Attempting to save file {}", filename);
-        tags.save()?;
-    } else {
+    if config.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
+    } else {
+        tags.save()?;
+        log::info!("Processed: {}", filename);
     }
 
     log::debug!("Picture count: {}", tags.pictures().count());

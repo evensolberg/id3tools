@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.6.3] - 2022-01-07
 
 ### Bug Fixes
 
 - Crashed if unknown file found on `--tnc`
+
+### Miscellaneous Tasks
+
+- Update changelog
 
 ## [0.6.1] - 2022-01-07
 

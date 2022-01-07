@@ -21,7 +21,9 @@ pub fn process_ape(
     // Set new tags
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            if config.dry_run.unwrap_or(false) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
+            }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -87,8 +89,8 @@ pub fn process_ape(
     if config.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
     } else {
-        log::debug!("Attempting to save file {}", filename);
         ape::write(&tags, filename)?;
+        log::info!("Processed: {}", filename);
     }
 
     // return safely
