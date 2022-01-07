@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.6.0] - 2022-01-03
 
 ### Chore
 
 - Repo maintenance
+- Changelog update
 
 ### Documentation
 

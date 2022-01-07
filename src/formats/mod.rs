@@ -153,7 +153,7 @@ fn parse_options(
             tag_names.album_artist,
             args.value_of("album-artist").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.album_artist {
             new_tags.insert(tag_names.album_artist, val.to_string());
         }
@@ -164,7 +164,7 @@ fn parse_options(
             tag_names.album_artist_sort,
             args.value_of("album-artist-sort").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.album_artist_sort {
             new_tags.insert(tag_names.album_artist_sort, val.to_string());
         }
@@ -175,7 +175,7 @@ fn parse_options(
             tag_names.album_title,
             args.value_of("album-title").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.album_title {
             new_tags.insert(tag_names.album_title, val.to_string());
         }
@@ -186,7 +186,7 @@ fn parse_options(
             tag_names.album_title_sort,
             args.value_of("album-title-sort").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.album_title {
             new_tags.insert(tag_names.album_title_sort, val.to_string());
         }
@@ -197,7 +197,7 @@ fn parse_options(
             tag_names.disc_number,
             args.value_of("disc-number").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.disc_number {
             new_tags.insert(tag_names.disc_number, val.to_string());
         }
@@ -208,7 +208,7 @@ fn parse_options(
             tag_names.disc_total,
             args.value_of("disc-total").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.disc_total {
             new_tags.insert(tag_names.disc_total, val.to_string());
         }
@@ -221,7 +221,7 @@ fn parse_options(
             tag_names.track_artist,
             args.value_of("track-artist").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_artist {
             new_tags.insert(tag_names.track_artist, val.to_string());
         }
@@ -232,7 +232,7 @@ fn parse_options(
             tag_names.track_artist_sort,
             args.value_of("track-artist-sort").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_artist_sort {
             new_tags.insert(tag_names.track_artist_sort, val.to_string());
         }
@@ -243,7 +243,7 @@ fn parse_options(
             tag_names.track_title,
             args.value_of("track-title").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_title {
             new_tags.insert(tag_names.track_title, val.to_string());
         }
@@ -254,7 +254,7 @@ fn parse_options(
             tag_names.track_title_sort,
             args.value_of("track-title-sort").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_title_sort {
             new_tags.insert(tag_names.track_title_sort, val.to_string());
         }
@@ -265,7 +265,7 @@ fn parse_options(
             tag_names.track_number,
             args.value_of("track-number").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_number {
             new_tags.insert(tag_names.track_number, val.to_string());
         }
@@ -273,13 +273,21 @@ fn parse_options(
 
     if args.is_present("track-total") {
         new_tags.insert(
-            tag_names.track_number_total,
+            tag_names.track_number_total.clone(),
             args.value_of("track-total").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") && !args.is_present("track-count") {
         if let Some(val) = &defaults.track_total {
-            new_tags.insert(tag_names.track_number_total, val.to_string());
+            new_tags.insert(tag_names.track_number_total.clone(), val.to_string());
         }
+    }
+
+    if args.is_present("track-count")
+        || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
+    {
+        let file_count = count_files(&filename)?.to_string();
+        log::debug!("file_count = {}", file_count);
+        new_tags.insert(tag_names.track_number_total, file_count);
     }
 
     if args.is_present("track-genre") {
@@ -287,7 +295,7 @@ fn parse_options(
             tag_names.track_genre.clone(),
             args.value_of("track-genre").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_genre {
             new_tags.insert(tag_names.track_genre.clone(), val.to_string());
         }
@@ -306,7 +314,7 @@ fn parse_options(
                 16,
             )?)?,
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_genre_number {
             new_tags.insert(tag_names.track_genre.clone(), get_genre_name(*val)?);
         }
@@ -317,7 +325,7 @@ fn parse_options(
             tag_names.track_composer,
             args.value_of("track-composer").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_composer {
             new_tags.insert(tag_names.track_composer, val.to_string());
         }
@@ -330,7 +338,7 @@ fn parse_options(
                 .unwrap_or("")
                 .to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_composer_sort {
             new_tags.insert(tag_names.track_composer_sort, val.to_string());
         }
@@ -341,7 +349,7 @@ fn parse_options(
             tag_names.track_date,
             args.value_of("track-date").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_date {
             new_tags.insert(tag_names.track_date, val.to_string());
         }
@@ -352,7 +360,7 @@ fn parse_options(
             tag_names.track_comments,
             args.value_of("track-comments").unwrap_or("").to_string(),
         );
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_comments {
             new_tags.insert(tag_names.track_comments, val.to_string());
         }
@@ -380,7 +388,7 @@ fn parse_options(
                 &pf_arg
             );
         }
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(pf_arg) = &defaults.picture_front {
             if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
                 new_tags.insert(tag_names.picture_front, picture);
@@ -418,7 +426,7 @@ fn parse_options(
                 &pf_arg
             );
         }
-    } else if args.is_present("config") {
+    } else if args.is_present("config-file") {
         if let Some(pf_arg) = &defaults.picture_back {
             if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
                 new_tags.insert(tag_names.picture_back, picture);
@@ -782,4 +790,26 @@ fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 
     // return the value
     Ok(return_string.to_string())
+}
+
+/// Counts the number of files in with the same extension in the same directory as the file specified.
+fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
+    let ext = shared::get_extension(filename);
+    log::debug!("ext = {}", ext);
+
+    let dir = Path::new(&filename).parent().unwrap_or(Path::new("."));
+    log::debug!("dir = {}", dir.display());
+
+    if !dir.is_dir() {
+        return Err(format!("Unable to get directory name from filename {}.", filename).into());
+    }
+
+    let file_list = std::fs::read_dir(Path::new(dir))?
+        .into_iter()
+        .map(|x| x.unwrap())
+        .filter(|x| x.path().extension().unwrap().to_str().unwrap() == ext);
+    log::debug!("file_list = {:?}", &file_list);
+
+    // return safely with the number of files found
+    Ok(file_list.count())
 }

@@ -45,6 +45,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-title-sort`|`--tts`|Track title sort. Use quotation marks for multi-word entries.
 |`--track-number`|`--tn`|Sets the track number.
 |`--track-number-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
+|`--track-number-count`|`--tnc`|Counts the number of files with the same extension in the same subdirectory, and uses it as the total number of tracks for the disc. In other words, if there are 5 MP3 files in the same directory, the track total count will be 5.<br>**NOTE:** Conflicts with `--track-number-total`.
 |`--track-genre`|`--tg`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
 |`--track-genre-number`|`--tgn`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. based on the [ID3 Numerical Tag](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D) (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with '--track-genre'. Note that whichever of the two is passed LAST is used.
 |`--track-composer`|`--tc`|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
@@ -98,6 +99,7 @@ This file describes the configuration parameters found in the config file. You c
 |`track_title_sort`|||The track's title sort. Not commonly used.
 |`track_number`|||The tracks on this disc.
 |`track_number_total`|||The total number of tracks on this disc.
+|`track_count`|`true`/`false`||Counts the number of tracks.
 |`track_genre`|Any text||The track genre. Will be applied to each track.
 |`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.
 |`track_date`|||The release date for the album

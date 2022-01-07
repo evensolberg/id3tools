@@ -61,6 +61,9 @@ pub struct DefaultValues {
     /// Default value for the total number of tracks.
     pub track_total: Option<u16>,
 
+    /// Count the number of tracks
+    pub track_count: Option<bool>,
+
     /// Default value for the track's genre.
     pub track_genre: Option<String>,
 
@@ -155,7 +158,7 @@ impl DefaultValues {
 /// or via the CLI.
 fn stop_on_error(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     let mut return_value = false;
-    if args.is_present("config") {
+    if args.is_present("config-file") {
         if let Some(cfg) = defaults.stop_on_error {
             return_value = cfg;
         }
@@ -179,7 +182,7 @@ fn stop_on_error(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
 /// or via the CLI.
 fn print_summary(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     let mut return_value = false;
-    if args.is_present("config") {
+    if args.is_present("config-file") {
         if let Some(cfg) = defaults.print_summary {
             return_value = cfg;
         }
@@ -203,7 +206,7 @@ fn print_summary(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
 /// or via the CLI.
 fn quiet(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     let mut return_value = false;
-    if args.is_present("config") {
+    if args.is_present("config-file") {
         if let Some(cfg) = defaults.quiet {
             return_value = cfg;
         }
@@ -227,7 +230,7 @@ fn quiet(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
 /// or via the CLI.
 fn detail_off(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     let mut return_value = false;
-    if args.is_present("config") {
+    if args.is_present("config-file") {
         if let Some(cfg) = defaults.detail_off {
             return_value = cfg;
         }
@@ -251,7 +254,7 @@ fn detail_off(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
 /// or via the CLI.
 fn dry_run(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
     let mut return_value = false;
-    if args.is_present("config") {
+    if args.is_present("config-file") {
         if let Some(cfg) = defaults.dry_run {
             return_value = cfg;
         }

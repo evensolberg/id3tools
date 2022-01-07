@@ -13,7 +13,7 @@ pub fn build_cli() -> ArgMatches {
         .author(clap::crate_authors!("\n"))
         .long_about(clap::crate_description!())
         .override_usage("id3tag <FILE(S)> [OPTIONS] [TAGS]")
-        .arg(
+        .arg( // Files - the files to process
             Arg::new("files")
                 .value_name("FILE(S)")
                 .help("One or more file(s) to process.")
@@ -40,7 +40,7 @@ pub fn build_cli() -> ArgMatches {
                 .takes_value(false)
         )
         .arg( // Stop on error
-            Arg::new("stop")
+            Arg::new("stop-on-error")
                 .short('s')
                 .long("stop-on-error")
                 .multiple_occurrences(false)
@@ -217,6 +217,17 @@ pub fn build_cli() -> ArgMatches {
                 .multiple_occurrences(false)
                 .require_equals(false).help_heading(tags_name)
         )
+        .arg( // Track count
+            Arg::new("track-count")
+                .long("track-number-count")
+                .visible_alias("tnc")
+                .help("Use number of files as total number of tracks.")
+                .help("Counts the number of files with the same extension in the same subdirectory, and uses it as the total number of tracks for the disc.")
+                .takes_value(false)
+                .multiple_occurrences(false)
+                .conflicts_with("track-total")
+                .help_heading(tags_name)
+        )
         .arg( // Track genre
             Arg::new("track-genre")
                 .long("track-genre")
@@ -300,8 +311,8 @@ pub fn build_cli() -> ArgMatches {
                 .require_equals(false).help_heading(tags_name)
         )
         .arg( // Tags (Hidden)
-            Arg::new(tags_name)
-                .long(tags_name)
+            Arg::new("tags")
+                .long("tags")
                 .short('t')
                 .help("The tags you wish to set in the form `key1=value1, key2=value2`. Note the space between entries!")
                 .takes_value(true)
