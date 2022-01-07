@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Features
+
+- Added `--track-number-count` option
+
 ## [0.6.0] - 2022-01-03
 
 ### Chore
