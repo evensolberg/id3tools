@@ -70,7 +70,7 @@ pub fn process_mp4(
         log::debug!("Not writing {}", filename);
     } else {
         tag.write_to_path(filename)?;
-        log::info!("Processed: {}", filename);
+        log::info!("{}  ✓", filename);
     }
 
     // return safely

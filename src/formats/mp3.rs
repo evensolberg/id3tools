@@ -201,7 +201,7 @@ pub fn process_mp3(
         log::debug!("Not writing {}", filename);
     } else {
         tag.write_to_path(filename, Version::Id3v24)?;
-        log::info!("Processed: {}", filename);
+        log::info!("{}  ✓", filename);
     }
 
     // return safely

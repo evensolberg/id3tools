@@ -92,13 +92,13 @@ This file describes the configuration parameters found in the config file. You c
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
 |`disc_number`|||The disc number, usually 1.
-|`disc_number_total`|||The total number of discs that comprise the album, usually 1.
+|`disc_total`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The track's artist.
 |`track_artist_sort`|||The track's artist sort.
 |`track_title`|||The track's title.
 |`track_title_sort`|||The track's title sort. Not commonly used.
 |`track_number`|||The tracks on this disc.
-|`track_number_total`|||The total number of tracks on this disc.
+|`track_total`|||The total number of tracks on this disc.
 |`track_count`|`true`/`false`||Counts the number of tracks.
 |`track_genre`|Any text||The track genre. Will be applied to each track.
 |`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.

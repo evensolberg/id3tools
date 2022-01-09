@@ -25,6 +25,7 @@ alias r := release
 
 # Only compiles the project
 @build: format changelog
+   -git mit es
    cargo lbuild --color 'always'
 
 # Compile a release version of the project without moving the binaries

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Features
+
+- Dry-run will tell you wait it will do, regular run will not
+
 ## [0.6.3] - 2022-01-07
 
 ### Bug Fixes

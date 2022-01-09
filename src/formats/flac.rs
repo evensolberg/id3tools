@@ -111,7 +111,7 @@ pub fn process_flac(
         log::debug!("Dry-run. Not saving.");
     } else {
         tags.save()?;
-        log::info!("Processed: {}", filename);
+        log::info!("{}  ✓", filename);
     }
 
     log::debug!("Picture count: {}", tags.pictures().count());

@@ -90,7 +90,7 @@ pub fn process_ape(
         log::debug!("Dry-run. Not saving.");
     } else {
         ape::write(&tags, filename)?;
-        log::info!("Processed: {}", filename);
+        log::info!("{}  ✓", filename);
     }
 
     // return safely
