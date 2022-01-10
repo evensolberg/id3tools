@@ -88,6 +88,9 @@ pub struct DefaultValues {
 
     /// Default value for the album's back cover.
     pub picture_back: Option<String>,
+
+    /// New filename pattern for rename
+    pub rename_file: Option<String>,
 }
 
 impl DefaultValues {
@@ -100,6 +103,7 @@ impl DefaultValues {
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = DefaultValues::new();
 
+        // Read the config file
         if cli_args.is_present("config-file") {
             let config_filename = shellexpand::tilde(
                 cli_args
@@ -110,6 +114,29 @@ impl DefaultValues {
             log::debug!("Config filename: {}", config_filename);
             config = DefaultValues::load_config(&config_filename)?;
             log::debug!("Loaded config: {:?}", &config);
+        }
+
+        // Verify the rename_file pattern
+        let mut pattern = "".to_string();
+        if let Some(rnp) = cli_args.value_of("rename-file") {
+            pattern = rnp.to_string();
+        }
+
+        if cli_args.is_present("rename-file") {
+            pattern = cli_args
+                .value_of("rename-file")
+                .unwrap_or_default()
+                .to_string();
+        };
+
+        if !pattern.contains("%tn")
+            && !pattern.contains("%tt")
+            && !pattern.contains("%track-number")
+            && !pattern.contains("%track-title")
+        {
+            return Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern).into());
+        } else {
+            config.rename_file = Some(pattern);
         }
 
         // Collate config file flags and CLI flags and output the right config

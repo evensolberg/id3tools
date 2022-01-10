@@ -54,6 +54,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
 |`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
 |`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
+|`--rename-file`|`--rf`|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 
@@ -63,7 +64,7 @@ If both the `--track-genre` and `--track-genre-number` are passed, whichever val
 
 Examples:
 
-- `--track-genre Rock --track-genre-number 9` results in the genre represented by the number `9` (Metal) being used.
+- `--track-genre Metal --track-genre-number 9` results in the genre represented by the number `9` (Metal) being used.
 - `--track-genre-number 32 --track-genre "Chamber Music"` results in "Chamber Music".
 
 If both `track_genre` and `track_genre_number` are present in a config file, the latter is used.
@@ -92,13 +93,13 @@ This file describes the configuration parameters found in the config file. You c
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
 |`disc_number`|||The disc number, usually 1.
-|`disc_total`|||The total number of discs that comprise the album, usually 1.
+|`disc_number_total`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The track's artist.
 |`track_artist_sort`|||The track's artist sort.
 |`track_title`|||The track's title.
 |`track_title_sort`|||The track's title sort. Not commonly used.
 |`track_number`|||The tracks on this disc.
-|`track_total`|||The total number of tracks on this disc.
+|`track_number_total`|||The total number of tracks on this disc.
 |`track_count`|`true`/`false`||Counts the number of tracks.
 |`track_genre`|Any text||The track genre. Will be applied to each track.
 |`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.
@@ -108,6 +109,7 @@ This file describes the configuration parameters found in the config file. You c
 |`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.
 |`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
 |`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
+|`rename_file`|||Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in the Options table above.
 
 Note that any flags or options provided via the command line will override the default from the config file.
 
@@ -121,6 +123,7 @@ stop-on-error=false
 track_genre="Metal"
 track_composer="Hendrix, Jimi"
 picture_front="cover-small.jpg"
+rename_file="%dn-%tn %tt"
 ```
 
 ## Options and Tags

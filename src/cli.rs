@@ -6,6 +6,7 @@ pub fn build_cli() -> ArgMatches {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";
+    let operations_name = "OPERATIONS";
     // use `static because what's returned is used across the application
     App::new(clap::crate_name!())
         .about(clap::crate_description!())
@@ -320,6 +321,18 @@ pub fn build_cli() -> ArgMatches {
                 .require_equals(false)
                 .hide(true).help_heading(tags_name)
         )
+        .arg( // Rename file
+            Arg::new("rename-file")
+                .long("rename-file")
+                .visible_alias("rf")
+                .help("Renames the music file after setting the tags. Example: \"%dn-%tn %tt\"")
+                .takes_value(true)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .validator(filename_pattern_validator)
+                .hide(false).help_heading(operations_name)
+                .display_order(1)
+        )
         .get_matches()
 }
 
@@ -337,5 +350,18 @@ fn genre_number_validator(input: &str) -> Result<(), String> {
         Err(_) => Err(String::from(
             "Unable to parse the input provided to --track-genre-number.",
         )),
+    }
+}
+
+/// Checks that the new filename pattern results in a unique file
+fn filename_pattern_validator(pattern: &str) -> Result<(), String> {
+    if !pattern.contains("%tn")
+        && !pattern.contains("%tt")
+        && !pattern.contains("%track-number")
+        && !pattern.contains("%track-title")
+    {
+        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern).into())
+    } else {
+        Ok(())
     }
 }

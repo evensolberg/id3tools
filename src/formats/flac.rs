@@ -1,6 +1,8 @@
 //! Contains the functionality to process FLAC files.
 
 use crate::default_values::DefaultValues;
+use crate::formats::FileTypes;
+use crate::rename_file;
 use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
@@ -114,7 +116,24 @@ pub fn process_flac(
         log::info!("{}  ✓", filename);
     }
 
-    log::debug!("Picture count: {}", tags.pictures().count());
+    if let Some(_pattern) = &config.rename_file {
+        let tags_names = super::option_to_tag(FileTypes::Flac);
+        let mut replace_map = HashMap::new();
+
+        // get the mappings of %aa --> ALBUMARTIST --> Madonna
+        // key = %aa, vorbis_key = ALBUMARTIST, vval = Madonna
+        for (key, vorbis_key) in tags_names {
+            if let Some(mut vval) = tags.get_vorbis(&vorbis_key) {
+                let val = vval.next().unwrap_or_default().to_string();
+                log::debug!("key = {}, val = {}", key, val);
+                replace_map.insert(key, val);
+            }
+        }
+        log::debug!("replace_map = {:?}", replace_map);
+
+        let rename_result = rename_file::rename_file(&filename, &replace_map, &config)?;
+        log::debug!("rename_result = {:?}", rename_result);
+    }
 
     // Return safely
     Ok(())
