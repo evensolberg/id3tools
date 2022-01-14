@@ -97,14 +97,11 @@ pub fn process_file(
                 Ok(_) => counts.processed_file_count += 1,
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(true) {
-                        return Err(format!(
-                            "Unable to process {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        )
-                        .into());
+                        return Err(
+                            format!("Unable to process {}. Error: {}", filename, err).into()
+                        );
                     } else {
-                        log::error!("Unable to process {}. Error: {}", filename, err.to_string());
+                        log::error!("Unable to process {}. Error: {}", filename, err);
                         counts.skipped_file_count += 1;
                     }
                 }
@@ -112,18 +109,11 @@ pub fn process_file(
         } // Ok(_)
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
-                )
-                .into());
-            } else {
-                log::error!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
+                return Err(
+                    format!("Unable to parse tags for {}. Error: {}", filename, err).into(),
                 );
+            } else {
+                log::error!("Unable to parse tags for {}. Error: {}", filename, err);
                 counts.skipped_file_count += 1;
             }
         } // Err(err)
@@ -285,7 +275,7 @@ fn parse_options(
     if args.is_present("track-count")
         || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
     {
-        let file_count = count_files(&filename)?.to_string();
+        let file_count = count_files(filename)?.to_string();
         log::debug!("file_count = {}", file_count);
         new_tags.insert(tag_names.track_number_total, file_count);
     }
@@ -797,7 +787,9 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
     let ext = shared::get_extension(filename);
     log::debug!("ext = {}", ext);
 
-    let dir = Path::new(&filename).parent().unwrap_or(Path::new("."));
+    let dir = Path::new(&filename)
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
     log::debug!("dir = {}", dir.display());
 
     if !dir.is_dir() {
@@ -810,7 +802,7 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
         .filter(|x| {
             x.path()
                 .extension()
-                .unwrap_or(OsStr::new(""))
+                .unwrap_or_else(|| OsStr::new(""))
                 .to_str()
                 .unwrap_or("")
                 == ext
@@ -897,7 +889,7 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
     tm.insert("%tcs".to_string(), tag_names.track_composer_sort.clone());
 
     tm.insert("%track-date".to_string(), tag_names.track_date.clone());
-    tm.insert("%td".to_string(), tag_names.track_date.clone());
+    tm.insert("%td".to_string(), tag_names.track_date);
 
     // return it
     tm

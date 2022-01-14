@@ -68,15 +68,14 @@ pub fn process_flac(
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set front cover to {}. Error message: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set front cover to {}. Continuing. Error message: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                         }
                     }
@@ -90,15 +89,14 @@ pub fn process_flac(
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set back cover to {}. Error message: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set back cover to {}. Error message: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                         }
                     }
@@ -131,7 +129,7 @@ pub fn process_flac(
         }
         log::debug!("replace_map = {:?}", replace_map);
 
-        let rename_result = rename_file::rename_file(&filename, &replace_map, &config)?;
+        let rename_result = rename_file::rename_file(filename, &replace_map, config)?;
         log::debug!("rename_result = {:?}", rename_result);
     }
 

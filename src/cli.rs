@@ -360,7 +360,7 @@ fn filename_pattern_validator(pattern: &str) -> Result<(), String> {
         && !pattern.contains("%track-number")
         && !pattern.contains("%track-title")
     {
-        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern).into())
+        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern))
     } else {
         Ok(())
     }

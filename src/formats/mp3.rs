@@ -44,16 +44,11 @@ pub fn process_mp3(
                     if config.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set front cover for {}. Error: {}",
-                            filename,
-                            err.to_string()
+                            filename, err
                         )
                         .into());
                     } else {
-                        log::error!(
-                            "Unable to set front cover for {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        );
+                        log::error!("Unable to set front cover for {}. Error: {}", filename, err);
                     }
                 }
             },
@@ -63,16 +58,11 @@ pub fn process_mp3(
                     if config.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set back cover for {}. Error: {}",
-                            filename,
-                            err.to_string()
+                            filename, err
                         )
                         .into());
                     } else {
-                        log::error!(
-                            "Unable to set back cover for {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        );
+                        log::error!("Unable to set back cover for {}. Error: {}", filename, err);
                     }
                 }
             },
@@ -82,16 +72,11 @@ pub fn process_mp3(
                     if config.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set comment for {}. Error: {}",
-                            filename,
-                            err.to_string()
+                            filename, err
                         )
                         .into());
                     } else {
-                        log::error!(
-                            "Unable to set comment for {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        );
+                        log::error!("Unable to set comment for {}. Error: {}", filename, err);
                     }
                 }
             },
@@ -103,15 +88,14 @@ pub fn process_mp3(
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set disc number to {}. Error: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                             num = 1
                         }
@@ -127,15 +111,14 @@ pub fn process_mp3(
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total discs to {}. Error: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                             num = 1
                         }
@@ -151,15 +134,14 @@ pub fn process_mp3(
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set track number to {}. Error: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                             num = 1
                         }
@@ -175,15 +157,14 @@ pub fn process_mp3(
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total tracks to {}. Error: {}",
-                                value,
-                                err.to_string()
+                                value, err
                             )
                             .into());
                         } else {
                             log::error!(
                                 "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
                                 value,
-                                err.to_string()
+                                err
                             );
                             num = 1
                         }

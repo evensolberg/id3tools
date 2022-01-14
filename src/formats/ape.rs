@@ -32,28 +32,6 @@ pub fn process_ape(
         match key.as_ref() {
             "PICTUREFRONT" | "PICTUREBACK" => {
                 log::warn!("Setting covers on APE files is currently not supported.");
-                // log::debug!("Setting back cover.");
-                // match add_picture(&mut tags, "cover", value, config) {
-                //     Ok(_) => log::trace!("Picture set."),
-                //     Err(err) => {
-                //         if config.stop_on_error.unwrap_or(true) {
-                //             return Err(format!(
-                //                 "Unable to set {} to {}. Error message: {}",
-                //                 key,
-                //                 value,
-                //                 err.to_string()
-                //             )
-                //             .into());
-                //         } else {
-                //             log::error!(
-                //                 "Unable to set {} to {}. Error message: {}",
-                //                 key,
-                //                 value,
-                //                 err.to_string()
-                //             );
-                //         }
-                //     }
-                // } // match
             } // PICTUREBACK
             _ => {
                 let item = Item::from_text(key, value);
@@ -66,9 +44,7 @@ pub fn process_ape(
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set {} to {}. Error message: {}",
-                                key,
-                                value,
-                                err.to_string()
+                                key, value, err
                             )
                             .into());
                         } else {
@@ -76,7 +52,7 @@ pub fn process_ape(
                                 "Unable to set {} to {}. Error message: {}",
                                 key,
                                 value,
-                                err.to_string()
+                                err
                             );
                         }
                     }
@@ -126,7 +102,7 @@ pub fn process_ape(
 //                     "Unable to set {} to {}. Error message: {}",
 //                     key,
 //                     value,
-//                     err.to_string()
+//                     err
 //                 )
 //                 .into());
 //             } else {
@@ -134,7 +110,7 @@ pub fn process_ape(
 //                     "Unable to set {} to {}. Error message: {}",
 //                     key,
 //                     value,
-//                     err.to_string()
+//                     err
 //                 );
 //             }
 //         }
