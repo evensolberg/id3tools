@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Dry-run will tell you wait it will do, regular run will not
 - Simplified the "normal" output
 - File rename for FLAC
+- Rename FLAC works
 
 ## [0.6.3] - 2022-01-07
 

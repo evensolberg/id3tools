@@ -114,23 +114,9 @@ pub fn process_flac(
         log::info!("{}  ✓", filename);
     }
 
-    if let Some(_pattern) = &config.rename_file {
-        let tags_names = super::option_to_tag(FileTypes::Flac);
-        let mut replace_map = HashMap::new();
-
-        // get the mappings of %aa --> ALBUMARTIST --> Madonna
-        // key = %aa, vorbis_key = ALBUMARTIST, vval = Madonna
-        for (key, vorbis_key) in tags_names {
-            if let Some(mut vval) = tags.get_vorbis(&vorbis_key) {
-                let val = vval.next().unwrap_or_default().to_string();
-                log::debug!("key = {}, val = {}", key, val);
-                replace_map.insert(key, val);
-            }
-        }
-        log::debug!("replace_map = {:?}", replace_map);
-
-        let rename_result = rename_file::rename_file(filename, &replace_map, config)?;
-        log::debug!("rename_result = {:?}", rename_result);
+    // Rename file
+    if let Some(_) = &config.rename_file {
+        rename_flac(filename, config, &tags)?;
     }
 
     // Return safely
@@ -153,6 +139,55 @@ fn add_picture(
     let data = fs::read(value)?;
     log::debug!("Attempting to set picture.");
     tags.add_picture(mime_fmt, cover_type, data);
+
+    // Return safely
+    Ok(())
+}
+
+/// Renames a FLAC file based on the pattern provided
+fn rename_flac(
+    filename: &str,
+    config: &DefaultValues,
+    tags: &metaflac::Tag,
+) -> Result<(), Box<dyn Error>> {
+    let tags_names = super::option_to_tag(FileTypes::Flac);
+    let mut replace_map = HashMap::new();
+    let mut pattern = "".to_string();
+    if let Some(p) = &config.rename_file {
+        pattern = p.clone();
+    }
+
+    // get the mappings of %aa --> ALBUMARTIST --> Madonna
+    // key = %aa, vorbis_key = ALBUMARTIST, vval = Madonna
+    for (key, vorbis_key) in tags_names {
+        if let Some(mut vval) = tags.get_vorbis(&vorbis_key) {
+            let value = vval.next().unwrap_or_default().to_string();
+            log::debug!("key = {}, value = {}", key, value);
+            replace_map.insert(key, value);
+        }
+    }
+    log::debug!("replace_map = {:?}", replace_map);
+
+    let rename_result = rename_file::rename_file(filename, &replace_map, config);
+    match rename_result {
+        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Err(err) => {
+            if config.stop_on_error.unwrap_or(true) {
+                return Err(format!(
+                    "Unable to rename {} with tags \"{}\". Error: {}",
+                    filename, pattern, err
+                )
+                .into());
+            } else {
+                log::warn!(
+                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                    filename,
+                    pattern,
+                    err
+                );
+            }
+        }
+    }
 
     // Return safely
     Ok(())

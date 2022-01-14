@@ -844,7 +844,7 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
         "%disc-number-total".to_string(),
         tag_names.disc_number_total.clone(),
     );
-    tm.insert("%dn".to_string(), tag_names.disc_number_total.clone());
+    tm.insert("%dt".to_string(), tag_names.disc_number_total.clone());
 
     tm.insert("%track-artist".to_string(), tag_names.track_artist.clone());
     tm.insert("%ta".to_string(), tag_names.track_artist.clone());
