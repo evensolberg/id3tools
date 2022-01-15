@@ -6,6 +6,7 @@ pub fn build_cli() -> ArgMatches {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";
+    let operations_name = "OPERATIONS";
     // use `static because what's returned is used across the application
     App::new(clap::crate_name!())
         .about(clap::crate_description!())
@@ -319,6 +320,19 @@ pub fn build_cli() -> ArgMatches {
                 .multiple_occurrences(true)
                 .require_equals(false)
                 .hide(true).help_heading(tags_name)
+        )
+        .arg( // Rename file
+            Arg::new("rename-file")
+                .long("rename-file")
+                .visible_alias("rf")
+                .help("Renames the music file after setting the tags. Example: \"%dn-%tn %tt\"")
+                .takes_value(true)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .required(false)
+                .validator(crate::shared::file_rename_pattern_validate)
+                .hide(false).help_heading(operations_name)
+                .display_order(1)
         )
         .get_matches()
 }

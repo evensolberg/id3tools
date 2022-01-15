@@ -1,7 +1,7 @@
 //! Contains the functionality to process MP4 files.
 //!
 use crate::default_values::DefaultValues;
-use crate::shared;
+use crate::{rename_file, shared};
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
 use std::error::Error;
@@ -73,6 +73,11 @@ pub fn process_mp4(
         log::info!("{}  ✓", filename);
     }
 
+    // Rename file
+    if let Some(_) = &config.rename_file {
+        rename_mp4(filename, config, tag)?;
+    }
+
     // return safely
     Ok(())
 }
@@ -95,4 +100,145 @@ fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
 
     // Return safely
     Ok(())
+}
+
+/// Renames the MP4 file based on the pattern provided
+fn rename_mp4(
+    filename: &str,
+    config: &DefaultValues,
+    tag: mp4ameta::Tag,
+) -> Result<(), Box<dyn Error>> {
+    let tags_map = get_mp4_tags(&tag)?;
+    log::debug!("tags_map = {:?}", tags_map);
+
+    let mut pattern = "".to_string();
+    if let Some(p) = &config.rename_file {
+        pattern = p.clone();
+    }
+
+    let rename_result = rename_file::rename_file(filename, &tags_map, config);
+    match rename_result {
+        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Err(err) => {
+            if config.stop_on_error.unwrap_or(true) {
+                return Err(format!(
+                    "Unable to rename {} with tags \"{}\". Error: {}",
+                    filename, pattern, err
+                )
+                .into());
+            } else {
+                log::warn!(
+                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                    filename,
+                    pattern,
+                    err
+                );
+            }
+        }
+    }
+
+    // Return safely
+    Ok(())
+}
+
+/// Reads the tags from the MP4 tag "the hard way"
+fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn Error>> {
+    let mut res = HashMap::<String, String>::new();
+
+    let mut data = tags.album_artist().unwrap_or("").to_string();
+    res.insert("%album-artist".to_string(), data.clone());
+    res.insert("%aa".to_string(), data);
+
+    data = tags // Album Artist Sort
+        .data_of(&Fourcc(*b"soaa"))
+        .next()
+        .unwrap_or(&Data::Utf8("".to_owned()))
+        .string()
+        .unwrap_or("")
+        .to_string();
+    res.insert("%album-artist-sort".to_string(), data.clone());
+    res.insert("%aas".to_string(), data);
+
+    data = tags.album().unwrap_or("").to_string();
+    res.insert("%album-title".to_string(), data.clone());
+    res.insert("%at".to_string(), data);
+
+    data = tags // Album Title Sort
+        .data_of(&Fourcc(*b"soal"))
+        .next()
+        .unwrap_or(&Data::Utf8("".to_owned()))
+        .string()
+        .unwrap_or("")
+        .to_string();
+    res.insert("%album-title-sort".to_string(), data.clone());
+    res.insert("%ats".to_string(), data);
+
+    data = format!("{:0>2}", tags.disc_number().unwrap_or(0));
+    res.insert("%disc-number".to_string(), data.clone());
+    res.insert("%dn".to_string(), data);
+
+    data = format!("{:0>2}", tags.total_discs().unwrap_or(0));
+    res.insert("%disc-number-total".to_string(), data.clone());
+    res.insert("%dt".to_string(), data);
+
+    data = tags.artist().unwrap_or("").to_string();
+    res.insert("%track-artist".to_string(), data.clone());
+    res.insert("%ta".to_string(), data);
+
+    data = tags // Track Artist Sort
+        .data_of(&Fourcc(*b"soar"))
+        .next()
+        .unwrap_or(&Data::Utf8("".to_owned()))
+        .string()
+        .unwrap_or("")
+        .to_string();
+    res.insert("%track-artist-sort".to_string(), data.clone());
+    res.insert("%tas".to_string(), data);
+
+    data = tags.title().unwrap_or("").to_string();
+    res.insert("%track-title".to_string(), data.clone());
+    res.insert("%tt".to_string(), data);
+
+    data = tags // Track Title Sort
+        .data_of(&Fourcc(*b"sonm"))
+        .next()
+        .unwrap_or(&Data::Utf8("".to_owned()))
+        .string()
+        .unwrap_or("")
+        .to_string();
+    res.insert("%track-title-sort".to_string(), data.clone());
+    res.insert("%tts".to_string(), data);
+
+    data = format!("{:0>2}", tags.track_number().unwrap_or(0));
+    res.insert("%track-number".to_string(), data.clone());
+    res.insert("%tn".to_string(), data);
+
+    data = format!("{:0>2}", tags.total_tracks().unwrap_or(0));
+    res.insert("%track-number-total".to_string(), data.clone());
+    res.insert("%to".to_string(), data);
+
+    data = tags.genre().unwrap_or("").to_string();
+    res.insert("%track-genre".to_string(), data.clone());
+    res.insert("%tg".to_string(), data);
+
+    data = tags.composer().unwrap_or("").to_string();
+    res.insert("%track-composer".to_string(), data.clone());
+    res.insert("%tc".to_string(), data);
+
+    data = tags // Track Composer Sort
+        .data_of(&Fourcc(*b"soco"))
+        .next()
+        .unwrap_or(&Data::Utf8("".to_owned()))
+        .string()
+        .unwrap_or("")
+        .to_string();
+    res.insert("%track-composer-sort".to_string(), data.clone());
+    res.insert("%tcs".to_string(), data);
+
+    data = tags.year().unwrap_or("").to_string();
+    res.insert("%track-date".to_string(), data.clone());
+    res.insert("%td".to_string(), data);
+
+    // Return safely
+    Ok(res)
 }

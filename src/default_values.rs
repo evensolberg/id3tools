@@ -88,6 +88,9 @@ pub struct DefaultValues {
 
     /// Default value for the album's back cover.
     pub picture_back: Option<String>,
+
+    /// New filename pattern for rename
+    pub rename_file: Option<String>,
 }
 
 impl DefaultValues {
@@ -100,6 +103,7 @@ impl DefaultValues {
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = DefaultValues::new();
 
+        // Read the config file
         if cli_args.is_present("config-file") {
             let config_filename = shellexpand::tilde(
                 cli_args
@@ -113,6 +117,7 @@ impl DefaultValues {
         }
 
         // Collate config file flags and CLI flags and output the right config
+        check_for_rename(&mut config, cli_args)?; // Check if we have a file rename
         config.quiet = Some(quiet(&config, cli_args));
         config.stop_on_error = Some(stop_on_error(&config, cli_args));
         config.print_summary = Some(print_summary(&config, cli_args));
@@ -274,4 +279,25 @@ fn dry_run(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
 
     // return the value
     return_value
+}
+
+/// Checks the loaded config if there is a `file_rename` present, and validates it.
+/// Also checks the CLI for a rename-file and overrides any previous config entries if it is present.
+/// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
+fn check_for_rename(
+    config: &mut DefaultValues,
+    args: &clap::ArgMatches,
+) -> Result<(), Box<dyn Error>> {
+    // Check if anything came from the config file and validate it
+    if let Some(rnp) = &config.rename_file {
+        crate::shared::file_rename_pattern_validate(rnp)?;
+    }
+
+    // Even if we have something from the config file, CLI takes presedence
+    if args.is_present("rename-file") {
+        config.rename_file = Some(args.value_of("rename-file").unwrap_or_default().to_string());
+    };
+
+    // Return safely
+    Ok(())
 }

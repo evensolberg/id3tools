@@ -29,7 +29,7 @@ pub struct TagNames {
     pub album_title: String,
     pub album_title_sort: String,
     pub disc_number: String,
-    pub disc_total: String,
+    pub disc_number_total: String,
     pub track_artist: String,
     pub track_artist_sort: String,
     pub track_title: String,
@@ -97,14 +97,11 @@ pub fn process_file(
                 Ok(_) => counts.processed_file_count += 1,
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(true) {
-                        return Err(format!(
-                            "Unable to process {}. Error: {}",
-                            filename,
-                            err.to_string()
-                        )
-                        .into());
+                        return Err(
+                            format!("Unable to process {}. Error: {}", filename, err).into()
+                        );
                     } else {
-                        log::error!("Unable to process {}. Error: {}", filename, err.to_string());
+                        log::error!("Unable to process {}. Error: {}", filename, err);
                         counts.skipped_file_count += 1;
                     }
                 }
@@ -112,18 +109,11 @@ pub fn process_file(
         } // Ok(_)
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
-                )
-                .into());
-            } else {
-                log::error!(
-                    "Unable to parse tags for {}. Error: {}",
-                    filename,
-                    err.to_string()
+                return Err(
+                    format!("Unable to parse tags for {}. Error: {}", filename, err).into(),
                 );
+            } else {
+                log::error!("Unable to parse tags for {}. Error: {}", filename, err);
                 counts.skipped_file_count += 1;
             }
         } // Err(err)
@@ -205,12 +195,12 @@ fn parse_options(
 
     if args.is_present("disc-total") {
         new_tags.insert(
-            tag_names.disc_total,
+            tag_names.disc_number_total,
             args.value_of("disc-total").unwrap_or("").to_string(),
         );
     } else if args.is_present("config-file") {
         if let Some(val) = &defaults.disc_total {
-            new_tags.insert(tag_names.disc_total, val.to_string());
+            new_tags.insert(tag_names.disc_number_total, val.to_string());
         }
     }
 
@@ -285,7 +275,7 @@ fn parse_options(
     if args.is_present("track-count")
         || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
     {
-        let file_count = count_files(&filename)?.to_string();
+        let file_count = count_files(filename)?.to_string();
         log::debug!("file_count = {}", file_count);
         new_tags.insert(tag_names.track_number_total, file_count);
     }
@@ -459,7 +449,7 @@ fn get_tag_names(file_type: FileTypes) -> TagNames {
             album_title: "ALBUM".to_string(),
             album_title_sort: "ALBUMTITLESORT".to_string(),
             disc_number: "DISCNUMBER".to_string(),
-            disc_total: "DISCTOTAL".to_string(),
+            disc_number_total: "DISCTOTAL".to_string(),
             track_artist: "ARTIST".to_string(),
             track_artist_sort: "ARTISTSORT".to_string(),
             track_title: "TITLE".to_string(),
@@ -480,7 +470,7 @@ fn get_tag_names(file_type: FileTypes) -> TagNames {
             album_title: "TALB".to_string(),
             album_title_sort: "TSOA".to_string(),
             disc_number: "TPOS".to_string(),
-            disc_total: "TPOS-T".to_string(),
+            disc_number_total: "TPOS-T".to_string(),
             track_artist: "TPE1".to_string(),
             track_artist_sort: "TSOP".to_string(),
             track_title: "TIT2".to_string(),
@@ -501,7 +491,7 @@ fn get_tag_names(file_type: FileTypes) -> TagNames {
             album_title: "©alb".to_string(),
             album_title_sort: "soal".to_string(),
             disc_number: "disk".to_string(),
-            disc_total: "disk-t".to_string(),
+            disc_number_total: "disk-t".to_string(),
             track_artist: "©ART".to_string(),
             track_artist_sort: "soar".to_string(),
             track_title: "©nam".to_string(),
@@ -522,7 +512,7 @@ fn get_tag_names(file_type: FileTypes) -> TagNames {
             album_title: "".to_string(),
             album_title_sort: "".to_string(),
             disc_number: "".to_string(),
-            disc_total: "".to_string(),
+            disc_number_total: "".to_string(),
             track_artist: "".to_string(),
             track_artist_sort: "".to_string(),
             track_title: "".to_string(),
@@ -797,7 +787,9 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
     let ext = shared::get_extension(filename);
     log::debug!("ext = {}", ext);
 
-    let dir = Path::new(&filename).parent().unwrap_or(Path::new("."));
+    let dir = Path::new(&filename)
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
     log::debug!("dir = {}", dir.display());
 
     if !dir.is_dir() {
@@ -810,7 +802,7 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
         .filter(|x| {
             x.path()
                 .extension()
-                .unwrap_or(OsStr::new(""))
+                .unwrap_or_else(|| OsStr::new(""))
                 .to_str()
                 .unwrap_or("")
                 == ext
@@ -819,4 +811,86 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
 
     // return safely with the number of files found
     Ok(file_list.count())
+}
+
+/// Returns a HashMap with the tag options and tag option aliases mapped to the right tag name based on file type.
+/// Eg: %album-artist or %aa --> ALBUMARTIST (FLAC), TPE2 (MP3) or aART (MP4)
+pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
+    let tag_names = get_tag_names(file_type);
+
+    let mut tm = HashMap::new();
+    tm.insert("%album-artist".to_string(), tag_names.album_artist.clone());
+    tm.insert("%aa".to_string(), tag_names.album_artist.clone());
+
+    tm.insert(
+        "%album-artist-sort".to_string(),
+        tag_names.album_artist_sort.clone(),
+    );
+    tm.insert("%aas".to_string(), tag_names.album_artist_sort.clone());
+
+    tm.insert("%album-title".to_string(), tag_names.album_title.clone());
+    tm.insert("%at".to_string(), tag_names.album_title.clone());
+
+    tm.insert(
+        "%album-title-sort".to_string(),
+        tag_names.album_title_sort.clone(),
+    );
+    tm.insert("%ats".to_string(), tag_names.album_title_sort.clone());
+
+    tm.insert("%disc-number".to_string(), tag_names.disc_number.clone());
+    tm.insert("%dn".to_string(), tag_names.disc_number.clone());
+
+    tm.insert(
+        "%disc-number-total".to_string(),
+        tag_names.disc_number_total.clone(),
+    );
+    tm.insert("%dt".to_string(), tag_names.disc_number_total.clone());
+
+    tm.insert("%track-artist".to_string(), tag_names.track_artist.clone());
+    tm.insert("%ta".to_string(), tag_names.track_artist.clone());
+
+    tm.insert(
+        "%track-artist-sort".to_string(),
+        tag_names.track_artist_sort.clone(),
+    );
+    tm.insert("%tas".to_string(), tag_names.track_artist_sort.clone());
+
+    tm.insert("%track-title".to_string(), tag_names.track_title.clone());
+    tm.insert("%tt".to_string(), tag_names.track_title.clone());
+
+    tm.insert(
+        "%track-title-sort".to_string(),
+        tag_names.track_title_sort.clone(),
+    );
+    tm.insert("%tts".to_string(), tag_names.track_title_sort.clone());
+
+    tm.insert("%track-number".to_string(), tag_names.track_number.clone());
+    tm.insert("%tn".to_string(), tag_names.track_number.clone());
+
+    tm.insert(
+        "%track-number-total".to_string(),
+        tag_names.track_number_total.clone(),
+    );
+    tm.insert("%to".to_string(), tag_names.track_number_total.clone());
+
+    tm.insert("%track-genre".to_string(), tag_names.track_genre.clone());
+    tm.insert("%tg".to_string(), tag_names.track_genre.clone());
+
+    tm.insert(
+        "%track-composer".to_string(),
+        tag_names.track_composer.clone(),
+    );
+    tm.insert("%tc".to_string(), tag_names.track_composer.clone());
+
+    tm.insert(
+        "%track-composer-sort".to_string(),
+        tag_names.track_composer_sort.clone(),
+    );
+    tm.insert("%tcs".to_string(), tag_names.track_composer_sort.clone());
+
+    tm.insert("%track-date".to_string(), tag_names.track_date.clone());
+    tm.insert("%td".to_string(), tag_names.track_date);
+
+    // return it
+    tm
 }

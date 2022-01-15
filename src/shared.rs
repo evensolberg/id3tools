@@ -62,3 +62,16 @@ pub fn build_log(cli_args: &clap::ArgMatches) -> Result<Builder, Box<dyn Error>>
 
     Ok(logbuilder)
 }
+
+/// Checks that the new filename pattern results in a unique file
+pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
+    if !pattern.contains("%tn")
+        && !pattern.contains("%tt")
+        && !pattern.contains("%track-number")
+        && !pattern.contains("%track-title")
+    {
+        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern))
+    } else {
+        Ok(())
+    }
+}

@@ -32,28 +32,6 @@ pub fn process_ape(
         match key.as_ref() {
             "PICTUREFRONT" | "PICTUREBACK" => {
                 log::warn!("Setting covers on APE files is currently not supported.");
-                // log::debug!("Setting back cover.");
-                // match add_picture(&mut tags, "cover", value, config) {
-                //     Ok(_) => log::trace!("Picture set."),
-                //     Err(err) => {
-                //         if config.stop_on_error.unwrap_or(true) {
-                //             return Err(format!(
-                //                 "Unable to set {} to {}. Error message: {}",
-                //                 key,
-                //                 value,
-                //                 err.to_string()
-                //             )
-                //             .into());
-                //         } else {
-                //             log::error!(
-                //                 "Unable to set {} to {}. Error message: {}",
-                //                 key,
-                //                 value,
-                //                 err.to_string()
-                //             );
-                //         }
-                //     }
-                // } // match
             } // PICTUREBACK
             _ => {
                 let item = Item::from_text(key, value);
@@ -66,9 +44,7 @@ pub fn process_ape(
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set {} to {}. Error message: {}",
-                                key,
-                                value,
-                                err.to_string()
+                                key, value, err
                             )
                             .into());
                         } else {
@@ -76,7 +52,7 @@ pub fn process_ape(
                                 "Unable to set {} to {}. Error message: {}",
                                 key,
                                 value,
-                                err.to_string()
+                                err
                             );
                         }
                     }
@@ -93,6 +69,10 @@ pub fn process_ape(
         log::info!("{}  ✓", filename);
     }
 
+    if let Some(_) = &config.rename_file {
+        rename_ape(filename, config, tags)?;
+    }
+
     // return safely
     Ok(())
 }
@@ -107,7 +87,6 @@ pub fn process_ape(
 //     log::debug!("Removing existing picture if it exists.");
 //     // If it exists
 //     tags.remove_item("cover");
-
 //     // Read the file and check the mime type
 //     let mime_fmt = shared::mime_type(&value)?;
 //     log::debug!("MIME type: {}", mime_fmt);
@@ -126,7 +105,7 @@ pub fn process_ape(
 //                     "Unable to set {} to {}. Error message: {}",
 //                     key,
 //                     value,
-//                     err.to_string()
+//                     err
 //                 )
 //                 .into());
 //             } else {
@@ -134,12 +113,25 @@ pub fn process_ape(
 //                     "Unable to set {} to {}. Error message: {}",
 //                     key,
 //                     value,
-//                     err.to_string()
+//                     err
 //                 );
 //             }
 //         }
 //     }
-
 //     // Return safely
 //     Ok(())
 // }
+
+/// Renames the APE file based on the tags
+fn rename_ape(
+    _filename: &str,
+    _config: &DefaultValues,
+    _tags: ape::Tag,
+) -> Result<(), Box<dyn Error>> {
+    log::warn!(
+        "Rename is currently not supported for APE files because the metadata is not standardized."
+    );
+
+    // Return safely
+    Ok(())
+}

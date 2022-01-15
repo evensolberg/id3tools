@@ -15,6 +15,7 @@ use log::LevelFilter;
 mod cli;
 mod default_values;
 mod formats;
+mod rename_file;
 mod shared;
 
 use crate::default_values::*;
