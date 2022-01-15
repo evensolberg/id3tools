@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Crate version updates
+
+## [0.7.1] - 2022-01-15
+
 ### Features
 
 - File rename complete
