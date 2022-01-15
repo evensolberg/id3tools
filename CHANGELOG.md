@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Simplified the "normal" output
 - File rename for FLAC
 - Rename FLAC works
+- MP4 rename
 
 ## [0.6.3] - 2022-01-07
 
