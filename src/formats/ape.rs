@@ -128,7 +128,9 @@ fn rename_ape(
     _config: &DefaultValues,
     _tags: ape::Tag,
 ) -> Result<(), Box<dyn Error>> {
-    log::warn!("Rename is currently not supported for APE files because the metadata is not standardized.");
+    log::warn!(
+        "Rename is currently not supported for APE files because the metadata is not standardized."
+    );
 
     // Return safely
     Ok(())

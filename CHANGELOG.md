@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
+- File rename complete
+
+## [0.7.0] - 2022-01-14
+
+### Features
+
 - Dry-run will tell you wait it will do, regular run will not
 - Simplified the "normal" output
 - File rename for FLAC
