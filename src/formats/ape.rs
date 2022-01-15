@@ -3,7 +3,7 @@
 use crate::default_values::DefaultValues;
 // use crate shared; // for add_pictures
 use ape::{self, Item};
-use std::{collections::HashMap, error::Error};
+use std::{collections::HashMap, error::Error, fs::File};
 
 /// Performs the actual processing of APE files.
 pub fn process_ape(
@@ -13,7 +13,7 @@ pub fn process_ape(
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
 
-    let mut tags = ape::read(&filename)?;
+    let mut tags = ape::read_from_path(&filename)?;
     for item in tags.iter() {
         log::debug!("Old {} = {:?}", item.key, item.value);
     }
@@ -65,7 +65,8 @@ pub fn process_ape(
     if config.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
     } else {
-        ape::write(&tags, filename)?;
+        let mut file = File::open(filename)?;
+        ape::write_to(&tags, &mut file)?;
         log::info!("{}  ✓", filename);
     }
 

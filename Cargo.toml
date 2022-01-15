@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -12,10 +12,10 @@ keywords = ["flac", "audio", "parser", "metadata"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ape = "0.3.0"
-clap = { version = "3.0.1", features = ["cargo", "color"] }
+ape = "0.4.0"
+clap = { version = "3.0.7", features = ["cargo", "color"] }
 env_logger = "0.9.0"
-id3 = "0.6.6"
+id3 = "1.0.0"
 log = "0.4.14"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"

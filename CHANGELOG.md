@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - File rename complete
 
+### Miscellaneous Tasks
+
+- CHANGELOG update
+
 ## [0.7.0] - 2022-01-14
 
 ### Features

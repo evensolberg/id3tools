@@ -2,10 +2,9 @@
 use crate::formats::FileTypes;
 use crate::shared;
 use crate::{default_values::DefaultValues, rename_file};
-use id3::{
-    frame::{Comment, Picture, PictureType},
-    Tag, Version,
-};
+use id3::frame::{self, ExtendedText};
+use id3::TagLike;
+use id3::{frame::PictureType, Tag, Version};
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -219,7 +218,7 @@ fn add_picture(
     let data = fs::read(&value)?;
 
     log::debug!("Setting picture to {}", value);
-    tags.add_picture(Picture {
+    tags.add_frame(frame::Picture {
         mime_type,
         picture_type,
         description,
@@ -243,10 +242,9 @@ fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
     }
     tags.remove("COMM");
     log::debug!("Setting comment to: {}", value);
-    tags.add_comment(Comment {
-        lang: "XXX".to_string(),
+    tags.add_frame(ExtendedText {
         description: "Comment".to_string(),
-        text: value.to_string(),
+        value: value.to_string(),
     });
     // return safely
     Ok(())
