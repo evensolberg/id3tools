@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug Fixes
+
+- Rename bug
+
 ## [0.8.1] - 2022-01-16
 
 ### Features
