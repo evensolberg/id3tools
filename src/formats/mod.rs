@@ -1,10 +1,14 @@
 //! Various file format parsers. The different types of file formats (ie. APE, FLAC, MP3, MP4)
 //! all reside under this crate, so they don't have to be exposed to the main body of code.
 
-use std::{collections::HashMap, error::Error, ffi::OsStr, path::Path};
+use std::{
+    collections::HashMap,
+    error::Error,
+    ffi::OsStr,
+    path::{Component, Path},
+};
 
 use crate::{default_values::DefaultValues, shared};
-
 mod ape;
 mod flac;
 mod mp3;
@@ -62,7 +66,7 @@ pub struct TagNames {
 pub fn process_file(
     file_type: FileTypes,
     filename: &str,
-    config: &DefaultValues,
+    config: &mut DefaultValues,
     cli_args: &clap::ArgMatches,
     counts: &mut shared::Counts,
 ) -> Result<(), Box<dyn Error>> {
@@ -184,13 +188,22 @@ fn parse_options(
 
     if args.is_present("disc-number") {
         new_tags.insert(
-            tag_names.disc_number,
+            tag_names.disc_number.clone(),
             args.value_of("disc-number").unwrap_or("").to_string(),
         );
     } else if args.is_present("config-file") {
         if let Some(val) = &defaults.disc_number {
-            new_tags.insert(tag_names.disc_number, val.to_string());
+            new_tags.insert(tag_names.disc_number.clone(), val.to_string());
         }
+    }
+
+    if args.is_present("disc-number-count")
+        || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
+    {
+        log::debug!("Trying to figure out the disc number automagically.");
+        let disc_num = get_disc_number(filename)?;
+        log::debug!("disc number: {}", disc_num);
+        new_tags.insert(tag_names.disc_number, disc_num.to_string());
     }
 
     if args.is_present("disc-total") {
@@ -275,7 +288,7 @@ fn parse_options(
     if args.is_present("track-count")
         || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
     {
-        let file_count = count_files(filename)?.to_string();
+        let file_count = count_files(filename)?;
         log::debug!("file_count = {}", file_count);
         new_tags.insert(tag_names.track_number_total, file_count);
     }
@@ -783,7 +796,7 @@ fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 }
 
 /// Counts the number of files in with the same extension in the same directory as the file specified.
-fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
+fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let ext = shared::get_extension(filename);
     log::debug!("ext = {}", ext);
 
@@ -808,9 +821,9 @@ fn count_files(filename: &str) -> Result<usize, Box<dyn Error>> {
                 == ext
         });
     log::debug!("file_list = {:?}", &file_list);
-
+    let file_count = format!("{:0>2}", file_list.count());
     // return safely with the number of files found
-    Ok(file_list.count())
+    Ok(file_count)
 }
 
 /// Returns a HashMap with the tag options and tag option aliases mapped to the right tag name based on file type.
@@ -893,4 +906,61 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
 
     // return it
     tm
+}
+
+/// Figures out the disc number based on the directory above it.
+/// It it is named 'CD xx' or 'disc xx' (case insensitive), we get the number and use it.
+fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
+    log::trace!("get_disc_number filename: {}", filename);
+
+    let mut components = Path::new(filename).components();
+    log::debug!("components = {:?}", components);
+    let _throwaway = components.next_back(); // Don't need the filename
+
+    // Get the parent directory
+    let mut parent_dir = components
+        .next_back()
+        .unwrap_or(Component::ParentDir)
+        .as_os_str()
+        .to_str()
+        .unwrap_or("Something else")
+        .to_ascii_uppercase();
+
+    // log::debug!("components next = {:?}", components.next_back());
+    log::debug!("parent_dir = {:?}", parent_dir);
+
+    let mut dn = 1; // Disc number
+                    // Check if the parent directory starts "properly" and extract just the number
+    if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
+        parent_dir = parent_dir.replace("CD", "");
+        parent_dir = parent_dir.replace("DISC", "").trim().to_string();
+        dn = u16::from_str_radix(&parent_dir, 16)?;
+    }
+    log::debug!("dn = {}", dn);
+
+    // return safely
+    Ok(dn)
+}
+
+/// Determines if a value (typically track or disc number) needs to be split into two values.
+/// This is determined if the provided value contains "/" or "of"
+pub fn need_split(value: &str) -> bool {
+    value.contains('/') || value.contains("of")
+}
+
+/// Splits a value (typically track or disc number) into two values at a "/" or "of".
+pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
+    let split_str: Vec<&str>;
+    if value.contains("of") {
+        split_str = value.split("of").collect();
+    } else {
+        split_str = value.split('/').collect();
+    }
+
+    log::debug!("split_str = {:?}", split_str);
+    let num = u16::from_str_radix(split_str[0].trim(), 16)?;
+    let total = u16::from_str_radix(split_str[1].trim(), 16)?;
+
+    // return the values
+    Ok((num, total))
 }
