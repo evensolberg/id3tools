@@ -30,7 +30,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut logs = shared::build_log(&cli_args)?;
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
-    let config = DefaultValues::build_config(&cli_args)?;
+    let mut config = DefaultValues::build_config(&cli_args)?;
 
     if config.quiet.unwrap_or(false) {
         logs.filter_level(LevelFilter::Off);
@@ -73,7 +73,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 counts.skipped_file_count += 1;
             } // Unknown
         }
-        formats::process_file(file_type, filename, &config, &cli_args, &mut counts)?;
+        formats::process_file(file_type, filename, &mut config, &cli_args, &mut counts)?;
         counts.total_file_count += 1;
     }
 

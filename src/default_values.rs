@@ -40,6 +40,9 @@ pub struct DefaultValues {
     /// Default value for the disc number, usually 1.
     pub disc_number: Option<u16>,
 
+    /// Figure out the disc number
+    pub disc_count: Option<bool>,
+
     /// The total number of discs that comprise the album, usually 1.
     pub disc_total: Option<u16>,
 

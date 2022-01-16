@@ -186,7 +186,7 @@ pub fn process_mp3(
     }
 
     // Rename file
-    if let Some(_) = &config.rename_file {
+    if config.rename_file.is_some() {
         rename_mp3(filename, config, tag)?;
     }
 
@@ -269,7 +269,7 @@ fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(
                 let separates: Vec<&str> = vval.split('/').collect();
                 let mut count = "0".to_string();
                 let mut total = "0".to_string();
-                if separates.len() > 0 {
+                if !separates.is_empty() {
                     count = separates[0].to_string();
                 }
                 if separates.len() > 1 {

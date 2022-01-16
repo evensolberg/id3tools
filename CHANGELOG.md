@@ -4,9 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- Discover disc number
+
+## [0.8.0] - 2022-01-15
+
 ### Miscellaneous Tasks
 
 - Crate version updates
+- Changelog update
 
 ## [0.7.1] - 2022-01-15
 

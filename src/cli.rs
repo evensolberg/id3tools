@@ -142,6 +142,19 @@ pub fn build_cli() -> ArgMatches {
                 .require_equals(false)
                 .help_heading(tags_name)
             )
+        .arg( // Determine disc number automagically
+            Arg::new("disc-number-count")
+                .long("disc-number-count")
+                .visible_alias("dnc")
+                .help("Determine the disc number based on the folder structure
+                .")
+                .long_help("Tries to determine disc number for the disc being processed based on whether we're in a subdirectory called 'CD xx' or 'Disc xx'. If not, assumes the disc number to be 1.")
+                .takes_value(false)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .conflicts_with("disc-number")
+                .help_heading(tags_name)
+            )
         .arg( // Disc total
             Arg::new("disc-total")
                 .long("disc-number-total")

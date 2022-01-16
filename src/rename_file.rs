@@ -70,11 +70,11 @@ pub fn rename_file(
         .unwrap_or_else(|| Path::new("."));
 
     // Create the new filename
-    let new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(&filename)));
+    let new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
     if config.dry_run.unwrap_or(true) {
-        log::debug!("dr: {} --> {}", filename, new_path.to_string_lossy());
+        log::debug!("dr: {} --> {}", filename, new_path.display());
     } else {
         // Get parent dir
         let rn_res = std::fs::rename(&filename, &new_path);

@@ -74,7 +74,7 @@ pub fn process_mp4(
     }
 
     // Rename file
-    if let Some(_) = &config.rename_file {
+    if config.rename_file.is_some() {
         rename_mp4(filename, config, tag)?;
     }
 

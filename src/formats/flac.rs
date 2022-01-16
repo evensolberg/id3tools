@@ -1,7 +1,7 @@
 //! Contains the functionality to process FLAC files.
 
 use crate::default_values::DefaultValues;
-use crate::formats::FileTypes;
+use crate::formats::{need_split, split_val, FileTypes};
 use crate::rename_file;
 use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
@@ -28,7 +28,7 @@ use std::fs;
 pub fn process_flac(
     filename: &str,
     new_tags: &HashMap<String, String>,
-    config: &DefaultValues,
+    config: &mut DefaultValues,
 ) -> Result<(), Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
     log::debug!("Filename: {}", filename);
@@ -44,9 +44,31 @@ pub fn process_flac(
         for (key, values) in &id3.comments {
             for value in values {
                 log::debug!("Old {} = {}", key, value);
-            }
-        }
-    }
+
+                // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
+                if key == "TRACKNUMBER" && need_split(value) {
+                    let track_split = split_val(value)?;
+                    log::debug!("track_split = {:?}", track_split);
+                    if track_split.0 != 0 {
+                        config.track_number = Some(track_split.0);
+                    }
+                    if track_split.1 != 0 {
+                        config.track_total = Some(track_split.1);
+                    }
+                } // TRACKNUMBERid3t --help
+                if key == "DISCNUMBER" && need_split(value) {
+                    let disc_split = split_val(value)?;
+                    log::debug!("disc_split = {:?}", disc_split);
+                    if disc_split.0 != 0 {
+                        config.disc_number = Some(disc_split.0);
+                    }
+                    if disc_split.1 != 0 {
+                        config.disc_total = Some(disc_split.1);
+                    }
+                } // DISCNUMBER
+            } // for value in values
+        } // for (key, value)
+    } // if let
 
     // Set new tags
     for (key, value) in new_tags {
@@ -115,7 +137,7 @@ pub fn process_flac(
     }
 
     // Rename file
-    if let Some(_) = &config.rename_file {
+    if config.rename_file.is_some() {
         rename_flac(filename, config, &tags)?;
     }
 

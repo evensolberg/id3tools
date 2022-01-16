@@ -31,30 +31,31 @@ Examples:
 
 These are the values that can be set for each file. Note that all of these should be in the form `--option=value` or `--option Value`. You can also use the short-form alias: `--aa Artist` or `--aa=Artist`.
 
-|Option|Alias|Description|
-|------|-----|-----------|
-|`--album-artist`|`--aa`|Set the name of the (main) artist on the album. This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
-|`--album-artist-sort`|`--aas`|The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the `artist_sort` may be "Keys, Alicia". This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
-|`--album-title`|`--at`|Sets the name of the album. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--album-title-sort`|`--ats`|Album title sort. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--disc-number`|`--dn`|Sets the number of the disc from which the files are taken, usually 1.  This is often set to be the same for all tracks on an album.
-|`--disc-number-total`|`--dt`|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
-|`--track-artist`|`--ta`|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--track-artist-sort`|`--tas`|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--track-title`|`--tt`|Sets the name of the track. Use quotation marks for multi-word entries.
-|`--track-title-sort`|`--tts`|Track title sort. Use quotation marks for multi-word entries.
-|`--track-number`|`--tn`|Sets the track number.
-|`--track-number-total`|`--to`|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
-|`--track-number-count`|`--tnc`|Counts the number of files with the same extension in the same subdirectory, and uses it as the total number of tracks for the disc. In other words, if there are 5 MP3 files in the same directory, the track total count will be 5.<br>**NOTE:** Conflicts with `--track-number-total`.
-|`--track-genre`|`--tg`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
-|`--track-genre-number`|`--tgn`|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. based on the [ID3 Numerical Tag](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D) (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with '--track-genre'. Note that whichever of the two is passed LAST is used.
-|`--track-composer`|`--tc`|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--track-composer-sort`|`--tcs`|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
-|`--track-comment`|`--tm`|Any comments related to the track (or album).
-|`--track-date`|`--td`|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
-|`--picture-front`|`--pf`|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
-|`--picture-back`|`--pb`|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
-|`--rename-file`|`--rf`|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table.
+|Option|Alias|Takes Value|Description|
+|------|-----|:---:|-----------|
+|`--album-artist`|`--aa`|Yes|Set the name of the (main) artist on the album. This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
+|`--album-artist-sort`|`--aas`|Yes|The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the `artist_sort` may be "Keys, Alicia". This is usually set to be the same for all tracks and discs for an album. Use quotation marks for multi-word entries.
+|`--album-title`|`--at`|Yes|Sets the name of the album. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--album-title-sort`|`--ats`|Yes|Album title sort. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--disc-number`|`--dn`|Yes|Sets the number of the disc from which the files are taken, usually 1.  This is often set to be the same for all tracks on an album.
+|`--disc-number-count`|`--dnc`|No|Tries to figure out the disc number based on the name of the parent folder. If it contains "CD" or "DISC" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
+|`--disc-number-total`|`--dt`|Yes|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
+|`--track-artist`|`--ta`|Yes|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-artist-sort`|`--tas`|Yes|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-title`|`--tt`|Yes|Sets the name of the track. Use quotation marks for multi-word entries.
+|`--track-title-sort`|`--tts`|Yes|Track title sort. Use quotation marks for multi-word entries.
+|`--track-number`|`--tn`|Yes|Sets the track number.
+|`--track-number-total`|`--to`|Yes|Sets the total number of tracks. This is normally set to be the same for all tracks on an album.
+|`--track-number-count`|`--tnc`|No|Counts the number of files with the same extension in the same subdirectory, and uses it as the total number of tracks for the disc. In other words, if there are 5 MP3 files in the same directory, the track total count will be 5.<br>**NOTE:** Conflicts with `--track-number-total`.
+|`--track-genre`|`--tg`|Yes|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. This is often set to be the same for all tracks on an album, and often across discs as well. Use quotation marks for multi-word entries.
+|`--track-genre-number`|`--tgn`|Yes|Sets the genre for the track, eg. "Rock", "Metal", "R&B", etc. based on the [ID3 Numerical Tag](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D) (eg. 'Rock'=17, 'R&B'=14, 'Classical'=32). This is usually set to the same value for all tracks on a disc or album. Cannot be combined with `--track-genre`. Note that whichever of the two is passed LAST is used.
+|`--track-composer`|`--tc`|Yes|Sets the composer(s) for the track, eg. "Ludwig van Beethoven", "Seal", "Keys, Alicia", etc. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-composer-sort`|`--tcs`|Yes|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-comment`|`--tm`|Yes|Any comments related to the track (or album).
+|`--track-date`|`--td`|Yes|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
+|`--picture-front`|`--pf`|Yes|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
+|`--picture-back`|`--pb`|Yes|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
+|`--rename-file`|`--rf`|Yes|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 
@@ -93,6 +94,7 @@ This file describes the configuration parameters found in the config file. You c
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
 |`disc_number`|||The disc number, usually 1.
+|`disc_count|`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD" or "DISC" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
 |`disc_number_total`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The track's artist.
 |`track_artist_sort`|||The track's artist sort.
@@ -142,6 +144,8 @@ These are the tags in various formats that are set using the different command l
 |`--track-artist-sort`|`track_artist_sort`|`ARTISTSORT`|`TSOP`|`soar`|
 |`--track-title`|`track_title`|`TITLE`|`TIT2`|`©nam`|
 |`--track-title-sort`|`track_title_sort`|`TITLESORT`|`TSOT`|`sonm`|
+|`--track-number`|`track_number`|`TRACKNUMBER`|`TRCK`|`trkn` [^2]|
+|`--track-number-total`|`track_number_total`|`TRACKTOTAL`|`TRCK-T` [^2]|`trkn` [^2]|
 |`--track-genre`|`track_genre`|`GENRE`|`TCON`|`©gen`|
 |`--track-genre-number`|`track_genre_number`|[^1]|[^1]|[^1]|
 |`--track-date`|`track_date`|`DATE`|`TDRC`|`©day`|

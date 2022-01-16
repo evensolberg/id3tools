@@ -70,7 +70,7 @@ pub fn process_ape(
         log::info!("{}  ✓", filename);
     }
 
-    if let Some(_) = &config.rename_file {
+    if config.rename_file.is_some() {
         rename_ape(filename, config, tags)?;
     }
 
