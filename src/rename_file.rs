@@ -62,6 +62,10 @@ pub fn rename_file(
 
         // Do the actual filename replacement
         new_filename = new_filename.replace(key, &fixed_value);
+
+        // Fix a few things we know will give us trouble later.
+        new_filename = new_filename.replace('/', "-");
+        new_filename = new_filename.replace(':', " -");
     }
 
     // Get the path before the filename (eg. "music/01.flac" returns "music/")

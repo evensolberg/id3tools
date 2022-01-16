@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.8.1] - 2022-01-16
 
 ### Features
 
 - Discover disc number
+
+### Miscellaneous Tasks
+
+- Update changelog
 
 ## [0.8.0] - 2022-01-15
 
