@@ -53,10 +53,10 @@ pub fn process_mp4(
             "©cmt" => tag.set_comment(value),
             "covr-f" => set_picture(&mut tag, value)?,
             "covr-b" => log::warn!("Setting back cover on MP4 files is currently not implemented."),
-            "disk" => tag.set_disc_number(u16::from_str_radix(value, 16)?),
-            "disk-t" => tag.set_total_discs(u16::from_str_radix(value, 16)?),
-            "trkn" => tag.set_track_number(u16::from_str_radix(value, 16)?),
-            "trkn-t" => tag.set_total_tracks(u16::from_str_radix(value, 16)?),
+            "disk" => tag.set_disc_number(value.parse::<u16>().unwrap_or(1)),
+            "disk-t" => tag.set_total_discs(value.parse::<u16>().unwrap_or(1)),
+            "trkn" => tag.set_track_number(value.parse::<u16>().unwrap_or(1)),
+            "trkn-t" => tag.set_total_tracks(value.parse::<u16>().unwrap_or(1)),
             _ => {
                 // tag.set_data(Fourcc(key.as_bytes().try_into()?), Data::Utf8(value.into()));
                 return Err(format!("Unknown key: {}", key).into());

@@ -82,7 +82,7 @@ pub fn process_mp3(
             },
             "TPOS" => {
                 let num;
-                match u32::from_str_radix(value, 32) {
+                match value.parse::<u32>() {
                     Ok(n) => num = n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
@@ -105,7 +105,7 @@ pub fn process_mp3(
             }
             "TPOS-T" => {
                 let num;
-                match u32::from_str_radix(value, 32) {
+                match value.parse::<u32>() {
                     Ok(n) => num = n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
@@ -128,7 +128,7 @@ pub fn process_mp3(
             }
             "TRCK" => {
                 let num;
-                match u32::from_str_radix(value, 32) {
+                match value.parse::<u32>() {
                     Ok(n) => num = n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
@@ -151,7 +151,7 @@ pub fn process_mp3(
             }
             "TRCK-T" => {
                 let num;
-                match u32::from_str_radix(value, 32) {
+                match value.parse::<u32>() {
                     Ok(n) => num = n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {

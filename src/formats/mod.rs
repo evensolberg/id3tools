@@ -309,13 +309,13 @@ fn parse_options(
         // Turn the numeric tag into a string
         new_tags.insert(
             tag_names.track_genre.clone(),
-            get_genre_name(u16::from_str_radix(
-                &args
-                    .value_of("track-genre-number")
+            get_genre_name(
+                args.value_of("track-genre-number")
                     .unwrap_or("")
-                    .to_string(),
-                16,
-            )?)?,
+                    .to_string()
+                    .parse::<u16>()
+                    .unwrap_or_default(),
+            )?,
         );
     } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_genre_number {
@@ -934,7 +934,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
-        dn = u16::from_str_radix(&parent_dir, 16)?;
+        dn = parent_dir.parse().unwrap_or(1);
     }
     log::debug!("dn = {}", dn);
 
@@ -958,8 +958,8 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
     }
 
     log::debug!("split_str = {:?}", split_str);
-    let num = u16::from_str_radix(split_str[0].trim(), 16)?;
-    let total = u16::from_str_radix(split_str[1].trim(), 16)?;
+    let num = split_str[0].trim().parse::<u16>().unwrap_or(1);
+    let total = split_str[1].trim().parse::<u16>().unwrap_or(1);
 
     // return the values
     Ok((num, total))
