@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Rename bug
 
+### Miscellaneous Tasks
+
+- Update CHNAGELOG
+
 ## [0.8.1] - 2022-01-16
 
 ### Features
