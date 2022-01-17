@@ -2,15 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.8.3] - 2022-01-17
 
 ### Bug Fixes
 
 - Rename bug
+- Replace `.` with nothing in file rename
 
 ### Miscellaneous Tasks
 
 - Update CHNAGELOG
+- Moved from radix to parse in str --> number
 
 ## [0.8.1] - 2022-01-16
 
