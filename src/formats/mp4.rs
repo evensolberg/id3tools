@@ -38,20 +38,20 @@ pub fn process_mp4(
 
         // Process the tags
         match key.as_ref() {
-            "aART" => tag.set_album_artist(value),
-            "soaa" => tag.set_data(Fourcc(*b"soaa"), Data::Utf8(value.into())), // Album artist stort
-            "©alb" => tag.set_album(value),
-            "soal" => tag.set_data(Fourcc(*b"soal"), Data::Utf8(value.into())), // Album title sort
-            "©ART" => tag.set_artist(value),
-            "soar" => tag.set_data(Fourcc(*b"soar"), Data::Utf8(value.into())), // Track artist stort
-            "©nam" => tag.set_title(value),
-            "sonm" => tag.set_data(Fourcc(*b"sonm"), Data::Utf8(value.into())), // Track title sort
-            "©gen" => tag.set_genre(value),
-            "©wrt" => tag.set_composer(value),
-            "soco" => tag.set_data(Fourcc(*b"soco"), Data::Utf8(value.into())), // Composer sort
-            "©day" => tag.set_year(value),
-            "©cmt" => tag.set_comment(value),
-            "covr-f" => set_picture(&mut tag, value)?,
+            "aART" => tag.set_album_artist(value.trim()),
+            "soaa" => tag.set_data(Fourcc(*b"soaa"), Data::Utf8(value.trim().into())), // Album artist stort
+            "©alb" => tag.set_album(value.trim()),
+            "soal" => tag.set_data(Fourcc(*b"soal"), Data::Utf8(value.trim().into())), // Album title sort
+            "©ART" => tag.set_artist(value.trim()),
+            "soar" => tag.set_data(Fourcc(*b"soar"), Data::Utf8(value.trim().into())), // Track artist stort
+            "©nam" => tag.set_title(value.trim()),
+            "sonm" => tag.set_data(Fourcc(*b"sonm"), Data::Utf8(value.trim().into())), // Track title sort
+            "©gen" => tag.set_genre(value.trim()),
+            "©wrt" => tag.set_composer(value.trim()),
+            "soco" => tag.set_data(Fourcc(*b"soco"), Data::Utf8(value.trim().into())), // Composer sort
+            "©day" => tag.set_year(value.trim()),
+            "©cmt" => tag.set_comment(value.trim()),
+            "covr-f" => set_picture(&mut tag, value.trim())?,
             "covr-b" => log::warn!("Setting back cover on MP4 files is currently not implemented."),
             "disk" => tag.set_disc_number(value.parse::<u16>().unwrap_or(1)),
             "disk-t" => tag.set_total_discs(value.parse::<u16>().unwrap_or(1)),

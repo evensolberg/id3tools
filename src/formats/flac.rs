@@ -43,11 +43,11 @@ pub fn process_flac(
         log::debug!("vendor_string = {}", &id3.vendor_string);
         for (key, values) in &id3.comments {
             for value in values {
-                log::debug!("Old {} = {}", key, value);
+                log::debug!("Old {} = {}", key, value.trim());
 
                 // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
                 if key == "TRACKNUMBER" && need_split(value) {
-                    let track_split = split_val(value)?;
+                    let track_split = split_val(value.trim())?;
                     log::debug!("track_split = {:?}", track_split);
                     if track_split.0 != 0 {
                         config.track_number = Some(track_split.0);
@@ -57,7 +57,7 @@ pub fn process_flac(
                     }
                 } // TRACKNUMBERid3t --help
                 if key == "DISCNUMBER" && need_split(value) {
-                    let disc_split = split_val(value)?;
+                    let disc_split = split_val(value.trim())?;
                     log::debug!("disc_split = {:?}", disc_split);
                     if disc_split.0 != 0 {
                         config.disc_number = Some(disc_split.0);
@@ -74,7 +74,7 @@ pub fn process_flac(
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
-                log::info!("{} :: New {} = {}", &filename, key, value);
+                log::info!("{} :: New {} = {}", &filename, key, value.trim());
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -84,7 +84,7 @@ pub fn process_flac(
         match key.as_ref() {
             "PICTUREFRONT" => {
                 log::debug!("Setting front cover.");
-                match add_picture(&mut tags, value, CoverFront) {
+                match add_picture(&mut tags, value.trim(), CoverFront) {
                     Ok(_) => log::trace!("Picture set."),
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(true) {
@@ -105,7 +105,7 @@ pub fn process_flac(
             } // PICTUREFRONT
             "PICTUREBACK" => {
                 log::debug!("Setting back cover.");
-                match add_picture(&mut tags, value, CoverBack) {
+                match add_picture(&mut tags, value.trim(), CoverBack) {
                     Ok(_) => log::trace!("Picture set."),
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(true) {
@@ -124,7 +124,7 @@ pub fn process_flac(
                     }
                 } // match
             } // PICTUREBACK
-            _ => tags.set_vorbis(key.clone(), vec![value.clone()]),
+            _ => tags.set_vorbis(key.clone(), vec![value.clone().trim()]),
         } // match key.as_ref()
     }
 

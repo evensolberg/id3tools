@@ -38,7 +38,7 @@ pub fn process_mp3(
 
         // Process the tags
         match key.as_ref() {
-            "APIC-F" => match add_picture(&mut tag, value, PictureType::CoverFront) {
+            "APIC-F" => match add_picture(&mut tag, value.trim(), PictureType::CoverFront) {
                 Ok(_) => (),
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(false) {
@@ -52,7 +52,7 @@ pub fn process_mp3(
                     }
                 }
             },
-            "APIC-B" => match add_picture(&mut tag, value, PictureType::CoverBack) {
+            "APIC-B" => match add_picture(&mut tag, value.trim(), PictureType::CoverBack) {
                 Ok(_) => (),
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(false) {
@@ -66,7 +66,7 @@ pub fn process_mp3(
                     }
                 }
             },
-            "COMM" => match set_comment(&mut tag, value) {
+            "COMM" => match set_comment(&mut tag, value.trim()) {
                 Ok(_) => (),
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(false) {
@@ -172,7 +172,7 @@ pub fn process_mp3(
                 }
                 tag.set_total_tracks(num)
             }
-            _ => tag.set_text(key, value),
+            _ => tag.set_text(key, value.trim()),
         }
     }
 

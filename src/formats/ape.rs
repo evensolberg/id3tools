@@ -34,7 +34,7 @@ pub fn process_ape(
                 log::warn!("Setting covers on APE files is currently not supported.");
             } // PICTUREBACK
             _ => {
-                let item = Item::from_text(key, value);
+                let item = Item::from_text(key, value.trim());
                 match item {
                     Ok(item) => {
                         log::debug!("Item created: {:?}", item);

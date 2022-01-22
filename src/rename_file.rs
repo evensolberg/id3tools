@@ -54,9 +54,11 @@ pub fn rename_file(
     for (key, value) in tags {
         // Make sure to pad disc and track numbers with leading zeros
         let mut fixed_value = value.clone();
+        fixed_value = fixed_value.trim().to_string();
+
         for tag in &pad_tags {
             if key == tag {
-                fixed_value = format!("{:0>2}", value);
+                fixed_value = format!("{:0>2}", value.trim());
             }
         }
 
@@ -67,6 +69,9 @@ pub fn rename_file(
         new_filename = new_filename.replace('/', "-");
         new_filename = new_filename.replace(':', " -");
         new_filename = new_filename.replace('.', "");
+
+        // Remove leading or trailing spaces
+        new_filename = new_filename.trim().to_string();
     }
 
     // Get the path before the filename (eg. "music/01.flac" returns "music/")

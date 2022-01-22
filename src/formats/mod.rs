@@ -931,6 +931,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
     let mut dn = 1; // Disc number
                     // Check if the parent directory starts "properly" and extract just the number
+                    // TODO - Handle more complex versions like "CD01 - Something something"
     if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
