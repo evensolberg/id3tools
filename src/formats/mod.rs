@@ -935,6 +935,27 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
+
+        // Check for longer name - eg CD01 - Something
+        if parent_dir.contains(' ') || parent_dir.contains('-') {
+            let space = parent_dir.find(' ').unwrap_or(256);
+            let dash = parent_dir.find('-').unwrap_or(256);
+            let delimiter = if space < dash { ' ' } else { '-' };
+            log::trace!(
+                "space = {}, dash = {}, delimiter = {}",
+                space,
+                dash,
+                delimiter
+            );
+
+            parent_dir = parent_dir
+                .split_once(delimiter)
+                .unwrap_or_default()
+                .0
+                .to_string();
+        }
+
+        log::trace!("parent_dir = {:?}", parent_dir);
         dn = parent_dir.parse().unwrap_or(1);
     }
     log::debug!("dn = {}", dn);
