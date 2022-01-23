@@ -589,7 +589,6 @@ fn find_picture(
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
 fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
-    // TODO: Make this more robust by erroring out if the wrong number is given.
     if tagnumber > 191 {
         return Err("Incorrent value supplied. Must be 0-191.".into());
     }
@@ -800,6 +799,7 @@ fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let ext = shared::get_extension(filename);
     log::debug!("ext = {}", ext);
 
+    // Get just the directory part, excluding the filename
     let dir = Path::new(&filename)
         .parent()
         .unwrap_or_else(|| Path::new("."));
@@ -809,6 +809,7 @@ fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
         return Err(format!("Unable to get directory name from filename {}.", filename).into());
     }
 
+    // Get the list of (music) files in the directory
     let file_list = std::fs::read_dir(Path::new(dir))?
         .into_iter()
         .map(|x| x.unwrap())
@@ -820,9 +821,10 @@ fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
                 .unwrap_or("")
                 == ext
         });
+
+    // return safely with the number of files found
     log::debug!("file_list = {:?}", &file_list);
     let file_count = format!("{:0>2}", file_list.count());
-    // return safely with the number of files found
     Ok(file_count)
 }
 
@@ -930,8 +932,8 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     log::debug!("parent_dir = {:?}", parent_dir);
 
     let mut dn = 1; // Disc number
-                    // Check if the parent directory starts "properly" and extract just the number
-                    // TODO - Handle more complex versions like "CD01 - Something something"
+
+    // Check if the parent directory starts "properly" and extract just the number
     if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
