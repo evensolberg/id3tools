@@ -92,7 +92,7 @@ This file describes the configuration parameters found in the config file. You c
 |`album_title`|||The title of the album.
 |`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
 |`disc_number`|||The disc number, usually 1.
-|`disc_count|`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD" or "DISC" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
+|`disc_count|`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
 |`disc_number_total`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The track's artist.
 |`track_artist_sort`|||The track's artist sort.
@@ -118,8 +118,11 @@ Note that any flags or options provided via the command line will override the d
 ```toml
 detail-off=false
 print-summary=true
-quiet=false
 stop-on-error=false
+log_config_file="~/.config/id3tag/logs.yml"
+
+track_count=true
+disc_count=true
 track_genre="Metal"
 track_composer="Hendrix, Jimi"
 picture_front="cover-small.jpg"

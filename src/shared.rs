@@ -144,7 +144,7 @@ pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
     }
 }
 
-/// Roman to Decimal conversions
+/// Roman to Decimal conversion
 pub fn roman_to_decimal(roman: &str) -> u16 {
     struct RomanNumeral {
         symbol: &'static str,
