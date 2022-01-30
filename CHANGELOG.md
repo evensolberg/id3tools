@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.9.1] - 2022-01-30
+
+### Bug Fixes
+
+- Handle the case where no log config is specified
 
 ### Miscellaneous Tasks
 
