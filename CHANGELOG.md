@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.9.2] - 2022-01-30
+
+### Features
+
+- Disc numbering upgrade
 
 ### Miscellaneous Tasks
 
