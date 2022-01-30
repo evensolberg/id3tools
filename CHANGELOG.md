@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - Better handling of disc directories with names
 
+### Miscellaneous Tasks
+
+- Update changelog
+- Comments update
+
 ## [0.8.4] - 2022-01-22
 
 ### Bug Fixes

@@ -15,14 +15,14 @@ pub struct DefaultValues {
     /// Flag: Print a summary of how many files were processed, skipped, etc.
     pub print_summary: Option<bool>,
 
-    /// Flag: Only output warnings and errors.
-    pub quiet: Option<bool>,
-
     /// Flag: Stop immediately if an error occurs, otherwise continue.
     pub stop_on_error: Option<bool>,
 
     /// Flag: Don't actually write any changes.
     pub dry_run: Option<bool>,
+
+    /// The name of the logging configuration file
+    pub log_config_file: Option<String>,
 
     // Options //
     /// The default album artist.
@@ -111,7 +111,7 @@ impl DefaultValues {
             let config_filename = shellexpand::tilde(
                 cli_args
                     .value_of("config-file")
-                    .unwrap_or("~/.id3tag-config.toml"),
+                    .unwrap_or("~/.config/id3tag/config.toml"),
             )
             .to_string();
             log::debug!("Config filename: {}", config_filename);
@@ -121,7 +121,6 @@ impl DefaultValues {
 
         // Collate config file flags and CLI flags and output the right config
         check_for_rename(&mut config, cli_args)?; // Check if we have a file rename
-        config.quiet = Some(quiet(&config, cli_args));
         config.stop_on_error = Some(stop_on_error(&config, cli_args));
         config.print_summary = Some(print_summary(&config, cli_args));
         config.detail_off = Some(detail_off(&config, cli_args));
@@ -204,30 +203,6 @@ fn print_summary(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
         log::debug!("Print summary flag set. Will output summary when all processing is done.");
     } else {
         log::debug!("Print summary not set. Will not output summary when all processing is done.");
-    }
-
-    // return the value
-    return_value
-}
-
-/// Check if the quiet flag has been set, either in the config file
-/// or via the CLI.
-fn quiet(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
-    let mut return_value = false;
-    if args.is_present("config-file") {
-        if let Some(cfg) = defaults.quiet {
-            return_value = cfg;
-        }
-    }
-
-    if args.is_present("quiet") {
-        return_value = true;
-    }
-
-    if return_value {
-        log::debug!("Quiet flag set. Will suppress output except warnings or errors.");
-    } else {
-        log::debug!("Quiet flag not set. Will output details as files are processed.");
     }
 
     // return the value

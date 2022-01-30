@@ -1,9 +1,11 @@
 //! Struct(s) and functions used across several other modules.
-use env_logger::{Builder, Target};
-use log::LevelFilter;
+// use env_logger::{Builder, Target};
+
 use std::error::Error;
 use std::ffi::OsStr;
 use std::path::Path;
+
+use crate::default_values::DefaultValues;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Counts {
@@ -44,23 +46,29 @@ pub fn get_extension(filename: &str) -> String {
 }
 
 /// Creates a log entity for us
-pub fn build_log(cli_args: &clap::ArgMatches) -> Result<Builder, Box<dyn Error>> {
-    let mut logbuilder = Builder::new();
+pub fn build_log(
+    cli_args: &clap::ArgMatches,
+    config: &DefaultValues,
+) -> Result<(), Box<dyn Error>> {
+    let default = "~/.config/id3tag/logs.yaml".to_string();
 
-    if cli_args.is_present("quiet") {
-        logbuilder.filter_level(LevelFilter::Off);
-    } else {
-        match cli_args.occurrences_of("debug") {
-            0 => logbuilder.filter_level(LevelFilter::Info),
-            1 => logbuilder.filter_level(LevelFilter::Debug),
-            _ => logbuilder.filter_level(LevelFilter::Trace),
-        };
+    let mut config_filename = default.clone();
+
+    if !config.log_config_file.is_none() {
+        config_filename = config.log_config_file.as_ref().unwrap_or(&default).clone();
     }
 
-    logbuilder.filter_module("metaflac::block", LevelFilter::Warn);
-    logbuilder.target(Target::Stdout).init();
+    if cli_args.is_present("log-config-file") {
+        config_filename = cli_args
+            .value_of("log-config-file")
+            .unwrap_or(&default)
+            .to_string();
+    }
 
-    Ok(logbuilder)
+    let path = &shellexpand::tilde(&config_filename).to_string();
+    log4rs::init_file(Path::new(path), Default::default())?;
+
+    Ok(())
 }
 
 /// Checks that the new filename pattern results in a unique file
