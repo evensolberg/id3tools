@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Update CHANGELOG
+- Clean up some lint
 
 ## [0.9.1] - 2022-01-30
 

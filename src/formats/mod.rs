@@ -934,9 +934,13 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     let mut dn = 1; // Disc number
 
     // Check if the parent directory starts "properly" and extract just the number
-    if parent_dir.starts_with("CD") || parent_dir.starts_with("DISC") {
+    if parent_dir.starts_with("CD")
+        || parent_dir.starts_with("DISC")
+        || parent_dir.starts_with("PART")
+    {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
+        parent_dir = parent_dir.replace("PART", "").trim().to_string();
 
         // Check for longer name - eg CD01 - Something
         if parent_dir.contains(' ') || parent_dir.contains('-') {
@@ -958,7 +962,17 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
 
         log::trace!("parent_dir = {:?}", parent_dir);
-        dn = parent_dir.parse().unwrap_or(1);
+        dn = parent_dir.parse().unwrap_or(0);
+
+        // Check for roman numerals
+        if dn == 0 {
+            dn = shared::roman_to_decimal(&parent_dir);
+
+            // If roman --> decimal didn't work either, just go with 1.
+            if dn == 0 {
+                dn = 1;
+            }
+        }
     }
     log::debug!("dn = {}", dn);
 
