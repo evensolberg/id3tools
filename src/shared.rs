@@ -5,6 +5,18 @@ use std::error::Error;
 use std::ffi::OsStr;
 use std::path::Path;
 
+use log::LevelFilter;
+use log4rs::{
+    append::{
+        console::{ConsoleAppender, Target},
+        file::FileAppender,
+    },
+    config::{Appender, Root},
+    encode::pattern::PatternEncoder,
+    filter::threshold::ThresholdFilter,
+    Config,
+};
+
 use crate::default_values::DefaultValues;
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -51,7 +63,6 @@ pub fn build_log(
     config: &DefaultValues,
 ) -> Result<(), Box<dyn Error>> {
     let default = "~/.config/id3tag/logs.yaml".to_string();
-
     let mut config_filename = default.clone();
 
     if !config.log_config_file.is_none() {
@@ -65,8 +76,57 @@ pub fn build_log(
             .to_string();
     }
 
-    let path = &shellexpand::tilde(&config_filename).to_string();
-    log4rs::init_file(Path::new(path), Default::default())?;
+    let path = Path::new(&shellexpand::tilde(&config_filename).to_string()).to_owned();
+    if path.exists() {
+        // Read the logger config from file
+        log4rs::init_file(path, Default::default())?;
+    } else {
+        // If, for some reason, we can't find the logger config file, create a default logger profile
+
+        // Build a stdout logger.
+        let stdout = ConsoleAppender::builder()
+            .encoder(Box::new(PatternEncoder::new(
+                "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}",
+            )))
+            .target(Target::Stdout)
+            .build();
+
+        // Logging to log file.
+        let logfile = FileAppender::builder()
+            // Pattern: https://docs.rs/log4rs/*/log4rs/encode/pattern/index.html
+            .encoder(Box::new(PatternEncoder::new(
+                "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}",
+            )))
+            .build("./id3tag.log")
+            .unwrap();
+
+        // Log Info level output to file where trace is the default level
+        // and the programmatically specified level to stdout.
+        let config = Config::builder()
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(ThresholdFilter::new(log::LevelFilter::Warn)))
+                    .build("logfile", Box::new(logfile)),
+            )
+            .appender(
+                Appender::builder()
+                    .filter(Box::new(ThresholdFilter::new(log::LevelFilter::Info)))
+                    .build("stdout", Box::new(stdout)),
+            )
+            .build(
+                Root::builder()
+                    .appender("logfile")
+                    .appender("stdout")
+                    .build(LevelFilter::Info),
+            )
+            .unwrap();
+
+        // Use this to change log levels at runtime.
+        // This means you can change the default log level to trace
+        // if you are trying to debug an issue and need more logs on then turn it off
+        // once you are done.
+        let _handle = log4rs::init_config(config)?;
+    }
 
     Ok(())
 }
