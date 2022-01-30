@@ -2,11 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.9.0] - 2022-01-30
 
 ### Bug Fixes
 
 - Better handling of disc directories with names
+
+### Features
+
+- Logging update
+
+### Miscellaneous Tasks
+
+- Update changelog
+- Comments update
 
 ## [0.8.4] - 2022-01-22
 

@@ -32,14 +32,6 @@ pub fn build_cli() -> ArgMatches {
                 .takes_value(false)
                 .hide(true)
         )
-        .arg( // Don't print any information
-            Arg::new("quiet")
-                .short('q')
-                .long("quiet")
-                .multiple_occurrences(false)
-                .help("Don't produce any output except errors while working.")
-                .takes_value(false)
-        )
         .arg( // Stop on error
             Arg::new("stop-on-error")
                 .short('s')
@@ -82,8 +74,19 @@ pub fn build_cli() -> ArgMatches {
                 .takes_value(true)
                 .multiple_occurrences(false)
                 .require_equals(false)
-                .default_missing_value("~/.id3tag-config.toml")
+                .default_missing_value("~/.config/id3tag/config.toml")
                 .display_order(1)
+        )
+        .arg( // Log config
+            Arg::new("log-config-file")
+                .short('l')
+                .long("log-config-file")
+                .help("The name of the YAML file containing the logging settings.")
+                .takes_value(true)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .default_missing_value("~/.config/id3tag/logs.yaml")
+                .display_order(2)
         )
         //////////////////////////////////////////////
         // Options

@@ -23,7 +23,6 @@ Examples:
 `-r`|`--dry-run`|Iterate through the files and produce output without actually processing anything.
 `-h`|`--help`|Prints help information
 `-p`|`--print-summary`|Print summary detail after all files are processed.
-`-q`|`--quiet`|Don't produce any output except errors while working.
 `-s`|`--stop-on-error`|Stop on error. If this flag isn't set, the application will attempt to continue in case of error.
 `-V`|`--version`|Prints version information.
 
@@ -87,7 +86,6 @@ This file describes the configuration parameters found in the config file. You c
 |:--------|:--------------|:------------|:----------|
 |`detail_off`|`true`/`false`|`false`|Don't export detailed information about each file processed.
 |`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.
-|`quiet`|`true`/`false`|`false`|Don't produce any output except errors while working.
 |`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
 |`album_artist`|||The name of the album artist.
 |`album_artist_sort`|||The name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".

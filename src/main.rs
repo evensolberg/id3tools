@@ -9,7 +9,7 @@
 use std::error::Error;
 
 // Logging
-use log::LevelFilter;
+// use log::LevelFilter;
 
 // Local modules
 mod cli;
@@ -26,15 +26,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build_cli();
 
-    // Configure logging
-    let mut logs = shared::build_log(&cli_args)?;
-
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let mut config = DefaultValues::build_config(&cli_args)?;
 
-    if config.quiet.unwrap_or(false) {
-        logs.filter_level(LevelFilter::Off);
-    }
+    // Configure logging
+    let mut _logs = shared::build_log(&cli_args, &config)?;
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
