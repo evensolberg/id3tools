@@ -65,7 +65,7 @@ pub fn build_log(
     let default = "~/.config/id3tag/logs.yaml".to_string();
     let mut config_filename = default.clone();
 
-    if !config.log_config_file.is_none() {
+    if config.log_config_file.is_some() {
         config_filename = config.log_config_file.as_ref().unwrap_or(&default).clone();
     }
 

@@ -59,12 +59,9 @@ alias r := release
 # Rebuilds the changelog
 @cliff: changelog
 
-# Documents the project, builds and installs the release version, and cleans up
+# Documents the project, lints it, builds and installs the release version, and cleans up
 @release: format changelog
-    cargo lbuild --release  --color 'always'
-    cargo strip
-    cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/
-    cargo clean
+    cargo lclippy && cargo lbuild --release  --color 'always' && cargo strip && cp {{invocation_directory()}}/target/release/{{application}} /usr/local/bin/ && cargo clean
 
 # Documents the project, builds and installs the release version, and cleans up
 @releasea: format changelog
