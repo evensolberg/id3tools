@@ -10,6 +10,7 @@ pub fn process_ape(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
+    _unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
 

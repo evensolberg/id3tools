@@ -15,6 +15,7 @@ pub fn process_mp3(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
+    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
 
@@ -187,7 +188,7 @@ pub fn process_mp3(
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_mp3(filename, config, tag)?;
+        rename_mp3(filename, config, tag, unique_val)?;
     }
 
     // return safely
@@ -251,7 +252,12 @@ fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(), Box<dyn Error>> {
+fn rename_mp3(
+    filename: &str,
+    config: &DefaultValues,
+    tag: id3::Tag,
+    unique_val: usize,
+) -> Result<(), Box<dyn Error>> {
     let tags_names = super::option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
@@ -307,7 +313,7 @@ fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(
 
     log::debug!("replace_map = {:?}", replace_map);
 
-    let rename_result = rename_file::rename_file(filename, &replace_map, config);
+    let rename_result = rename_file::rename_file(filename, &replace_map, config, unique_val);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {

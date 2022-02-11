@@ -88,10 +88,18 @@ pub fn process_file(
 
             log::debug!("Processing file.");
             let proc_res = match file_type {
-                FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
-                FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
-                FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
-                FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
+                FileTypes::Ape => {
+                    ape::process_ape(filename, &new_tags, config, counts.total_file_count)
+                }
+                FileTypes::Flac => {
+                    flac::process_flac(filename, &new_tags, config, counts.total_file_count)
+                }
+                FileTypes::MP3 => {
+                    mp3::process_mp3(filename, &new_tags, config, counts.total_file_count)
+                }
+                FileTypes::MP4 => {
+                    mp4::process_mp4(filename, &new_tags, config, counts.total_file_count)
+                }
                 FileTypes::Unknown => {
                     return Err("We should never get here. That's a problem.".into())
                 }

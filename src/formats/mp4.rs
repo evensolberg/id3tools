@@ -12,6 +12,7 @@ pub fn process_mp4(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
+    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
 
@@ -75,7 +76,7 @@ pub fn process_mp4(
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_mp4(filename, config, tag)?;
+        rename_mp4(filename, config, tag, unique_val)?;
     }
 
     // return safely
@@ -107,6 +108,7 @@ fn rename_mp4(
     filename: &str,
     config: &DefaultValues,
     tag: mp4ameta::Tag,
+    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let tags_map = get_mp4_tags(&tag)?;
     log::debug!("tags_map = {:?}", tags_map);
@@ -116,7 +118,7 @@ fn rename_mp4(
         pattern = p.clone();
     }
 
-    let rename_result = rename_file::rename_file(filename, &tags_map, config);
+    let rename_result = rename_file::rename_file(filename, &tags_map, config, unique_val);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {

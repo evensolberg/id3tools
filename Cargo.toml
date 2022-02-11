@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.9.2"
+version = "0.9.3"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"

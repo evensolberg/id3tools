@@ -29,6 +29,7 @@ pub fn process_flac(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &mut DefaultValues,
+    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
     log::debug!("Filename: {}", filename);
@@ -138,7 +139,7 @@ pub fn process_flac(
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_flac(filename, config, &tags)?;
+        rename_flac(filename, config, &tags, unique_val)?;
     }
 
     // Return safely
@@ -171,6 +172,7 @@ fn rename_flac(
     filename: &str,
     config: &DefaultValues,
     tags: &metaflac::Tag,
+    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let tags_names = super::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
@@ -190,7 +192,7 @@ fn rename_flac(
     }
     log::debug!("replace_map = {:?}", replace_map);
 
-    let rename_result = rename_file::rename_file(filename, &replace_map, config);
+    let rename_result = rename_file::rename_file(filename, &replace_map, config, unique_val);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {
