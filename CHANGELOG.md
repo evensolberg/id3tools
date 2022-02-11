@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.3] - 2022-02-11
+
+### Features
+
+- Rename ensure unique names
+
+### Miscellaneous Tasks
+
+- CHANGELOG update
+- README update
+
 ## [0.9.2] - 2022-01-30
 
 ### Features
