@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Disc count 0
+
 ### Miscellaneous Tasks
 
 - Lint and changelog
