@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Disc count 0
+- --dnc didn't include disc number
 
 ### Miscellaneous Tasks
 

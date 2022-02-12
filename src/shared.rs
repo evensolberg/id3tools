@@ -211,3 +211,60 @@ pub fn roman_to_decimal(roman: &str) -> u16 {
         None => 0, // if string empty, add nothing
     }
 }
+
+/// Determines if a value (typically track or disc number) needs to be split into two values.
+/// This is determined if the provided value contains "/" or "of"
+pub fn need_split(value: &str) -> bool {
+    value.contains('/') || value.contains("of")
+}
+
+/// Splits a value (typically track or disc number) into two values at a "/" or "of".
+pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
+    let split_str: Vec<&str>;
+    if value.contains("of") {
+        split_str = value.split("of").collect();
+    } else {
+        split_str = value.split('/').collect();
+    }
+
+    log::debug!("split_str = {:?}", split_str);
+    let num = split_str[0].trim().parse::<u16>().unwrap_or(1);
+    let total = split_str[1].trim().parse::<u16>().unwrap_or(1);
+
+    // return the values
+    Ok((num, total))
+}
+
+/// Counts the number of files in with the same extension in the same directory as the file specified.
+pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
+    let ext = get_extension(filename);
+    log::debug!("ext = {}", ext);
+
+    // Get just the directory part, excluding the filename
+    let dir = Path::new(&filename)
+        .parent()
+        .unwrap_or_else(|| Path::new("."));
+    log::debug!("dir = {}", dir.display());
+
+    if !dir.is_dir() {
+        return Err(format!("Unable to get directory name from filename {}.", filename).into());
+    }
+
+    // Get the list of (music) files in the directory
+    let file_list = std::fs::read_dir(Path::new(dir))?
+        .into_iter()
+        .map(|x| x.unwrap())
+        .filter(|x| {
+            x.path()
+                .extension()
+                .unwrap_or_else(|| OsStr::new(""))
+                .to_str()
+                .unwrap_or("")
+                == ext
+        });
+
+    // return safely with the number of files found
+    log::debug!("file_list = {:?}", &file_list);
+    let file_count = format!("{:0>2}", file_list.count());
+    Ok(file_count)
+}

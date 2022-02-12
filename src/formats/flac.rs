@@ -1,7 +1,8 @@
 //! Contains the functionality to process FLAC files.
 
 use crate::default_values::DefaultValues;
-use crate::formats::{need_split, split_val, FileTypes};
+use crate::formats::tags;
+use crate::formats::FileTypes;
 use crate::rename_file;
 use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
@@ -47,8 +48,8 @@ pub fn process_flac(
                 log::debug!("Old {} = {}", key, value.trim());
 
                 // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
-                if key == "TRACKNUMBER" && need_split(value) {
-                    let track_split = split_val(value.trim())?;
+                if key == "TRACKNUMBER" && shared::need_split(value) {
+                    let track_split = shared::split_val(value.trim())?;
                     log::debug!("track_split = {:?}", track_split);
                     if track_split.0 != 0 {
                         config.track_number = Some(track_split.0);
@@ -57,8 +58,8 @@ pub fn process_flac(
                         config.track_total = Some(track_split.1);
                     }
                 } // TRACKNUMBERid3t --help
-                if key == "DISCNUMBER" && need_split(value) {
-                    let disc_split = split_val(value.trim())?;
+                if key == "DISCNUMBER" && shared::need_split(value) {
+                    let disc_split = shared::split_val(value.trim())?;
                     log::debug!("disc_split = {:?}", disc_split);
                     if disc_split.0 != 0 {
                         config.disc_number = Some(disc_split.0);
@@ -174,7 +175,7 @@ fn rename_flac(
     tags: &metaflac::Tag,
     unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
-    let tags_names = super::option_to_tag(FileTypes::Flac);
+    let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
     let mut pattern = "".to_string();
     if let Some(p) = &config.rename_file {

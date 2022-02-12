@@ -1,4 +1,5 @@
 //! Contains the functionality to process MP3 files.
+use crate::formats::tags::*;
 use crate::formats::FileTypes;
 use crate::shared;
 use crate::{default_values::DefaultValues, rename_file};
@@ -258,7 +259,7 @@ fn rename_mp3(
     tag: id3::Tag,
     unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
-    let tags_names = super::option_to_tag(FileTypes::MP3);
+    let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
     let mut pattern = "".to_string();
