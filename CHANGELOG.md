@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Features
+
+- Set total number of discs automagically
+
+### Miscellaneous Tasks
+
+- Changelog update
+
 ## [0.9.3] - 2022-02-11
 
 ### Features
