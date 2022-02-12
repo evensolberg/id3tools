@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Lint and changelog
+
+## [0.9.4] - 2022-02-12
+
 ### Features
 
 - Set total number of discs automagically

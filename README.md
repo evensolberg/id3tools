@@ -25,6 +25,7 @@ Examples:
 `-p`|`--print-summary`|Print summary detail after all files are processed.
 `-s`|`--stop-on-error`|Stop on error. If this flag isn't set, the application will attempt to continue in case of error.
 `-V`|`--version`|Prints version information.
+`-l`|`--log`|Configures the logging to suit your requirements.
 
 ### Options
 
@@ -37,7 +38,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--album-title`|`--at`|Yes|Sets the name of the album. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--album-title-sort`|`--ats`|Yes|Album title sort. This is usually set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--disc-number`|`--dn`|Yes|Sets the number of the disc from which the files are taken, usually 1.  This is often set to be the same for all tracks on an album.
-|`--disc-number-count`|`--dnc`|No|Tries to figure out the disc number based on the name of the parent folder. If it contains "CD" or "DISC" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
+|`--disc-number-count`|`--dnc`|No|Tries to figure out the disc number and total number of discs based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number and total number of discs. Otherwise these values are set to 1. Note that this conflicts with `--disc-number` and `--disc-number-total`. You can either use those two or this, but not both.
 |`--disc-number-total`|`--dt`|Yes|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
 |`--track-artist`|`--ta`|Yes|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-artist-sort`|`--tas`|Yes|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
