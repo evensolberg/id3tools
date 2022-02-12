@@ -214,6 +214,7 @@ fn parse_options(
         log::debug!("disc number: {}", disc_num);
         let disc_count = get_disc_count(filename)?;
         log::debug!("disc number: {}", disc_count);
+        new_tags.insert(tag_names.disc_number.clone(), disc_num.to_string());
         new_tags.insert(tag_names.disc_number_total.clone(), disc_count.to_string());
     }
 
@@ -1037,10 +1038,6 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
                 log::trace!("get_disc_count::disc_count = {}", disc_count);
             }
         }
-    }
-
-    if disc_count == 0 {
-        disc_count = 1;
     }
 
     // return safely

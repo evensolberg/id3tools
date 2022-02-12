@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Lint and changelog
+- CHANGELOG
 
 ## [0.9.4] - 2022-02-12
 
