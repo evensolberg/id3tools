@@ -23,15 +23,6 @@ pub fn build_cli() -> ArgMatches {
                 .multiple_occurrences(true)
                 .required(true)
         )
-        .arg( // Debug (hidden)
-            Arg::new("debug")
-                .short('d')
-                .long("debug")
-                .multiple_occurrences(true)
-                .help("Output debug information as we go. Supply it twice for trace-level logs.")
-                .takes_value(false)
-                .hide(true)
-        )
         .arg( // Stop on error
             Arg::new("stop-on-error")
                 .short('s')
@@ -155,6 +146,7 @@ pub fn build_cli() -> ArgMatches {
                 .multiple_occurrences(false)
                 .require_equals(false)
                 .conflicts_with("disc-number")
+                .conflicts_with("disc-total")
                 .help_heading(tags_name)
             )
         .arg( // Disc total

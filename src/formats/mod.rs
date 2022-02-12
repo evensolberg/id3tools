@@ -1039,6 +1039,10 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
     }
 
+    if disc_count == 0 {
+        disc_count = 1;
+    }
+
     // return safely
     Ok(disc_count)
 }
