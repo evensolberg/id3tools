@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- Set total number of discs automagically
+
 ### Miscellaneous Tasks
 
 - Changelog update

@@ -210,7 +210,7 @@ fn parse_options(
         || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
     {
         log::debug!("Trying to figure out the disc number automagically.");
-        let disc_num = get_disc_number(&filename)?;
+        let disc_num = get_disc_number(filename)?;
         log::debug!("disc number: {}", disc_num);
         let disc_count = get_disc_count(filename)?;
         log::debug!("disc number: {}", disc_count);
