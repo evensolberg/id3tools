@@ -149,9 +149,8 @@ pub fn build_cli() -> ArgMatches {
             Arg::new("disc-number-count")
                 .long("disc-number-count")
                 .visible_alias("dnc")
-                .help("Determine the disc number based on the folder structure
-                .")
-                .long_help("Tries to determine disc number for the disc being processed based on whether we're in a subdirectory called 'CD xx' or 'Disc xx'. If not, assumes the disc number to be 1.")
+                .help("Determine the disc number and total number of discs based on the folder structure.")
+                .long_help("Tries to determine disc number and total number of discs for the disc being processed based on whether we're in a subdirectory called 'CD xx' or 'Disc xx' etc. If not, assumes the disc number to be 1.")
                 .takes_value(false)
                 .multiple_occurrences(false)
                 .require_equals(false)

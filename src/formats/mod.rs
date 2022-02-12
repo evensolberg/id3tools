@@ -5,6 +5,7 @@ use std::{
     collections::HashMap,
     error::Error,
     ffi::OsStr,
+    fs,
     path::{Component, Path},
 };
 
@@ -209,9 +210,11 @@ fn parse_options(
         || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
     {
         log::debug!("Trying to figure out the disc number automagically.");
-        let disc_num = get_disc_number(filename)?;
+        let disc_num = get_disc_number(&filename)?;
         log::debug!("disc number: {}", disc_num);
-        new_tags.insert(tag_names.disc_number, disc_num.to_string());
+        let disc_count = get_disc_count(filename)?;
+        log::debug!("disc number: {}", disc_count);
+        new_tags.insert(tag_names.disc_number_total.clone(), disc_count.to_string());
     }
 
     if args.is_present("disc-total") {
@@ -937,7 +940,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
         .to_ascii_uppercase();
 
     // log::debug!("components next = {:?}", components.next_back());
-    log::debug!("parent_dir = {:?}", parent_dir);
+    log::trace!("parent_dir = {:?}", parent_dir);
 
     let mut dn = 1; // Disc number
 
@@ -986,6 +989,58 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
     // return safely
     Ok(dn)
+}
+
+/// Counts the number of discs by looking for the number of `disk`, `CD` etc subdirectories
+fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
+    log::trace!("get_disc_count::get_disc_number filename: {}", filename);
+
+    let mut components = Path::new(filename).components();
+    log::trace!("get_disc_count::components = {:?}", components);
+    let _throwaway = components.next_back(); // Don't need the filename
+
+    // Get the parent directory
+    let parent_dir = components
+        .nth_back(1)
+        .unwrap_or(Component::ParentDir)
+        .as_os_str()
+        .to_str()
+        .unwrap_or("Something else")
+        .to_ascii_uppercase();
+
+    let mut disc_count = 0;
+
+    log::trace!("get_disc_count::parent_dir = {:?}", parent_dir);
+    let dirs = fs::read_dir(&parent_dir)?;
+    log::trace!("get_disc_count::dirs = {:?}", dirs);
+
+    for entry in dirs {
+        let path = entry?.path();
+        log::trace!("get_disc_count::path = {:?}", path);
+        if path.is_dir() {
+            let path_name = path
+                .components()
+                .nth(1)
+                .unwrap_or(Component::CurDir)
+                .as_os_str()
+                .to_str()
+                .unwrap_or("None")
+                .to_ascii_uppercase();
+
+            log::trace!("get_disc_count::path_name = {:?}", path_name);
+            if path_name.starts_with("CD")
+                || path_name.starts_with("DISC")
+                || path_name.starts_with("PART")
+            {
+                log::trace!("get_disc_count::path_name = {:?}", path_name);
+                disc_count += 1;
+                log::trace!("get_disc_count::disc_count = {}", disc_count);
+            }
+        }
+    }
+
+    // return safely
+    Ok(disc_count)
 }
 
 /// Determines if a value (typically track or disc number) needs to be split into two values.
