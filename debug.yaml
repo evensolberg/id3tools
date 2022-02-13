@@ -7,11 +7,11 @@ appenders:
   # Log information messages and above to stdout
   stdout:
     kind: console
-    encoder:
-      pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
-    filters:
-        - kind: threshold
-          level: trace
+    # encoder:
+    #   pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
+    # filters:
+    #     - kind: threshold
+    #       level: trace
 
   # Log warnings and errors to the local id3tag.log file
   # If you need to debug, the threshold below may be useful. See also the Formatters link
@@ -19,11 +19,11 @@ appenders:
   logfile:
     kind: file
     path: "id3tag.log"
-    encoder:
-      pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
-    filters:
-        - kind: threshold
-          level: trace
+    # encoder:
+    #   pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
+    # filters:
+    #     - kind: threshold
+    #       level: trace
 
 # This is where we decide where things go. Right now everything from the root module of the
 # application and below go to the appenders defined above.

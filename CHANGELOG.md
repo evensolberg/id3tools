@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file.
 - Lint and changelog
 - CHANGELOG
 
+### Refactor
+
+- Separated tags, moved funcs
+
 ## [0.9.4] - 2022-02-12
 
 ### Features

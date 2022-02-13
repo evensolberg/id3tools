@@ -698,11 +698,10 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
     let mut components = Path::new(filename).components();
     log::debug!("components = {:?}", components);
-    let _throwaway = components.next_back(); // Don't need the filename
 
     // Get the parent directory
     let mut parent_dir = components
-        .next_back()
+        .nth_back(1)
         .unwrap_or(Component::ParentDir)
         .as_os_str()
         .to_str()
@@ -763,15 +762,14 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
 /// Counts the number of discs by looking for the number of `disk`, `CD` etc subdirectories
 fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
-    log::trace!("get_disc_count::get_disc_number filename: {}", filename);
+    log::debug!("get_disc_count::get_disc_number filename: {}", filename);
 
     let mut components = Path::new(filename).components();
-    log::trace!("get_disc_count::components = {:?}", components);
-    let _throwaway = components.next_back(); // Don't need the filename
+    log::debug!("get_disc_count::components = {:?}", components);
 
-    // Get the parent directory
+    // Get the grandparent directory
     let parent_dir = components
-        .nth_back(1)
+        .nth_back(2)
         .unwrap_or(Component::ParentDir)
         .as_os_str()
         .to_str()
@@ -780,13 +778,15 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
 
     let mut disc_count = 0;
 
-    log::trace!("get_disc_count::parent_dir = {:?}", parent_dir);
+    // Find the subdirectories of the grandparent
+    log::debug!("get_disc_count::parent_dir = {:?}", parent_dir);
     let dirs = fs::read_dir(&parent_dir)?;
-    log::trace!("get_disc_count::dirs = {:?}", dirs);
+    log::debug!("get_disc_count::dirs = {:?}", dirs);
 
+    // Determine the number of disc subdirs
     for entry in dirs {
         let path = entry?.path();
-        log::trace!("get_disc_count::path = {:?}", path);
+        log::debug!("get_disc_count::path = {:?}", path);
         if path.is_dir() {
             let path_name = path
                 .components()
@@ -802,9 +802,9 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
                 || path_name.starts_with("DISC")
                 || path_name.starts_with("PART")
             {
-                log::trace!("get_disc_count::path_name = {:?}", path_name);
+                log::debug!("get_disc_count::path_name = {:?}", path_name);
                 disc_count += 1;
-                log::trace!("get_disc_count::disc_count = {}", disc_count);
+                log::debug!("get_disc_count::disc_count = {}", disc_count);
             }
         }
     }
