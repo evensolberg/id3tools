@@ -13,10 +13,12 @@ All notable changes to this project will be documented in this file.
 
 - Lint and changelog
 - CHANGELOG
+- Clean up the code a bit
 
 ### Refactor
 
 - Separated tags, moved funcs
+- Simplified the config CLI check
 
 ## [0.9.4] - 2022-02-12
 
