@@ -120,11 +120,11 @@ impl DefaultValues {
         }
 
         // Collate config file flags and CLI flags and output the right config
-        check_for_rename(&mut config, cli_args)?; // Check if we have a file rename
-        config.stop_on_error = Some(stop_on_error(&config, cli_args));
-        config.print_summary = Some(print_summary(&config, cli_args));
-        config.detail_off = Some(detail_off(&config, cli_args));
-        config.dry_run = Some(dry_run(&config, cli_args));
+        config.check_for_file_rename(cli_args)?;
+        config.check_for_stop_on_error(cli_args);
+        config.check_for_print_summary(cli_args);
+        config.check_for_detail_off(cli_args);
+        config.check_for_dry_run(cli_args);
         log::debug!("Working config: {:?}", &config);
 
         Ok(config)
@@ -157,125 +157,55 @@ impl DefaultValues {
 
         Ok(config)
     } // pub fn load_config
+
+    // Housekeeping functions to check which flags have been set, either on the CLI or in the config file.
+
+    /// Checks the loaded config if there is a `file_rename` present, and validates it.
+    /// Also checks the CLI for a rename-file and overrides any previous config entries if it is present.
+    /// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
+    fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
+        // Check if anything came from the config file and validate it
+        if let Some(rnp) = &self.rename_file {
+            crate::shared::file_rename_pattern_validate(rnp)?;
+        }
+
+        // Even if we have something from the config file, CLI takes presedence
+        if args.is_present("rename-file") {
+            self.rename_file = Some(args.value_of("rename-file").unwrap_or_default().to_string());
+        };
+
+        // Return safely
+        Ok(())
+    }
+    /// Check if the stop-on-error flag has been set, either in the config file
+    /// or via the CLI.
+    fn check_for_stop_on_error(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("stop-on-error") {
+            self.stop_on_error = Some(true);
+        }
+    }
+
+    /// Check if the print-summary flag has been set, either in the config file
+    /// or via the CLI.
+    fn check_for_print_summary(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("print-summary") {
+            self.print_summary = Some(true);
+        }
+    }
+
+    /// Check if the detail-off flag has been set, either in the config file
+    /// or via the CLI.
+    fn check_for_detail_off(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("detail-off") {
+            self.detail_off = Some(true);
+        }
+    }
+
+    /// Check if the detail-off flag has been set, either in the config file
+    /// or via the CLI.
+    fn check_for_dry_run(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("dry-run") {
+            self.dry_run = Some(true);
+        }
+    }
 } // impl DefaultValues
-
-// Housekeeping functions to check which flags have been set, either here or in the config file.
-
-/// Check if the stop-on-error flag has been set, either in the config file
-/// or via the CLI.
-fn stop_on_error(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
-    let mut return_value = false;
-    if args.is_present("config-file") {
-        if let Some(cfg) = defaults.stop_on_error {
-            return_value = cfg;
-        }
-    }
-
-    if args.is_present("stop-on-error") {
-        return_value = true;
-    }
-
-    if return_value {
-        log::debug!("Stop on error flag set. Will stop if errors occur.");
-    } else {
-        log::debug!("Stop on error flag not set. Will attempt to continue in case of errors.");
-    }
-
-    // return the value
-    return_value
-}
-
-/// Check if the print-summary flag has been set, either in the config file
-/// or via the CLI.
-fn print_summary(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
-    let mut return_value = false;
-    if args.is_present("config-file") {
-        if let Some(cfg) = defaults.print_summary {
-            return_value = cfg;
-        }
-    }
-
-    if args.is_present("print-summary") {
-        return_value = true;
-    }
-
-    if return_value {
-        log::debug!("Print summary flag set. Will output summary when all processing is done.");
-    } else {
-        log::debug!("Print summary not set. Will not output summary when all processing is done.");
-    }
-
-    // return the value
-    return_value
-}
-
-/// Check if the detail-off flag has been set, either in the config file
-/// or via the CLI.
-fn detail_off(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
-    let mut return_value = false;
-    if args.is_present("config-file") {
-        if let Some(cfg) = defaults.detail_off {
-            return_value = cfg;
-        }
-    }
-
-    if args.is_present("detail-off") {
-        return_value = true;
-    }
-
-    if return_value {
-        log::debug!("Detail off flag set. Will suppress output except warnings or errors.");
-    } else {
-        log::debug!("Detail off flag not set. Will output details as files are processed.");
-    }
-
-    // return the value
-    return_value
-}
-
-/// Check if the detail-off flag has been set, either in the config file
-/// or via the CLI.
-fn dry_run(defaults: &DefaultValues, args: &clap::ArgMatches) -> bool {
-    let mut return_value = false;
-    if args.is_present("config-file") {
-        if let Some(cfg) = defaults.dry_run {
-            return_value = cfg;
-        }
-    }
-
-    if args.is_present("dry-run") {
-        return_value = true;
-    }
-
-    if return_value {
-        log::debug!(
-            "Dry run flag set. Will not perform any actual processing, only report output."
-        );
-    } else {
-        log::debug!("Dry run flag not set. Will process files.");
-    }
-
-    // return the value
-    return_value
-}
-
-/// Checks the loaded config if there is a `file_rename` present, and validates it.
-/// Also checks the CLI for a rename-file and overrides any previous config entries if it is present.
-/// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
-fn check_for_rename(
-    config: &mut DefaultValues,
-    args: &clap::ArgMatches,
-) -> Result<(), Box<dyn Error>> {
-    // Check if anything came from the config file and validate it
-    if let Some(rnp) = &config.rename_file {
-        crate::shared::file_rename_pattern_validate(rnp)?;
-    }
-
-    // Even if we have something from the config file, CLI takes presedence
-    if args.is_present("rename-file") {
-        config.rename_file = Some(args.value_of("rename-file").unwrap_or_default().to_string());
-    };
-
-    // Return safely
-    Ok(())
-}
