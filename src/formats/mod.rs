@@ -62,7 +62,7 @@ pub fn process_file(
             new_tags = res;
             log::debug!("New tags: {:?}", new_tags);
 
-            log::debug!("Processing file.");
+            log::debug!("Processing file {}", filename);
             let proc_res = match file_type {
                 FileTypes::Ape => {
                     ape::process_ape(filename, &new_tags, config, counts.total_file_count)
@@ -119,6 +119,7 @@ fn parse_options(
     defaults: &DefaultValues,
     args: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
+    log::debug!("parse_options Start");
     let mut new_tags = HashMap::new();
 
     // Set tag names based on file type -- see tag_names function below
@@ -437,6 +438,7 @@ fn parse_options(
     }
 
     // Return safely
+    log::debug!("parse_options return -- new_tags = {:?}", &new_tags);
     Ok(new_tags)
 }
 

@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Flags not working correctly
 
+### Miscellaneous Tasks
+
+- Changelog update
+
 ## [0.9.5] - 2022-02-13
 
 ### Bug Fixes
