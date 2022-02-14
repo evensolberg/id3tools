@@ -182,6 +182,8 @@ impl DefaultValues {
     fn check_for_stop_on_error(&mut self, args: &clap::ArgMatches) {
         if args.is_present("stop-on-error") {
             self.stop_on_error = Some(true);
+        } else if self.stop_on_error.is_none() {
+            self.stop_on_error = Some(false);
         }
     }
 
@@ -190,6 +192,8 @@ impl DefaultValues {
     fn check_for_print_summary(&mut self, args: &clap::ArgMatches) {
         if args.is_present("print-summary") {
             self.print_summary = Some(true);
+        } else if self.print_summary.is_none() {
+            self.print_summary = Some(false);
         }
     }
 
@@ -198,6 +202,8 @@ impl DefaultValues {
     fn check_for_detail_off(&mut self, args: &clap::ArgMatches) {
         if args.is_present("detail-off") {
             self.detail_off = Some(true);
+        } else if self.detail_off.is_none() {
+            self.detail_off = Some(false);
         }
     }
 
@@ -206,6 +212,8 @@ impl DefaultValues {
     fn check_for_dry_run(&mut self, args: &clap::ArgMatches) {
         if args.is_present("dry-run") {
             self.dry_run = Some(true);
+        } else if self.dry_run.is_none() {
+            self.dry_run = Some(false);
         }
     }
 } // impl DefaultValues

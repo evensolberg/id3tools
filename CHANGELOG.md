@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.9.5] - 2022-02-13
 
 ### Bug Fixes
 
@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Lint and changelog
 - CHANGELOG
 - Clean up the code a bit
+- Changelog update
 
 ### Refactor
 

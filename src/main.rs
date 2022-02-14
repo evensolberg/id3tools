@@ -28,6 +28,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let mut config = DefaultValues::build_config(&cli_args)?;
+    log::debug!("config = {:?}", config);
 
     // Configure logging
     let mut _logs = shared::build_log(&cli_args, &config)?;
