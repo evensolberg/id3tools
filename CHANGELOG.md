@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug Fixes
+
+- Flags not working correctly
+
 ## [0.9.5] - 2022-02-13
 
 ### Bug Fixes
