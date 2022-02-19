@@ -77,6 +77,8 @@ pub fn process_flac(
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value.trim());
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -105,6 +107,7 @@ pub fn process_flac(
                     }
                 } // match
             } // PICTUREFRONT
+
             "PICTUREBACK" => {
                 log::debug!("Setting back cover.");
                 match add_picture(&mut tags, value.trim(), CoverBack) {
@@ -126,6 +129,7 @@ pub fn process_flac(
                     }
                 } // match
             } // PICTUREBACK
+
             _ => tags.set_vorbis(key.clone(), vec![value.clone().trim()]),
         } // match key.as_ref()
     }
@@ -193,6 +197,7 @@ fn rename_flac(
     }
     log::debug!("replace_map = {:?}", replace_map);
 
+    // Try to rename, and process the result
     let rename_result = rename_file::rename_file(filename, &replace_map, config, unique_val);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),

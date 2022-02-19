@@ -24,6 +24,8 @@ pub fn process_ape(
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -32,8 +34,9 @@ pub fn process_ape(
         // Process the tags
         match key.as_ref() {
             "PICTUREFRONT" | "PICTUREBACK" => {
-                log::warn!("Setting covers on APE files is currently not supported.");
-            } // PICTUREBACK
+                log::warn!("Setting covers in APE files is currently not supported.");
+            }
+
             _ => {
                 let item = Item::from_text(key, value.trim());
                 match item {

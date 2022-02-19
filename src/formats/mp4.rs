@@ -27,11 +27,14 @@ pub fn process_mp4(
         }
     }
 
-    // Print new tags
+    // Process tags
     for (key, value) in new_tags {
+        // Let the user know what we're processing
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -65,8 +68,7 @@ pub fn process_mp4(
         }
     }
 
-    // Process tags
-
+    // Write to file
     if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
     } else {
@@ -143,7 +145,7 @@ fn rename_mp4(
     Ok(())
 }
 
-/// Reads the tags from the MP4 tag "the hard way"
+/// Reads the existing values from the MP4 tags "the hard way"
 fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut res = HashMap::<String, String>::new();
 
