@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Code maintenance
+
+## [0.9.8] - 2022-02-19
+
 ### Bug Fixes
 
 - Flags not working correctly
@@ -13,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog update
+- Tidy up the code a little
 
 ## [0.9.5] - 2022-02-13
 
