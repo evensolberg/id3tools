@@ -274,13 +274,13 @@ fn rename_mp3(
         if let Some(vval) = tag.get(&tag_name).and_then(|frame| frame.content().text()) {
             if tag_name == "TPOS" || tag_name == "TRCK" {
                 let separates: Vec<&str> = vval.split('/').collect();
-                let mut count = "0".to_string();
-                let mut total = "0".to_string();
+                let mut count = "01".to_string();
+                let mut total = "01".to_string();
                 if !separates.is_empty() {
-                    count = separates[0].to_string();
+                    count = format!("{:0>2}", separates[0]);
                 }
                 if separates.len() > 1 {
-                    total = separates[1].to_string();
+                    total = format!("{:0>2}", separates[1]);
                 }
                 log::debug!("{} count = {}, total = {}", tag_name, count, total);
                 match tag_name.as_str() {
@@ -288,12 +288,14 @@ fn rename_mp3(
                         replace_map.insert("%dn".to_string(), count.clone());
                         replace_map.insert("%disc-number".to_string(), count);
                         replace_map.insert("%dt".to_string(), total.clone());
+                        replace_map.insert("%dnt".to_string(), total.clone());
                         replace_map.insert("%disc-number-total".to_string(), total);
                     }
                     "TRCK" => {
                         replace_map.insert("%tn".to_string(), count.clone());
                         replace_map.insert("%track-number".to_string(), count);
                         replace_map.insert("%to".to_string(), total.clone());
+                        replace_map.insert("%tnt".to_string(), total.clone());
                         replace_map.insert("%track-number-total".to_string(), total);
                     }
                     _ => {

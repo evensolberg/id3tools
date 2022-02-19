@@ -181,6 +181,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn
 
     data = format!("{:0>2}", tags.total_discs().unwrap_or(0));
     res.insert("%disc-number-total".to_string(), data.clone());
+    res.insert("%dnt".to_string(), data.clone());
     res.insert("%dt".to_string(), data);
 
     data = tags.artist().unwrap_or("").to_string();
@@ -217,7 +218,8 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn
 
     data = format!("{:0>2}", tags.total_tracks().unwrap_or(0));
     res.insert("%track-number-total".to_string(), data.clone());
-    res.insert("%to".to_string(), data);
+    res.insert("%to".to_string(), data.clone());
+    res.insert("%tnt".to_string(), data);
 
     data = tags.genre().unwrap_or("").to_string();
     res.insert("%track-genre".to_string(), data.clone());

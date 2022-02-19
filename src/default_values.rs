@@ -177,6 +177,7 @@ impl DefaultValues {
         // Return safely
         Ok(())
     }
+
     /// Check if the stop-on-error flag has been set, either in the config file
     /// or via the CLI.
     fn check_for_stop_on_error(&mut self, args: &clap::ArgMatches) {
@@ -217,3 +218,46 @@ impl DefaultValues {
         }
     }
 } // impl DefaultValues
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+
+    #[test]
+    ///
+    fn test_default_values() {
+        // Create a blank config
+        let mut def_val = DefaultValues::new();
+
+        // Check that some values are "None"
+        assert!(def_val.detail_off.is_none());
+        assert!(def_val.log_config_file.is_none());
+        assert!(def_val.album_artist.is_none());
+        assert!(def_val.track_count.is_none());
+
+        // Assign a few values
+        def_val.disc_number = Some(1);
+        def_val.disc_count = Some(true);
+
+        // Check that the values got assigned OK.
+        assert_eq!(def_val.disc_number.unwrap(), 1);
+        assert_eq!(def_val.disc_count.unwrap(), true);
+
+        // Try to load a config file
+        let dfv2 = DefaultValues::load_config("id3tag-config.toml");
+        assert!(dfv2.is_ok());
+
+        // Make sure we can unwrap the loaded config file
+        let dfv2u = dfv2.unwrap();
+        assert_eq!(dfv2u.detail_off.unwrap(), false);
+        assert_eq!(dfv2u.print_summary.unwrap(), true);
+        assert_eq!(dfv2u.stop_on_error.unwrap(), false);
+        assert_eq!(dfv2u.track_genre.unwrap(), "Metal".to_string());
+        assert_eq!(dfv2u.picture_front.unwrap(), "cover-small.jpg".to_string());
+
+        // Loading a non-existent config file should give an error.
+        let dfv3 = DefaultValues::load_config("missing-file.toml");
+        assert!(dfv3.is_err());
+    }
+}

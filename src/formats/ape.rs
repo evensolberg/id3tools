@@ -137,3 +137,25 @@ fn rename_ape(
     // Return safely
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    fn test_rename_ape() {
+        let blank_defaults = DefaultValues::new();
+        let blank_ape = ape::Tag::default();
+
+        assert!(rename_ape("somefile.ape", &blank_defaults, blank_ape).is_ok());
+    }
+
+    #[test]
+    fn test_process_ape() {
+        let new_values = HashMap::<String, String>::new();
+        let blank_defaults = DefaultValues::new();
+
+        assert!(process_ape("music/01.ape", &new_values, &blank_defaults, 01).is_ok());
+    }
+}
