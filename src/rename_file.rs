@@ -24,7 +24,6 @@ use crate::{default_values::DefaultValues, shared::get_extension};
 /// ```
 ///
 /// This will rename the file based on disc number (`%dn`), track number (`%tn`) and track title (%tt).
-
 pub fn rename_file(
     filename: &str,
     tags: &HashMap<String, String>,
@@ -33,6 +32,7 @@ pub fn rename_file(
 ) -> Result<String, Box<dyn Error>> {
     let mut new_filename;
 
+    // Check if there is a rename pattern
     if let Some(nfn) = &config.rename_file {
         new_filename = nfn.to_string();
     } else {
@@ -75,7 +75,7 @@ pub fn rename_file(
         new_filename = new_filename.trim().to_string();
     }
 
-    // Get the path before the filename (eg. "music/01.flac" returns "music/")
+    // Get the path in front of the filename (eg. "music/01.flac" returns "music/")
     let parent = Path::new(&filename)
         .parent()
         .unwrap_or_else(|| Path::new("."));
@@ -91,10 +91,11 @@ pub fn rename_file(
             "{} already exists. Appending unique identifier.",
             new_filename
         );
-        new_filename = format!("{} {}", new_filename, unique_val);
+        new_filename = format!("{} ({:0>4})", new_filename, unique_val);
         new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     }
 
+    // Perform the actual rename and check the outcome
     if config.dry_run.unwrap_or(true) {
         log::debug!("dr: {} --> {}", filename, new_path.display());
     } else {
@@ -123,8 +124,7 @@ pub fn rename_file(
         }
     }
 
-    let result = new_path.to_string_lossy().into_owned();
-
     // return safely
+    let result = new_path.to_string_lossy().into_owned();
     Ok(result)
 }
