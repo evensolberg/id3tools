@@ -7,8 +7,8 @@ appenders:
   # Log information messages and above to stdout
   stdout:
     kind: console
-    # encoder:
-    #   pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
+    encoder:
+      pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {target} {message}{n}"
     # filters:
     #     - kind: threshold
     #       level: trace
@@ -19,8 +19,8 @@ appenders:
   logfile:
     kind: file
     path: "id3tag.log"
-    # encoder:
-    #   pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
+    encoder:
+      pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {target} {message}{n}"
     # filters:
     #     - kind: threshold
     #       level: trace

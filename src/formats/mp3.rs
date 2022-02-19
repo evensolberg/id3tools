@@ -30,16 +30,23 @@ pub fn process_mp3(
 
     // Print new tags
     for (key, value) in new_tags {
+        // Output information about tags getting changed
         if !(config.detail_off.unwrap_or(false)) {
+            // If this is a dry run, output each change
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
+            // If not dry run and detail
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
 
-        // Process the tags
+        // Process the tags into the file. Arguaby we could skip this if it's a
+        // dry run, but it's good to do it anyway to ensure that it works.
         match key.as_ref() {
+            // Front picture
             "APIC-F" => match add_picture(&mut tag, value.trim(), PictureType::CoverFront) {
                 Ok(_) => (),
                 Err(err) => {
@@ -54,6 +61,8 @@ pub fn process_mp3(
                     }
                 }
             },
+
+            // Back picture
             "APIC-B" => match add_picture(&mut tag, value.trim(), PictureType::CoverBack) {
                 Ok(_) => (),
                 Err(err) => {
@@ -68,6 +77,8 @@ pub fn process_mp3(
                     }
                 }
             },
+
+            // Comment
             "COMM" => match set_comment(&mut tag, value.trim()) {
                 Ok(_) => (),
                 Err(err) => {
@@ -82,6 +93,8 @@ pub fn process_mp3(
                     }
                 }
             },
+
+            // Disc numbeer
             "TPOS" => {
                 let num;
                 match value.parse::<u32>() {
@@ -105,6 +118,8 @@ pub fn process_mp3(
                 }
                 tag.set_disc(num);
             }
+
+            // Disc count
             "TPOS-T" => {
                 let num;
                 match value.parse::<u32>() {
@@ -128,6 +143,8 @@ pub fn process_mp3(
                 }
                 tag.set_total_discs(num);
             }
+
+            // Track number
             "TRCK" => {
                 let num;
                 match value.parse::<u32>() {
@@ -151,6 +168,8 @@ pub fn process_mp3(
                 }
                 tag.set_track(num);
             }
+
+            // Track count
             "TRCK-T" => {
                 let num;
                 match value.parse::<u32>() {
@@ -174,12 +193,13 @@ pub fn process_mp3(
                 }
                 tag.set_total_tracks(num)
             }
+
+            // Everything else
             _ => tag.set_text(key, value.trim()),
         }
     }
 
-    // Process tags
-
+    // Write tags to file
     if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
     } else {
@@ -274,13 +294,13 @@ fn rename_mp3(
         if let Some(vval) = tag.get(&tag_name).and_then(|frame| frame.content().text()) {
             if tag_name == "TPOS" || tag_name == "TRCK" {
                 let separates: Vec<&str> = vval.split('/').collect();
-                let mut count = "0".to_string();
-                let mut total = "0".to_string();
+                let mut count = "01".to_string();
+                let mut total = "01".to_string();
                 if !separates.is_empty() {
-                    count = separates[0].to_string();
+                    count = format!("{:0>2}", separates[0]);
                 }
                 if separates.len() > 1 {
-                    total = separates[1].to_string();
+                    total = format!("{:0>2}", separates[1]);
                 }
                 log::debug!("{} count = {}, total = {}", tag_name, count, total);
                 match tag_name.as_str() {
@@ -288,12 +308,14 @@ fn rename_mp3(
                         replace_map.insert("%dn".to_string(), count.clone());
                         replace_map.insert("%disc-number".to_string(), count);
                         replace_map.insert("%dt".to_string(), total.clone());
+                        replace_map.insert("%dnt".to_string(), total.clone());
                         replace_map.insert("%disc-number-total".to_string(), total);
                     }
                     "TRCK" => {
                         replace_map.insert("%tn".to_string(), count.clone());
                         replace_map.insert("%track-number".to_string(), count);
                         replace_map.insert("%to".to_string(), total.clone());
+                        replace_map.insert("%tnt".to_string(), total.clone());
                         replace_map.insert("%track-number-total".to_string(), total);
                     }
                     _ => {

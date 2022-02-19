@@ -13,6 +13,7 @@ alias br := buildr
 alias bra := buildra
 alias fmt := format
 alias r := release
+alias update := upgrade
 
 # SHORTCUTS AND COMMANDS
 
@@ -26,6 +27,7 @@ alias r := release
 # Only compiles the project
 @build: format changelog
    -git mit es
+   cargo nextest run
    cargo lbuild --color 'always'
 
 # Compile a release version of the project without moving the binaries
@@ -55,6 +57,9 @@ alias r := release
     -rm debug.txt > /dev/null 2>&1
     -rm trace.txt > /dev/null 2>&1
     -rm bom.txt > /dev/null 2>&1
+    -rm tests.txt > /dev/null 2>&1
+    -rm tokei.txt > /dev/null 2>&1
+    -rm id3tag.log > /dev/null 2>&1
 
 # Rebuilds the changelog
 @cliff: changelog
@@ -83,7 +88,8 @@ alias r := release
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     cargo bom > bom.txt
-    tokei
+    cargo nextest list | tee tests.txt
+    tokei | tee tokei.txt
     cargo outdated
 
 # Documents the project and all dependencies
@@ -92,7 +98,8 @@ alias r := release
     cargo depgraph | dot -Tpng > graph.png
     cargo tree > tree.txt
     cargo bom > bom.txt
-    tokei
+    cargo nextest list | tee tests.txt
+    tokei | tee tokei.txt
     cargo outdated
 
 # Formats the project source files
@@ -101,14 +108,14 @@ alias r := release
 
 # Tests the project
 @test:
-    cargo test
-
+    cargo nextest run
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint
     cargo deny check
     cargo geiger
     cargo bloat
+    cargo pants
 
 # Checks for potential code improvements
 @lint:
@@ -204,6 +211,8 @@ alias r := release
     -cargo install cargo-semver --vers 1.0.0-alpha.3
     -cargo install cargo-deny
     -cargo install git-cliff
+    -cargo install cargo-nextest
+    -cargo install cargo-pants
     -brew install PurpleBooth/repo/git-mit
+    -brew install graphviz
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
-    echo "Make sure to also install Graphviz."

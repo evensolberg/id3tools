@@ -27,11 +27,14 @@ pub fn process_mp4(
         }
     }
 
-    // Print new tags
+    // Process tags
     for (key, value) in new_tags {
+        // Let the user know what we're processing
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -65,8 +68,7 @@ pub fn process_mp4(
         }
     }
 
-    // Process tags
-
+    // Write to file
     if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
     } else {
@@ -143,7 +145,7 @@ fn rename_mp4(
     Ok(())
 }
 
-/// Reads the tags from the MP4 tag "the hard way"
+/// Reads the existing values from the MP4 tags "the hard way"
 fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut res = HashMap::<String, String>::new();
 
@@ -181,6 +183,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn
 
     data = format!("{:0>2}", tags.total_discs().unwrap_or(0));
     res.insert("%disc-number-total".to_string(), data.clone());
+    res.insert("%dnt".to_string(), data.clone());
     res.insert("%dt".to_string(), data);
 
     data = tags.artist().unwrap_or("").to_string();
@@ -217,7 +220,8 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn
 
     data = format!("{:0>2}", tags.total_tracks().unwrap_or(0));
     res.insert("%track-number-total".to_string(), data.clone());
-    res.insert("%to".to_string(), data);
+    res.insert("%to".to_string(), data.clone());
+    res.insert("%tnt".to_string(), data);
 
     data = tags.genre().unwrap_or("").to_string();
     res.insert("%track-genre".to_string(), data.clone());

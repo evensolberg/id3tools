@@ -150,6 +150,7 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
         tag_names.disc_number_total.clone(),
     );
     tm.insert("%dt".to_string(), tag_names.disc_number_total.clone());
+    tm.insert("%dnt".to_string(), tag_names.disc_number_total.clone());
 
     tm.insert("%track-artist".to_string(), tag_names.track_artist.clone());
     tm.insert("%ta".to_string(), tag_names.track_artist.clone());
@@ -177,6 +178,7 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
         tag_names.track_number_total.clone(),
     );
     tm.insert("%to".to_string(), tag_names.track_number_total.clone());
+    tm.insert("%tnt".to_string(), tag_names.track_number_total.clone());
 
     tm.insert("%track-genre".to_string(), tag_names.track_genre.clone());
     tm.insert("%tg".to_string(), tag_names.track_genre.clone());
@@ -198,4 +200,554 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
 
     // return it
     tm
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Test that the right tag names are being returned.
+    fn test_get_tag_names() {
+        let ape_tag = get_tag_names(FileTypes::Ape);
+        assert_eq!(ape_tag.album_artist, "ALBUMARTIST".to_string());
+        assert_eq!(ape_tag.album_artist_sort, "ALBUMARTISTSORT".to_string());
+        assert_eq!(ape_tag.album_title, "ALBUM".to_string());
+        assert_eq!(ape_tag.album_title_sort, "ALBUMTITLESORT".to_string());
+        assert_eq!(ape_tag.disc_number, "DISCNUMBER".to_string());
+        assert_eq!(ape_tag.disc_number_total, "DISCTOTAL".to_string());
+        assert_eq!(ape_tag.track_artist, "ARTIST".to_string());
+        assert_eq!(ape_tag.track_artist_sort, "ARTISTSORT".to_string());
+        assert_eq!(ape_tag.track_title, "TITLE".to_string());
+        assert_eq!(ape_tag.track_title_sort, "TITLESORT".to_string());
+        assert_eq!(ape_tag.track_number, "TRACKNUMBER".to_string());
+        assert_eq!(ape_tag.track_number_total, "TRACKTOTAL".to_string());
+        assert_eq!(ape_tag.track_genre, "GENRE".to_string());
+        assert_eq!(ape_tag.track_composer, "COMPOSER".to_string());
+        assert_eq!(ape_tag.track_composer_sort, "COMPOSERSORT".to_string());
+        assert_eq!(ape_tag.track_date, "DATE".to_string());
+        assert_eq!(ape_tag.track_comments, "DESCRIPTION".to_string());
+        assert_eq!(ape_tag.picture_front, "PICTUREFRONT".to_string());
+        assert_eq!(ape_tag.picture_back, "PICTUREBACK".to_string());
+
+        let flac_tag = get_tag_names(FileTypes::Flac);
+        assert_eq!(flac_tag.album_artist, "ALBUMARTIST".to_string());
+        assert_eq!(flac_tag.album_artist_sort, "ALBUMARTISTSORT".to_string());
+        assert_eq!(flac_tag.album_title, "ALBUM".to_string());
+        assert_eq!(flac_tag.album_title_sort, "ALBUMTITLESORT".to_string());
+        assert_eq!(flac_tag.disc_number, "DISCNUMBER".to_string());
+        assert_eq!(flac_tag.disc_number_total, "DISCTOTAL".to_string());
+        assert_eq!(flac_tag.track_artist, "ARTIST".to_string());
+        assert_eq!(flac_tag.track_artist_sort, "ARTISTSORT".to_string());
+        assert_eq!(flac_tag.track_title, "TITLE".to_string());
+        assert_eq!(flac_tag.track_title_sort, "TITLESORT".to_string());
+        assert_eq!(flac_tag.track_number, "TRACKNUMBER".to_string());
+        assert_eq!(flac_tag.track_number_total, "TRACKTOTAL".to_string());
+        assert_eq!(flac_tag.track_genre, "GENRE".to_string());
+        assert_eq!(flac_tag.track_composer, "COMPOSER".to_string());
+        assert_eq!(flac_tag.track_composer_sort, "COMPOSERSORT".to_string());
+        assert_eq!(flac_tag.track_date, "DATE".to_string());
+        assert_eq!(flac_tag.track_comments, "DESCRIPTION".to_string());
+        assert_eq!(flac_tag.picture_front, "PICTUREFRONT".to_string());
+        assert_eq!(flac_tag.picture_back, "PICTUREBACK".to_string());
+
+        let mp3_tag = get_tag_names(FileTypes::MP3);
+        assert_eq!(mp3_tag.album_artist, "TPE2".to_string());
+        assert_eq!(mp3_tag.album_artist_sort, "TSO2".to_string());
+        assert_eq!(mp3_tag.album_title, "TALB".to_string());
+        assert_eq!(mp3_tag.album_title_sort, "TSOA".to_string());
+        assert_eq!(mp3_tag.disc_number, "TPOS".to_string());
+        assert_eq!(mp3_tag.disc_number_total, "TPOS-T".to_string());
+        assert_eq!(mp3_tag.track_artist, "TPE1".to_string());
+        assert_eq!(mp3_tag.track_artist_sort, "TSOP".to_string());
+        assert_eq!(mp3_tag.track_title, "TIT2".to_string());
+        assert_eq!(mp3_tag.track_title_sort, "TSOT".to_string());
+        assert_eq!(mp3_tag.track_number, "TRCK".to_string());
+        assert_eq!(mp3_tag.track_number_total, "TRCK-T".to_string());
+        assert_eq!(mp3_tag.track_genre, "TCON".to_string());
+        assert_eq!(mp3_tag.track_composer, "TCOM".to_string());
+        assert_eq!(mp3_tag.track_composer_sort, "TSOC".to_string());
+        assert_eq!(mp3_tag.track_date, "TDRC".to_string());
+        assert_eq!(mp3_tag.track_comments, "COMM".to_string());
+        assert_eq!(mp3_tag.picture_front, "APIC-F".to_string());
+        assert_eq!(mp3_tag.picture_back, "APIC-B".to_string());
+
+        let mp4_tag = get_tag_names(FileTypes::MP4);
+        assert_eq!(mp4_tag.album_artist, "aART".to_string());
+        assert_eq!(mp4_tag.album_artist_sort, "soaa".to_string());
+        assert_eq!(mp4_tag.album_title, "©alb".to_string());
+        assert_eq!(mp4_tag.album_title_sort, "soal".to_string());
+        assert_eq!(mp4_tag.disc_number, "disk".to_string());
+        assert_eq!(mp4_tag.disc_number_total, "disk-t".to_string());
+        assert_eq!(mp4_tag.track_artist, "©ART".to_string());
+        assert_eq!(mp4_tag.track_artist_sort, "soar".to_string());
+        assert_eq!(mp4_tag.track_title, "©nam".to_string());
+        assert_eq!(mp4_tag.track_title_sort, "sonm".to_string());
+        assert_eq!(mp4_tag.track_number, "trkn".to_string());
+        assert_eq!(mp4_tag.track_number_total, "trkn-t".to_string());
+        assert_eq!(mp4_tag.track_genre, "©gen".to_string());
+        assert_eq!(mp4_tag.track_composer, "©wrt".to_string());
+        assert_eq!(mp4_tag.track_composer_sort, "soco".to_string());
+        assert_eq!(mp4_tag.track_date, "©day".to_string());
+        assert_eq!(mp4_tag.track_comments, "©cmt".to_string());
+        assert_eq!(mp4_tag.picture_front, "covr-f".to_string());
+        assert_eq!(mp4_tag.picture_back, "covr-b".to_string());
+
+        let unk_tag = get_tag_names(FileTypes::Unknown);
+        assert_eq!(unk_tag.album_artist, "".to_string());
+        assert_eq!(unk_tag.album_artist_sort, "".to_string());
+        assert_eq!(unk_tag.album_title, "".to_string());
+        assert_eq!(unk_tag.album_title_sort, "".to_string());
+        assert_eq!(unk_tag.disc_number, "".to_string());
+        assert_eq!(unk_tag.disc_number_total, "".to_string());
+        assert_eq!(unk_tag.track_artist, "".to_string());
+        assert_eq!(unk_tag.track_artist_sort, "".to_string());
+        assert_eq!(unk_tag.track_title, "".to_string());
+        assert_eq!(unk_tag.track_title_sort, "".to_string());
+        assert_eq!(unk_tag.track_number, "".to_string());
+        assert_eq!(unk_tag.track_number_total, "".to_string());
+        assert_eq!(unk_tag.track_genre, "".to_string());
+        assert_eq!(unk_tag.track_composer, "".to_string());
+        assert_eq!(unk_tag.track_composer_sort, "".to_string());
+        assert_eq!(unk_tag.track_date, "".to_string());
+        assert_eq!(unk_tag.track_comments, "".to_string());
+        assert_eq!(unk_tag.picture_front, "".to_string());
+        assert_eq!(unk_tag.picture_back, "".to_string());
+    }
+
+    #[assay]
+    /// Ensure that the substitution values are being used properly.
+    /// Note that values for description and front/back pictures aren't used. Obviously.
+    fn test_option_to_tag() {
+        let ape_tag = option_to_tag(FileTypes::Ape);
+        assert_eq!(
+            ape_tag.get("%album-artist").unwrap().to_owned(),
+            "ALBUMARTIST".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%aa").unwrap().to_owned(),
+            "ALBUMARTIST".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%album-artist-sort").unwrap().to_owned(),
+            "ALBUMARTISTSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%aas").unwrap().to_owned(),
+            "ALBUMARTISTSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%album-title").unwrap().to_owned(),
+            "ALBUM".to_string()
+        );
+        assert_eq!(ape_tag.get("%at").unwrap().to_owned(), "ALBUM".to_string());
+        assert_eq!(
+            ape_tag.get("%album-title-sort").unwrap().to_owned(),
+            "ALBUMTITLESORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%ats").unwrap().to_owned(),
+            "ALBUMTITLESORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%disc-number").unwrap().to_owned(),
+            "DISCNUMBER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%dn").unwrap().to_owned(),
+            "DISCNUMBER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%disc-number-total").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%dnt").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%dt").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-artist").unwrap().to_owned(),
+            "ARTIST".to_string()
+        );
+        assert_eq!(ape_tag.get("%ta").unwrap().to_owned(), "ARTIST".to_string());
+        assert_eq!(
+            ape_tag.get("%track-artist-sort").unwrap().to_owned(),
+            "ARTISTSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tas").unwrap().to_owned(),
+            "ARTISTSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-title").unwrap().to_owned(),
+            "TITLE".to_string()
+        );
+        assert_eq!(ape_tag.get("%tt").unwrap().to_owned(), "TITLE".to_string());
+        assert_eq!(
+            ape_tag.get("%track-title-sort").unwrap().to_owned(),
+            "TITLESORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tts").unwrap().to_owned(),
+            "TITLESORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-number").unwrap().to_owned(),
+            "TRACKNUMBER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tn").unwrap().to_owned(),
+            "TRACKNUMBER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-number-total").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%to").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tnt").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-genre").unwrap().to_owned(),
+            "GENRE".to_string()
+        );
+        assert_eq!(ape_tag.get("%tg").unwrap().to_owned(), "GENRE".to_string());
+        assert_eq!(
+            ape_tag.get("%track-composer").unwrap().to_owned(),
+            "COMPOSER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tc").unwrap().to_owned(),
+            "COMPOSER".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-composer-sort").unwrap().to_owned(),
+            "COMPOSERSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%tcs").unwrap().to_owned(),
+            "COMPOSERSORT".to_string()
+        );
+        assert_eq!(
+            ape_tag.get("%track-date").unwrap().to_owned(),
+            "DATE".to_string()
+        );
+        assert_eq!(ape_tag.get("%td").unwrap().to_owned(), "DATE".to_string());
+
+        let flac_tag = option_to_tag(FileTypes::Flac);
+        assert_eq!(
+            flac_tag.get("%album-artist").unwrap().to_owned(),
+            "ALBUMARTIST".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%aa").unwrap().to_owned(),
+            "ALBUMARTIST".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%album-artist-sort").unwrap().to_owned(),
+            "ALBUMARTISTSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%aas").unwrap().to_owned(),
+            "ALBUMARTISTSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%album-title").unwrap().to_owned(),
+            "ALBUM".to_string()
+        );
+        assert_eq!(flac_tag.get("%at").unwrap().to_owned(), "ALBUM".to_string());
+        assert_eq!(
+            flac_tag.get("%album-title-sort").unwrap().to_owned(),
+            "ALBUMTITLESORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%ats").unwrap().to_owned(),
+            "ALBUMTITLESORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%disc-number").unwrap().to_owned(),
+            "DISCNUMBER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%dn").unwrap().to_owned(),
+            "DISCNUMBER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%disc-number-total").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%dnt").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%dt").unwrap().to_owned(),
+            "DISCTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-artist").unwrap().to_owned(),
+            "ARTIST".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%ta").unwrap().to_owned(),
+            "ARTIST".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-artist-sort").unwrap().to_owned(),
+            "ARTISTSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tas").unwrap().to_owned(),
+            "ARTISTSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-title").unwrap().to_owned(),
+            "TITLE".to_string()
+        );
+        assert_eq!(flac_tag.get("%tt").unwrap().to_owned(), "TITLE".to_string());
+        assert_eq!(
+            flac_tag.get("%track-title-sort").unwrap().to_owned(),
+            "TITLESORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tts").unwrap().to_owned(),
+            "TITLESORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-number").unwrap().to_owned(),
+            "TRACKNUMBER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tn").unwrap().to_owned(),
+            "TRACKNUMBER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-number-total").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%to").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tnt").unwrap().to_owned(),
+            "TRACKTOTAL".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-genre").unwrap().to_owned(),
+            "GENRE".to_string()
+        );
+        assert_eq!(flac_tag.get("%tg").unwrap().to_owned(), "GENRE".to_string());
+        assert_eq!(
+            flac_tag.get("%track-composer").unwrap().to_owned(),
+            "COMPOSER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tc").unwrap().to_owned(),
+            "COMPOSER".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-composer-sort").unwrap().to_owned(),
+            "COMPOSERSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%tcs").unwrap().to_owned(),
+            "COMPOSERSORT".to_string()
+        );
+        assert_eq!(
+            flac_tag.get("%track-date").unwrap().to_owned(),
+            "DATE".to_string()
+        );
+        assert_eq!(flac_tag.get("%td").unwrap().to_owned(), "DATE".to_string());
+
+        let mp3_tag = option_to_tag(FileTypes::MP3);
+        assert_eq!(
+            mp3_tag.get("%album-artist").unwrap().to_owned(),
+            "TPE2".to_string()
+        );
+        assert_eq!(mp3_tag.get("%aa").unwrap().to_owned(), "TPE2".to_string());
+        assert_eq!(
+            mp3_tag.get("%album-artist-sort").unwrap().to_owned(),
+            "TSO2".to_string()
+        );
+        assert_eq!(mp3_tag.get("%aas").unwrap().to_owned(), "TSO2".to_string());
+        assert_eq!(
+            mp3_tag.get("%album-title").unwrap().to_owned(),
+            "TALB".to_string()
+        );
+        assert_eq!(mp3_tag.get("%at").unwrap().to_owned(), "TALB".to_string());
+        assert_eq!(
+            mp3_tag.get("%album-title-sort").unwrap().to_owned(),
+            "TSOA".to_string()
+        );
+        assert_eq!(mp3_tag.get("%ats").unwrap().to_owned(), "TSOA".to_string());
+        assert_eq!(
+            mp3_tag.get("%disc-number").unwrap().to_owned(),
+            "TPOS".to_string()
+        );
+        assert_eq!(mp3_tag.get("%dn").unwrap().to_owned(), "TPOS".to_string());
+        assert_eq!(
+            mp3_tag.get("%disc-number-total").unwrap().to_owned(),
+            "TPOS-T".to_string()
+        );
+        assert_eq!(
+            mp3_tag.get("%dnt").unwrap().to_owned(),
+            "TPOS-T".to_string()
+        );
+        assert_eq!(mp3_tag.get("%dt").unwrap().to_owned(), "TPOS-T".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-artist").unwrap().to_owned(),
+            "TPE1".to_string()
+        );
+        assert_eq!(mp3_tag.get("%ta").unwrap().to_owned(), "TPE1".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-artist-sort").unwrap().to_owned(),
+            "TSOP".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tas").unwrap().to_owned(), "TSOP".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-title").unwrap().to_owned(),
+            "TIT2".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tt").unwrap().to_owned(), "TIT2".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-title-sort").unwrap().to_owned(),
+            "TSOT".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tts").unwrap().to_owned(), "TSOT".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-number").unwrap().to_owned(),
+            "TRCK".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tn").unwrap().to_owned(), "TRCK".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-number-total").unwrap().to_owned(),
+            "TRCK-T".to_string()
+        );
+        assert_eq!(mp3_tag.get("%to").unwrap().to_owned(), "TRCK-T".to_string());
+        assert_eq!(
+            mp3_tag.get("%tnt").unwrap().to_owned(),
+            "TRCK-T".to_string()
+        );
+        assert_eq!(
+            mp3_tag.get("%track-genre").unwrap().to_owned(),
+            "TCON".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tg").unwrap().to_owned(), "TCON".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-composer").unwrap().to_owned(),
+            "TCOM".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tc").unwrap().to_owned(), "TCOM".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-composer-sort").unwrap().to_owned(),
+            "TSOC".to_string()
+        );
+        assert_eq!(mp3_tag.get("%tcs").unwrap().to_owned(), "TSOC".to_string());
+        assert_eq!(
+            mp3_tag.get("%track-date").unwrap().to_owned(),
+            "TDRC".to_string()
+        );
+        assert_eq!(mp3_tag.get("%td").unwrap().to_owned(), "TDRC".to_string());
+
+        let mp4_tag = option_to_tag(FileTypes::MP4);
+        assert_eq!(
+            mp4_tag.get("%album-artist").unwrap().to_owned(),
+            "aART".to_string()
+        );
+        assert_eq!(mp4_tag.get("%aa").unwrap().to_owned(), "aART".to_string());
+        assert_eq!(
+            mp4_tag.get("%album-artist-sort").unwrap().to_owned(),
+            "soaa".to_string()
+        );
+        assert_eq!(mp4_tag.get("%aas").unwrap().to_owned(), "soaa".to_string());
+        assert_eq!(
+            mp4_tag.get("%album-title").unwrap().to_owned(),
+            "©alb".to_string()
+        );
+        assert_eq!(mp4_tag.get("%at").unwrap().to_owned(), "©alb".to_string());
+        assert_eq!(
+            mp4_tag.get("%album-title-sort").unwrap().to_owned(),
+            "soal".to_string()
+        );
+        assert_eq!(mp4_tag.get("%ats").unwrap().to_owned(), "soal".to_string());
+        assert_eq!(
+            mp4_tag.get("%disc-number").unwrap().to_owned(),
+            "disk".to_string()
+        );
+        assert_eq!(mp4_tag.get("%dn").unwrap().to_owned(), "disk".to_string());
+        assert_eq!(
+            mp4_tag.get("%disc-number-total").unwrap().to_owned(),
+            "disk-t".to_string()
+        );
+        assert_eq!(
+            mp4_tag.get("%dnt").unwrap().to_owned(),
+            "disk-t".to_string()
+        );
+        assert_eq!(mp4_tag.get("%dt").unwrap().to_owned(), "disk-t".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-artist").unwrap().to_owned(),
+            "©ART".to_string()
+        );
+        assert_eq!(mp4_tag.get("%ta").unwrap().to_owned(), "©ART".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-artist-sort").unwrap().to_owned(),
+            "soar".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tas").unwrap().to_owned(), "soar".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-title").unwrap().to_owned(),
+            "©nam".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tt").unwrap().to_owned(), "©nam".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-title-sort").unwrap().to_owned(),
+            "sonm".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tts").unwrap().to_owned(), "sonm".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-number").unwrap().to_owned(),
+            "trkn".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tn").unwrap().to_owned(), "trkn".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-number-total").unwrap().to_owned(),
+            "trkn-t".to_string()
+        );
+        assert_eq!(mp4_tag.get("%to").unwrap().to_owned(), "trkn-t".to_string());
+        assert_eq!(
+            mp4_tag.get("%tnt").unwrap().to_owned(),
+            "trkn-t".to_string()
+        );
+        assert_eq!(
+            mp4_tag.get("%track-genre").unwrap().to_owned(),
+            "©gen".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tg").unwrap().to_owned(), "©gen".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-composer").unwrap().to_owned(),
+            "©wrt".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tc").unwrap().to_owned(), "©wrt".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-composer-sort").unwrap().to_owned(),
+            "soco".to_string()
+        );
+        assert_eq!(mp4_tag.get("%tcs").unwrap().to_owned(), "soco".to_string());
+        assert_eq!(
+            mp4_tag.get("%track-date").unwrap().to_owned(),
+            "©day".to_string()
+        );
+        assert_eq!(mp4_tag.get("%td").unwrap().to_owned(), "©day".to_string());
+    }
 }

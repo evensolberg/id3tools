@@ -182,27 +182,30 @@ fn parse_options(
         }
     }
 
-    if args.is_present("disc-number-count")
-        || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
-    {
-        log::debug!("Trying to figure out the disc number automagically.");
-        let disc_num = get_disc_number(filename)?;
-        log::debug!("disc number: {}", disc_num);
-        let disc_count = get_disc_count(filename)?;
-        log::debug!("disc number: {}", disc_count);
-        new_tags.insert(tag_names.disc_number.clone(), disc_num.to_string());
-        new_tags.insert(tag_names.disc_number_total.clone(), disc_count.to_string());
-    }
-
     if args.is_present("disc-total") {
         new_tags.insert(
-            tag_names.disc_number_total,
+            tag_names.disc_number_total.clone(),
             args.value_of("disc-total").unwrap_or("").to_string(),
         );
     } else if args.is_present("config-file") {
         if let Some(val) = &defaults.disc_total {
-            new_tags.insert(tag_names.disc_number_total, val.to_string());
+            new_tags.insert(tag_names.disc_number_total.clone(), val.to_string());
         }
+    }
+
+    if args.is_present("disc-number-count")
+        || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
+    {
+        log::debug!("parse_options: Trying to figure out the disc number automagically.");
+        let disc_num = get_disc_number(filename)?;
+        log::debug!("parse_options::disc number: {}", disc_num);
+        let disc_count = get_disc_count(filename)?;
+        log::debug!("parse_options: disc count: {}", disc_count);
+        new_tags.insert(tag_names.disc_number.clone(), format!("{:0>2}", disc_num));
+        new_tags.insert(
+            tag_names.disc_number_total.clone(),
+            format!("{:0>2}", disc_count),
+        );
     }
 
     // TRACK //
@@ -811,6 +814,50 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
     }
 
+    // Obviously, we have at least 1 disc.
+    if disc_count == 0 {
+        disc_count = 1;
+    }
+
     // return safely
     Ok(disc_count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Tests that the genre number gets returned correctly.
+    fn test_get_genre_name() {
+        assert_eq!(get_genre_name(0).unwrap(), "Blues".to_string());
+        assert_eq!(get_genre_name(9).unwrap(), "Metal".to_string());
+        assert_eq!(get_genre_name(32).unwrap(), "Classical".to_string());
+        assert!(get_genre_name(200).is_err());
+    }
+
+    #[test]
+    fn test_get_disc_number() {
+        assert_eq!(
+            get_disc_number("Test/Part I/01 Veni, creator spiritus.flac").unwrap(),
+            1
+        );
+        assert_eq!(
+            get_disc_number("Test/Part II/01 Poco adagio.flac").unwrap(),
+            2
+        );
+    }
+
+    #[test]
+    fn test_get_disc_count() {
+        assert_eq!(
+            get_disc_count("Test/Part I/01 Veni, creator spiritus.flac").unwrap(),
+            2
+        );
+        assert_eq!(
+            get_disc_count("Test/Part II/01 Poco adagio.flac").unwrap(),
+            2
+        );
+    }
 }

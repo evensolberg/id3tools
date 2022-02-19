@@ -55,7 +55,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-date`|`--td`|Yes|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
 |`--picture-front`|`--pf`|Yes|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
 |`--picture-back`|`--pb`|Yes|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
-|`--rename-file`|`--rf`|Yes|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table.
+|`--rename-file`|`--rf`|Yes|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table. Note that for "%disc-number-total" and "%track-number-total" you can also use "%dnt" and "%tnt" as file rename patterns in addition to the options listed above. This is done in an attempt to make it a little more intutitive.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
 
@@ -74,7 +74,7 @@ If both `track_genre` and `track_genre_number` are present in a config file, the
 
 |Argument|Description|
 |--------|:----------|
-`<FILE(S)>`|One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.
+|`<FILE(S)>`|One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.|
 
 ## Configuration File
 

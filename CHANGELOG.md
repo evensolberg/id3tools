@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Flags not working correctly
+- Trying to figure out a bug
+- Disc count bug
 
 ### Miscellaneous Tasks
 

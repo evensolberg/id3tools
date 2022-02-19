@@ -1,5 +1,5 @@
 //! Contains a single function to build the CLI
-use clap::{App, Arg, ArgMatches};
+use clap::{Arg, ArgMatches, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
 pub fn build_cli() -> ArgMatches {
@@ -7,8 +7,7 @@ pub fn build_cli() -> ArgMatches {
     // run the app with `-h` to see.
     let tags_name = "TAGS";
     let operations_name = "OPERATIONS";
-    // use `static because what's returned is used across the application
-    App::new(clap::crate_name!())
+    Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
         .author(clap::crate_authors!("\n"))
@@ -359,4 +358,23 @@ fn genre_number_validator(input: &str) -> Result<(), String> {
             "Unable to parse the input provided to --track-genre-number.",
         )),
     }
+}
+
+#[cfg(test)]
+/// Test the CLI functions.
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Test that the genre number validator returns OK if genre 0 <= genre number <= 191, otherwise error.
+    fn test_genre_numbervalidator() {
+        assert!(genre_number_validator("0").is_ok());
+        assert!(genre_number_validator("9").is_ok());
+        assert!(genre_number_validator("191").is_ok());
+        assert!(genre_number_validator("192").is_err());
+        assert!(genre_number_validator("200").is_err());
+    }
+
+    // TODO: Create tests for the build_cli() function.
 }

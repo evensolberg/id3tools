@@ -24,6 +24,8 @@ pub fn process_ape(
         if !(config.detail_off.unwrap_or(false)) {
             if config.dry_run.unwrap_or(false) {
                 log::info!("{} :: New {} = {}", &filename, key, value);
+            } else {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
             }
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -32,8 +34,9 @@ pub fn process_ape(
         // Process the tags
         match key.as_ref() {
             "PICTUREFRONT" | "PICTUREBACK" => {
-                log::warn!("Setting covers on APE files is currently not supported.");
-            } // PICTUREBACK
+                log::warn!("Setting covers in APE files is currently not supported.");
+            }
+
             _ => {
                 let item = Item::from_text(key, value.trim());
                 match item {
@@ -136,4 +139,26 @@ fn rename_ape(
 
     // Return safely
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    fn test_rename_ape() {
+        let blank_defaults = DefaultValues::new();
+        let blank_ape = ape::Tag::default();
+
+        assert!(rename_ape("somefile.ape", &blank_defaults, blank_ape).is_ok());
+    }
+
+    #[test]
+    fn test_process_ape() {
+        let new_values = HashMap::<String, String>::new();
+        let blank_defaults = DefaultValues::new();
+
+        assert!(process_ape("music/01.ape", &new_values, &blank_defaults, 01).is_ok());
+    }
 }
