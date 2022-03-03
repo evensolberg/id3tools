@@ -31,7 +31,7 @@ pub enum FileTypes {
 ///
 /// - `file_type: args::FileType` -- the type of file to process (`Flac`, `MP3` or `MP4`)
 /// - `filename: &str` -- the name of the file
-/// - `config: &DefaultValuess` -- The default config values to use (stop on error, etc)
+/// - `config: &DefaultValues` -- The default config values to use (stop on error, etc)
 /// - `cli_args: &clap::ArgMatches` -- The config values and options supplied from the CLI
 /// - `counts: &mut shared::Counts` -- A struct for various file counters (skipped, processed, total)
 ///
@@ -492,7 +492,7 @@ fn find_picture(
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
 fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
     if tagnumber > 191 {
-        return Err("Incorrent value supplied. Must be 0-191.".into());
+        return Err("Incorrect value supplied. Must be 0-191.".into());
     }
 
     let return_string = match tagnumber {

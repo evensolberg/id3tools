@@ -17,7 +17,7 @@ use std::fs;
 ///
 /// - `filename: &str` -- The name of the file to be processed, eg. "somefile.flac".
 /// - `new_tags: &HashMap<String, String>` -- A set of new tags in Key/Value form, eg. _key = ALBUMARTIST_, _value = "The Tragically Hip"_
-/// - `config: &DefaulValues` -- A struct containing default values read from a config file and the CLI
+/// - `config: &DefaultValues` -- A struct containing default values read from a config file and the CLI
 ///
 /// **Returns:**
 ///

@@ -111,7 +111,7 @@ alias update := upgrade
     cargo nextest run
 
 # Checks the project for inefficiencies and bloat
-@inspect: format doc lint
+@inspect: format doc lint spell
     cargo deny check
     cargo geiger
     cargo bloat
@@ -181,6 +181,10 @@ alias update := upgrade
 # Build and run with double --debug parameters, tee to trace.txt
 @runddt:
     cargo lrun  --color 'always' -- --debug --debug | tee trace.txt
+
+# Look for spelling mistakes in the code
+@spell:
+    typos
 
 # Check for new versions of crates and upgrade accordingly
 @upgrade:

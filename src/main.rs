@@ -1,6 +1,6 @@
 //! A simple application to set metadata in APE, FLAC, MP3 and MP4 files.
 //! This application is primarily meant to be used for bulk updates.
-//! While updating idividual tags (such as track names) is supported, it's not
+//! While updating individual tags (such as track names) is supported, it's not
 //! easy to do this using this application.
 //!
 //! In the future this application will endeavour to support reading tags from CSV files,
