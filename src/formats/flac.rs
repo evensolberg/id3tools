@@ -29,7 +29,7 @@ use std::fs;
 pub fn process_flac(
     filename: &str,
     new_tags: &HashMap<String, String>,
-    config: &mut DefaultValues,
+    orig_config: &DefaultValues,
     unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
@@ -39,6 +39,8 @@ pub fn process_flac(
     for block in tags.blocks() {
         log::trace!("{:?}", block);
     }
+
+    let mut config = orig_config.clone();
 
     // Read old tags
     if let Some(id3) = tags.vorbis_comments() {
@@ -144,7 +146,7 @@ pub fn process_flac(
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_flac(filename, config, &tags, unique_val)?;
+        rename_flac(filename, &config, &tags, unique_val)?;
     }
 
     // Return safely

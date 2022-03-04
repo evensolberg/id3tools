@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Bug fixes
+
 ### Miscellaneous Tasks
 
 - Code maintenance
+- Changelog
 
 ## [0.9.8] - 2022-02-19
 

@@ -6,7 +6,10 @@
 //! In the future this application will endeavour to support reading tags from CSV files,
 //! moving and renaming files based on tags, etc.
 
-use std::error::Error;
+use std::{
+    error::Error,
+    sync::{Arc, Mutex},
+};
 
 // Logging
 // use log::LevelFilter;
@@ -18,6 +21,8 @@ mod formats;
 mod rename_file;
 mod shared;
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 use crate::default_values::*;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,7 +32,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = cli::build_cli();
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
-    let mut config = DefaultValues::build_config(&cli_args)?;
+    let config = DefaultValues::build_config(&cli_args)?;
     log::debug!("config = {:?}", config);
 
     // Configure logging
@@ -39,7 +44,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Initialize counters for total files, skipped and processed.
-    let mut counts = shared::Counts::default();
+    let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // create a list of the files to gather
     for file in cli_args.values_of("files").unwrap() {
@@ -52,39 +57,28 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // Process things
+    let mut filenames = Vec::<&str>::new();
+    let mut file_count = 0;
+
     for filename in cli_args.values_of("files").unwrap() {
-        let file_type;
-        match shared::get_extension(filename).as_ref() {
-            "ape" => file_type = formats::FileTypes::Ape,
-            "flac" => file_type = formats::FileTypes::Flac, // process flac
-            "mp3" => file_type = formats::FileTypes::MP3,
-            "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = formats::FileTypes::MP4,
-            _ => {
-                if config.stop_on_error.unwrap_or(true) {
-                    return Err("Unknown file type. Unable to proceed.".into());
-                } else {
-                    log::debug!("Unknown file type. Skipping.");
-                    file_type = formats::FileTypes::Unknown;
-                }
-                counts.skipped_file_count += 1;
-            } // Unknown
-        }
-        formats::process_file(file_type, filename, &mut config, &cli_args, &mut counts)?;
-        counts.total_file_count += 1;
+        filenames.push(filename.clone());
+        file_count += 1;
     }
+
+    // Process things
+    let res_vec: Vec<bool> = filenames
+        .par_iter()
+        .map(|&filename| process_file(filename, &cli_args, &config, &counts).unwrap_or(false))
+        .collect();
+
+    let skipped = res_vec.iter().filter(|_| false).count();
+    let processed = res_vec.iter().filter(|_| true).count();
 
     // Print summary information
     if config.print_summary.unwrap_or(false) {
-        log::info!("Total files examined:        {:5}", counts.total_file_count);
-        log::info!(
-            "Files processed:             {:5}",
-            counts.processed_file_count
-        );
-        log::info!(
-            "Files skipped due to errors: {:5}",
-            counts.skipped_file_count
-        );
+        log::info!("Total files examined:        {:5}", file_count);
+        log::info!("Files processed:             {:5}", processed);
+        log::info!("Files skipped due to errors: {:5}", skipped);
     }
 
     // Everything is a-okay in the end
@@ -101,4 +95,39 @@ fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
+}
+
+/// Processes the file based on the filename
+fn process_file(
+    filename: &str,
+    cli_args: &clap::ArgMatches,
+    config: &default_values::DefaultValues,
+    counts: &Arc<Mutex<shared::Counts>>,
+) -> Result<bool, Box<dyn Error>> {
+    let file_type;
+    let mut processed = true;
+    match shared::get_extension(filename).as_ref() {
+        "ape" => file_type = formats::FileTypes::Ape,
+        "flac" => file_type = formats::FileTypes::Flac, // process flac
+        "mp3" => file_type = formats::FileTypes::MP3,
+        "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = formats::FileTypes::MP4,
+        _ => {
+            if config.stop_on_error.unwrap_or(true) {
+                return Err("Unknown file type. Unable to proceed.".into());
+            } else {
+                log::debug!("Unknown file type. Skipping.");
+                file_type = formats::FileTypes::Unknown;
+            }
+            processed = false;
+        } // Unknown
+    }
+    formats::process_file(
+        file_type,
+        filename,
+        config,
+        &cli_args,
+        &mut counts.lock().unwrap(),
+    )?;
+    // return safely
+    Ok(processed)
 }
