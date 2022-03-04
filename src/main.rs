@@ -105,7 +105,6 @@ fn process_file(
     counts: &Arc<Mutex<shared::Counts>>,
 ) -> Result<bool, Box<dyn Error>> {
     let file_type;
-    let mut processed = true;
     match shared::get_extension(filename).as_ref() {
         "ape" => file_type = formats::FileTypes::Ape,
         "flac" => file_type = formats::FileTypes::Flac, // process flac
@@ -118,16 +117,19 @@ fn process_file(
                 log::debug!("Unknown file type. Skipping.");
                 file_type = formats::FileTypes::Unknown;
             }
-            processed = false;
         } // Unknown
     }
-    formats::process_file(
+    let res = match formats::process_file(
         file_type,
         filename,
         config,
         &cli_args,
         &mut counts.lock().unwrap(),
-    )?;
+    ) {
+        Ok(_) => true,
+        Err(_) => false,
+    };
+
     // return safely
-    Ok(processed)
+    Ok(res)
 }
