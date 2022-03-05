@@ -21,6 +21,9 @@ pub struct DefaultValues {
     /// Flag: Don't actually write any changes.
     pub dry_run: Option<bool>,
 
+    /// Flag: Single-threaded execution
+    pub single_thread: Option<bool>,
+
     /// The name of the logging configuration file
     pub log_config_file: Option<String>,
 
@@ -125,6 +128,7 @@ impl DefaultValues {
         config.check_for_print_summary(cli_args);
         config.check_for_detail_off(cli_args);
         config.check_for_dry_run(cli_args);
+        config.check_for_single_thread(cli_args);
         log::debug!("Working config: {:?}", &config);
 
         Ok(config)
@@ -215,6 +219,16 @@ impl DefaultValues {
             self.dry_run = Some(true);
         } else if self.dry_run.is_none() {
             self.dry_run = Some(false);
+        }
+    }
+
+    /// Check if the single-thread flag has been set, either in the config file
+    /// or via the CLI.
+    fn check_for_single_thread(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("single-thread") {
+            self.single_thread = Some(true);
+        } else if self.single_thread.is_none() {
+            self.single_thread = Some(false);
         }
     }
 } // impl DefaultValues

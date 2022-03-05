@@ -1,9 +1,10 @@
 //! Struct(s) and functions used across several other modules.
 // use env_logger::{Builder, Target};
 
-use std::error::Error;
 use std::ffi::OsStr;
 use std::path::Path;
+use std::time::UNIX_EPOCH;
+use std::{error::Error, time::SystemTime};
 
 use log::LevelFilter;
 use log4rs::{
@@ -18,13 +19,6 @@ use log4rs::{
 };
 
 use crate::default_values::DefaultValues;
-
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Counts {
-    pub total_file_count: usize,
-    pub processed_file_count: usize,
-    pub skipped_file_count: usize,
-}
 
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
 pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
@@ -246,10 +240,18 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     log::debug!("ext = {}", ext);
 
     // Get just the directory part, excluding the filename
-    let dir = Path::new(&filename)
+    let mut dir = Path::new(&filename)
         .parent()
         .unwrap_or_else(|| Path::new("."));
-    log::debug!("dir = {}", dir.display());
+    log::debug!(
+        "dir = {}, dir length = {}",
+        dir.display(),
+        dir.as_os_str().len()
+    );
+
+    if dir.as_os_str().is_empty() {
+        dir = Path::new(&".");
+    }
 
     if !dir.is_dir() {
         return Err(format!("Unable to get directory name from filename {}.", filename).into());
@@ -272,6 +274,36 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     log::debug!("file_list = {:?}", &file_list);
     let file_count = format!("{:0>2}", file_list.count());
     Ok(file_count)
+}
+
+/// Gets the microsecond part of the current duration since UNIX_EPOCH and modulate to a 4-digit number.
+/// This is used to ensure uniqueness of file names.
+/// This can be changed to something else later without impacting the main application.
+/// For example, one could switch to a random number generator or something.
+pub fn get_unique_value() -> u16 {
+    (SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards. Presumably, you have bigger things to worry about.")
+        .as_micros()
+        % 10_000_000) as u16
+}
+
+/// Pretty-prints `usize` values;
+/// Examples:
+///
+/// ```
+/// assert_eq!(thousand_separated(10000), "10,000".to_string());
+/// assert_eq!(thousand_separated(10000000), "10,000,000".to_string());
+/// ```
+pub fn thousand_separated(val: usize) -> String {
+    let s = val.to_string();
+    let bytes: Vec<_> = s.bytes().rev().collect();
+    let chunks: Vec<_> = bytes
+        .chunks(3)
+        .map(|chunk| std::str::from_utf8(chunk).unwrap())
+        .collect();
+    let result: Vec<_> = chunks.join(",").bytes().rev().collect();
+    String::from_utf8(result).unwrap()
 }
 
 #[cfg(test)]
@@ -441,5 +473,13 @@ mod tests {
             count_files("music/somefile.notfound").unwrap(),
             "00".to_string()
         );
+    }
+
+    #[assay]
+    ///
+    fn test_thousand_separated() {
+        assert_eq!(thousand_separated(10), "10".to_string());
+        assert_eq!(thousand_separated(1000), "1,000".to_string());
+        assert_eq!(thousand_separated(1000000), "1,000,000".to_string());
     }
 }

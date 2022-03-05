@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.9.8"
+version = "0.10.1"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -19,12 +19,14 @@ log = "0.4.14"
 log4rs = { version = "1.0.0", features = ["console_appender", "file_appender", "threshold_filter"] }
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
+rayon = "1.5.1"
 serde = { version = "1.0.136", features = ["derive"] }
 shellexpand = "2.1.0"
 toml = "0.5.8"
+
 
 [dev-dependencies]
 assay = "0.1.0"
 
 [profile.release]
-strip = true
+# strip = true

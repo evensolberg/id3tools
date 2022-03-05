@@ -28,9 +28,11 @@ pub fn rename_file(
     filename: &str,
     tags: &HashMap<String, String>,
     config: &DefaultValues,
-    unique_val: usize,
 ) -> Result<String, Box<dyn Error>> {
     let mut new_filename;
+
+    // Set a unique value based on the current time.
+    let unique_val = crate::shared::get_unique_value();
 
     // Check if there is a rename pattern
     if let Some(nfn) = &config.rename_file {

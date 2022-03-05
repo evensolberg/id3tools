@@ -6,7 +6,24 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
+- Cargo.lock
+
+## [0.10.1] - 2022-03-05
+
+### Bug Fixes
+
+- Bug fixes
+
+### Features
+
+- Multi-threading
+- Multithreading
+
+### Miscellaneous Tasks
+
 - Code maintenance
+- Changelog
+- GH Action and code cleanup
 
 ## [0.9.8] - 2022-02-19
 

@@ -29,16 +29,19 @@ use std::fs;
 pub fn process_flac(
     filename: &str,
     new_tags: &HashMap<String, String>,
-    config: &mut DefaultValues,
-    unique_val: usize,
-) -> Result<(), Box<dyn Error>> {
+    orig_config: &DefaultValues,
+) -> Result<bool, Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
     log::debug!("Filename: {}", filename);
+
+    let mut processed_ok = false;
 
     // Output existing blocks
     for block in tags.blocks() {
         log::trace!("{:?}", block);
     }
+
+    let mut config = orig_config.clone();
 
     // Read old tags
     if let Some(id3) = tags.vorbis_comments() {
@@ -137,18 +140,30 @@ pub fn process_flac(
     // Try to save
     if config.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
+        processed_ok = true;
     } else {
-        tags.save()?;
-        log::info!("{}  ✓", filename);
+        match tags.save() {
+            Ok(_) => {
+                processed_ok = true;
+                log::info!("{}  ✓", filename);
+            }
+            Err(_) => {
+                if config.stop_on_error.unwrap_or(true) {
+                    return Err(format!("Unable to save {}", filename).into());
+                } else {
+                    log::warn!("Unable to save {}", filename);
+                }
+            }
+        }
     }
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_flac(filename, config, &tags, unique_val)?;
+        rename_flac(filename, &config, &tags)?;
     }
 
     // Return safely
-    Ok(())
+    Ok(processed_ok)
 }
 
 /// Set the front or back cover (for now)
@@ -177,7 +192,6 @@ fn rename_flac(
     filename: &str,
     config: &DefaultValues,
     tags: &metaflac::Tag,
-    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
@@ -198,7 +212,7 @@ fn rename_flac(
     log::debug!("replace_map = {:?}", replace_map);
 
     // Try to rename, and process the result
-    let rename_result = rename_file::rename_file(filename, &replace_map, config, unique_val);
+    let rename_result = rename_file::rename_file(filename, &replace_map, config);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {
