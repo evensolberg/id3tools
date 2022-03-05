@@ -63,24 +63,22 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut file_count = 0;
 
     for filename in cli_args.values_of("files").unwrap() {
-        filenames.push(filename.clone());
+        filenames.push(&*filename);
         file_count += 1;
     }
 
-    let res_vec: Vec<bool>;
-
     // Process things - uses single threaded mode if we can't figure it out. Better safe than sorry.
-    if config.single_thread.unwrap_or(true) {
-        res_vec = filenames
+    let res_vec: Vec<bool> = if config.single_thread.unwrap_or(true) {
+        filenames
             .iter()
             .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
-            .collect();
+            .collect()
     } else {
-        res_vec = filenames
+        filenames
             .par_iter()
             .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
-            .collect();
-    }
+            .collect()
+    };
 
     log::debug!("res_vec = {:?}", res_vec);
 
@@ -89,8 +87,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         let mut processed = 0;
         let mut skipped = 0;
 
-        for res in res_vec {
-            if res == true {
+        for res_ok in res_vec {
+            if res_ok {
                 processed += 1;
             } else {
                 skipped += 1;
@@ -125,7 +123,7 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", err.to_string().replace("\"", ""));
+            log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem
         }
     });
@@ -154,10 +152,7 @@ fn process_file(
         } // Unknown
     }
 
-    let res = match formats::process_file(file_type, filename, config, &cli_args) {
-        Ok(r) => r,
-        Err(_) => false,
-    };
+    let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 
     log::debug!("process_file result = {}", res);
 

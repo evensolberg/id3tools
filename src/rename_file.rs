@@ -29,17 +29,12 @@ pub fn rename_file(
     tags: &HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<String, Box<dyn Error>> {
-    let mut new_filename;
-
-    // Set a unique value based on the current time.
-    let unique_val = crate::shared::get_unique_value();
-
     // Check if there is a rename pattern
-    if let Some(nfn) = &config.rename_file {
-        new_filename = nfn.to_string();
+    let mut new_filename = if let Some(nfn) = &config.rename_file {
+        nfn.to_string()
     } else {
         return Err("No filename pattern presented. Unable to continue.".into());
-    }
+    };
 
     // These tags (may) need to be padded with leading zeros.
     let pad_tags = vec![
@@ -89,6 +84,9 @@ pub fn rename_file(
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
     if Path::new(&new_path).exists() {
+        // Set a unique value based on the current time.
+        let unique_val = crate::shared::get_unique_value();
+
         log::warn!(
             "{} already exists. Appending unique identifier.",
             new_filename

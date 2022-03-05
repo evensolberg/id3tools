@@ -444,11 +444,10 @@ fn find_picture(
     config: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
     // Assume that the music file exists
-    let m_path_name;
-    if let Some(base_path) = Path::new(&m_filename).parent() {
-        m_path_name = base_path;
+    let m_path_name = if let Some(base_path) = Path::new(&m_filename).parent() {
+        base_path
     } else {
-        m_path_name = Path::new(".");
+        Path::new(".")
     };
 
     log::debug!("music path_name = {:?}", m_path_name);

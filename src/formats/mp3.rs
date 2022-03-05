@@ -203,11 +203,9 @@ pub fn process_mp3(
     if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
         processed_ok = true;
-    } else {
-        if tag.write_to_path(filename, Version::Id3v24).is_ok() {
-            processed_ok = true;
-            log::info!("{}  ✓", filename);
-        }
+    } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
+        processed_ok = true;
+        log::info!("{}  ✓", filename);
     }
 
     // Rename file
