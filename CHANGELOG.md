@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Cargo.lock
+
+## [0.10.1] - 2022-03-05
+
 ### Bug Fixes
 
 - Bug fixes
@@ -11,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Multi-threading
+- Multithreading
 
 ### Miscellaneous Tasks
 
