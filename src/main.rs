@@ -6,10 +6,8 @@
 //! In the future this application will endeavour to support reading tags from CSV files,
 //! moving and renaming files based on tags, etc.
 
-use std::{
-    error::Error,
-    sync::{Arc, Mutex},
-};
+use std::error::Error;
+use std::time::Instant;
 
 // Logging
 // use log::LevelFilter;
@@ -21,13 +19,17 @@ mod formats;
 mod rename_file;
 mod shared;
 
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::*;
 
 use crate::default_values::*;
+use crate::shared::thousand_separated;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 fn run() -> Result<(), Box<dyn Error>> {
+    // Start timing the execution
+    let now = Instant::now();
+
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = cli::build_cli();
 
@@ -44,7 +46,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Initialize counters for total files, skipped and processed.
-    let counts = Arc::new(Mutex::new(shared::Counts::default()));
+    // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // create a list of the files to gather
     for file in cli_args.values_of("files").unwrap() {
@@ -65,20 +67,52 @@ fn run() -> Result<(), Box<dyn Error>> {
         file_count += 1;
     }
 
-    // Process things
-    let res_vec: Vec<bool> = filenames
-        .par_iter()
-        .map(|&filename| process_file(filename, &cli_args, &config, &counts).unwrap_or(false))
-        .collect();
+    let res_vec: Vec<bool>;
 
-    let skipped = res_vec.iter().filter(|_| false).count();
-    let processed = res_vec.iter().filter(|_| true).count();
+    // Process things - uses single threaded mode if we can't figure it out. Better safe than sorry.
+    if config.single_thread.unwrap_or(true) {
+        res_vec = filenames
+            .iter()
+            .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
+            .collect();
+    } else {
+        res_vec = filenames
+            .par_iter()
+            .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
+            .collect();
+    }
+
+    log::debug!("res_vec = {:?}", res_vec);
 
     // Print summary information
     if config.print_summary.unwrap_or(false) {
-        log::info!("Total files examined:        {:5}", file_count);
-        log::info!("Files processed:             {:5}", processed);
-        log::info!("Files skipped due to errors: {:5}", skipped);
+        let mut processed = 0;
+        let mut skipped = 0;
+
+        for res in res_vec {
+            if res == true {
+                processed += 1;
+            } else {
+                skipped += 1;
+            }
+        }
+
+        log::info!(
+            "Files examined:              {:>5}",
+            thousand_separated(file_count)
+        );
+        log::info!(
+            "   Processed:                {:>5}",
+            thousand_separated(processed)
+        );
+        log::info!(
+            "   Skipped due to errors:    {:>5}",
+            thousand_separated(skipped)
+        );
+        log::info!(
+            "Time elapsed:            {:>9} ms",
+            thousand_separated(now.elapsed().as_millis() as usize)
+        );
     }
 
     // Everything is a-okay in the end
@@ -102,9 +136,9 @@ fn process_file(
     filename: &str,
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
-    counts: &Arc<Mutex<shared::Counts>>,
 ) -> Result<bool, Box<dyn Error>> {
     let file_type;
+
     match shared::get_extension(filename).as_ref() {
         "ape" => file_type = formats::FileTypes::Ape,
         "flac" => file_type = formats::FileTypes::Flac, // process flac
@@ -119,16 +153,13 @@ fn process_file(
             }
         } // Unknown
     }
-    let res = match formats::process_file(
-        file_type,
-        filename,
-        config,
-        &cli_args,
-        &mut counts.lock().unwrap(),
-    ) {
-        Ok(_) => true,
+
+    let res = match formats::process_file(file_type, filename, config, &cli_args) {
+        Ok(r) => r,
         Err(_) => false,
     };
+
+    log::debug!("process_file result = {}", res);
 
     // return safely
     Ok(res)

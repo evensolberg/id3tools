@@ -55,6 +55,14 @@ pub fn build_cli() -> ArgMatches {
                 .multiple_occurrences(false)
                 .takes_value(false)
         )
+        .arg( // Don't export detail information
+            Arg::new("single-thread")
+                .short('1')
+                .long("single-thread")
+                .help("Run processing single-threaded. Takes longer, but has less impact on the system.")
+                .multiple_occurrences(false)
+                .takes_value(false)
+        )
         .arg( // Config file
             Arg::new("config-file")
                 .short('c')

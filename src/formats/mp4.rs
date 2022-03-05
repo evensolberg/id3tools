@@ -12,9 +12,10 @@ pub fn process_mp4(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-    unique_val: usize,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
+
+    let mut processed_ok = false;
 
     // Read existing tags
     let mut tag = Tag::read_from_path(filename)?;
@@ -70,19 +71,39 @@ pub fn process_mp4(
 
     // Write to file
     if config.dry_run.unwrap_or(true) {
+        processed_ok = true;
         log::debug!("Not writing {}", filename);
     } else {
-        tag.write_to_path(filename)?;
-        log::info!("{}  ✓", filename);
+        match tag.write_to_path(filename) {
+            Ok(_) => processed_ok = true,
+            Err(err) => {
+                if config.stop_on_error.unwrap_or(true) {
+                    return Err(
+                        format!("Unable to save tags to {}. Error: {}", filename, err).into(),
+                    );
+                } else {
+                    log::warn!("Unable to save tags to {}. Error: {}", filename, err);
+                }
+            }
+        }
     }
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_mp4(filename, config, tag, unique_val)?;
+        match rename_mp4(filename, config, tag) {
+            Ok(_) => processed_ok = true,
+            Err(err) => {
+                if config.stop_on_error.unwrap_or(true) {
+                    return Err(format!("Unable to rename {}. Error: {}", filename, err).into());
+                } else {
+                    log::warn!("Unable to rename {}. Error: {}", filename, err);
+                }
+            }
+        }
     }
 
     // return safely
-    Ok(())
+    Ok(processed_ok)
 }
 
 /// Sets the front or back cover
@@ -110,7 +131,6 @@ fn rename_mp4(
     filename: &str,
     config: &DefaultValues,
     tag: mp4ameta::Tag,
-    unique_val: usize,
 ) -> Result<(), Box<dyn Error>> {
     let tags_map = get_mp4_tags(&tag)?;
     log::debug!("tags_map = {:?}", tags_map);
@@ -120,7 +140,7 @@ fn rename_mp4(
         pattern = p.clone();
     }
 
-    let rename_result = rename_file::rename_file(filename, &tags_map, config, unique_val);
+    let rename_result = rename_file::rename_file(filename, &tags_map, config);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {

@@ -21,6 +21,7 @@ Examples:
 `-c`|`--config-file`|The name of the config file for this application. If not specified, the app will try `~/.id3tag-config.toml`.
 `-o`|`--detail-off`|Don't export detailed information about each file processed.
 `-r`|`--dry-run`|Iterate through the files and produce output without actually processing anything.
+`-1`|`--single-thread`|Use single-threaded execution when processing files. This is slower, but has less impact on your system. You may need to use this on systems with hard disks instead of SSDs.
 `-h`|`--help`|Prints help information
 `-p`|`--print-summary`|Print summary detail after all files are processed.
 `-s`|`--stop-on-error`|Stop on error. If this flag isn't set, the application will attempt to continue in case of error.
@@ -88,6 +89,7 @@ This file describes the configuration parameters found in the config file. You c
 |`detail_off`|`true`/`false`|`false`|Don't export detailed information about each file processed.
 |`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.
 |`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
+|`single_thread`|`true / false`|`false`|Use single-threaded execution.
 |`album_artist`|||The name of the album artist.
 |`album_artist_sort`|||The name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
 |`album_title`|||The title of the album.

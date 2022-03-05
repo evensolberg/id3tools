@@ -8,10 +8,15 @@ All notable changes to this project will be documented in this file.
 
 - Bug fixes
 
+### Features
+
+- Multi-threading
+
 ### Miscellaneous Tasks
 
 - Code maintenance
 - Changelog
+- GH Action and code cleanup
 
 ## [0.9.8] - 2022-02-19
 

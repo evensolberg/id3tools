@@ -10,9 +10,10 @@ pub fn process_ape(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-    _unique_val: usize,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
+
+    let mut processed_ok = false;
 
     let mut tags = ape::read_from_path(&filename)?;
     for item in tags.iter() {
@@ -70,16 +71,22 @@ pub fn process_ape(
         log::debug!("Dry-run. Not saving.");
     } else {
         let mut file = File::open(filename)?;
-        ape::write_to(&tags, &mut file)?;
-        log::info!("{}  ✓", filename);
+        let res = ape::write_to(&tags, &mut file);
+        if res.is_ok() {
+            processed_ok = true;
+            log::info!("{}  ✓", filename);
+        }
     }
 
     if config.rename_file.is_some() {
-        rename_ape(filename, config, tags)?;
+        let res = rename_ape(filename, config, tags);
+        if res.is_ok() {
+            processed_ok = true;
+        }
     }
 
     // return safely
-    Ok(())
+    Ok(processed_ok)
 }
 
 // /// Set the front or back cover (for now)
@@ -159,6 +166,6 @@ mod tests {
         let new_values = HashMap::<String, String>::new();
         let blank_defaults = DefaultValues::new();
 
-        assert!(process_ape("music/01.ape", &new_values, &blank_defaults, 01).is_ok());
+        assert!(process_ape("music/01.ape", &new_values, &blank_defaults).is_ok());
     }
 }

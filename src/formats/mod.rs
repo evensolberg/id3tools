@@ -44,8 +44,7 @@ pub fn process_file(
     filename: &str,
     config: &DefaultValues,
     cli_args: &clap::ArgMatches,
-    counts: &mut shared::Counts,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<bool, Box<dyn Error>> {
     match file_type {
         FileTypes::Ape => log::debug!("Processing APE."),
         FileTypes::Flac => log::debug!("Processing FLAC."),
@@ -57,6 +56,7 @@ pub fn process_file(
     let new_tags_result = parse_options(filename, file_type, config, cli_args);
     log::debug!("new_tags_result: {:?}", new_tags_result);
     let new_tags;
+    let mut processed = false;
     match new_tags_result {
         Ok(res) => {
             new_tags = res;
@@ -64,25 +64,17 @@ pub fn process_file(
 
             log::debug!("Processing file {}", filename);
             let proc_res = match file_type {
-                FileTypes::Ape => {
-                    ape::process_ape(filename, &new_tags, config, counts.total_file_count)
-                }
-                FileTypes::Flac => {
-                    flac::process_flac(filename, &new_tags, config, counts.total_file_count)
-                }
-                FileTypes::MP3 => {
-                    mp3::process_mp3(filename, &new_tags, config, counts.total_file_count)
-                }
-                FileTypes::MP4 => {
-                    mp4::process_mp4(filename, &new_tags, config, counts.total_file_count)
-                }
+                FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
+                FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
+                FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
+                FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
                 FileTypes::Unknown => {
                     return Err("We should never get here. That's a problem.".into())
                 }
             };
 
             match proc_res {
-                Ok(_) => counts.processed_file_count += 1,
+                Ok(_) => processed = true,
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(true) {
                         return Err(
@@ -90,7 +82,6 @@ pub fn process_file(
                         );
                     } else {
                         log::error!("Unable to process {}. Error: {}", filename, err);
-                        counts.skipped_file_count += 1;
                     }
                 }
             } // match flag::process_flac
@@ -102,13 +93,12 @@ pub fn process_file(
                 );
             } else {
                 log::error!("Unable to parse tags for {}. Error: {}", filename, err);
-                counts.skipped_file_count += 1;
             }
         } // Err(err)
     } // match new_tags_result
 
     // return safely
-    Ok(())
+    Ok(processed)
 }
 
 /// Collect the various options/tags submitted into a HashMap for later use.

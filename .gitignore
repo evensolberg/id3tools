@@ -12,3 +12,4 @@ bom.txt
 tree.txt
 *.log
 *.jpeg
+Cargo.lock

@@ -16,9 +16,9 @@ pub fn process_mp3(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-    unique_val: usize,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
+    let mut processed_ok = false;
 
     // Reat the tag - bomb out if it doesn't work.
     let mut tag = Tag::read_from_path(&filename)?;
@@ -202,18 +202,25 @@ pub fn process_mp3(
     // Write tags to file
     if config.dry_run.unwrap_or(true) {
         log::debug!("Not writing {}", filename);
+        processed_ok = true;
     } else {
-        tag.write_to_path(filename, Version::Id3v24)?;
-        log::info!("{}  ✓", filename);
+        if tag.write_to_path(filename, Version::Id3v24).is_ok() {
+            processed_ok = true;
+            log::info!("{}  ✓", filename);
+        }
     }
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_mp3(filename, config, tag, unique_val)?;
+        if rename_mp3(filename, config, tag).is_ok() {
+            processed_ok = true;
+        } else {
+            processed_ok = false;
+        }
     }
 
     // return safely
-    Ok(())
+    Ok(processed_ok)
 }
 
 /// Adds front or back covers
@@ -273,12 +280,7 @@ fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_mp3(
-    filename: &str,
-    config: &DefaultValues,
-    tag: id3::Tag,
-    unique_val: usize,
-) -> Result<(), Box<dyn Error>> {
+fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(), Box<dyn Error>> {
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
@@ -336,7 +338,7 @@ fn rename_mp3(
 
     log::debug!("replace_map = {:?}", replace_map);
 
-    let rename_result = rename_file::rename_file(filename, &replace_map, config, unique_val);
+    let rename_result = rename_file::rename_file(filename, &replace_map, config);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {
