@@ -6,7 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
+- Clean up lints
+
+## [0.10.2] - 2022-03-05
+
+### Miscellaneous Tasks
+
 - Cargo.lock
+- Changelog update
 
 ## [0.10.1] - 2022-03-05
 
