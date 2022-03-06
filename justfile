@@ -182,9 +182,9 @@ alias update := upgrade
 @runddt:
     cargo lrun  --color 'always' -- --debug --debug | tee trace.txt
 
-# Look for spelling mistakes in the code
+# Spellcheck the documents except CHANGELOG
 @spell:
-    typos
+    typos --exclude CHANGELOG.md -c ~/CloudStation/Automation/_typos.toml
 
 # Check for new versions of crates and upgrade accordingly
 @upgrade:

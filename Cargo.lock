@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "id3tag"
-version = "0.10.2"
+version = "0.10.4"
 dependencies = [
  "ape",
  "assay",

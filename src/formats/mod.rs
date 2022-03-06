@@ -444,22 +444,24 @@ fn find_picture(
     config: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
     // Assume that the music file exists
-    let m_path_name = if let Some(base_path) = Path::new(&m_filename).parent() {
+    let m_component_name = if let Some(base_path) = Path::new(&m_filename).parent() {
         base_path
     } else {
         Path::new(".")
     };
 
-    log::debug!("music path_name = {:?}", m_path_name);
+    log::debug!("music component_name = {:?}", m_component_name);
 
-    if Path::new(m_path_name).join(p_filename).exists() {
+    if Path::new(m_component_name).join(p_filename).exists() {
         // Picture file exists alongside the music file
         log::debug!(
             "picture file path: {}",
-            Path::new(m_path_name).join(p_filename).to_string_lossy()
+            Path::new(m_component_name)
+                .join(p_filename)
+                .to_string_lossy()
         );
         return Ok(Some(
-            Path::new(m_path_name)
+            Path::new(m_component_name)
                 .join(p_filename)
                 .to_str()
                 .unwrap()
@@ -688,22 +690,25 @@ fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 /// Figures out the disc number based on the directory above it.
 /// It it is named 'CD xx' or 'disc xx' (case insensitive), we get the number and use it.
 fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
-    log::trace!("get_disc_number filename: {}", filename);
+    log::trace!("get_disc_number::filename: {}", filename);
 
-    let mut components = Path::new(filename).components();
-    log::debug!("components = {:?}", components);
+    // Get the full path so we can figure out the parent below
+    let full_path = fs::canonicalize(&filename)?;
+    log::debug!("get_disc_number::full_path = {:?}", full_path);
 
     // Get the parent directory
+    let mut components = Path::new(&full_path).components();
+    log::debug!("get_disc_number::components = {:?}", components);
     let mut parent_dir = components
         .nth_back(1)
         .unwrap_or(Component::ParentDir)
         .as_os_str()
         .to_str()
-        .unwrap_or("Something else")
+        .unwrap_or("Awkward!")
         .to_ascii_uppercase();
 
     // log::debug!("components next = {:?}", components.next_back());
-    log::trace!("parent_dir = {:?}", parent_dir);
+    log::debug!("get_disc_number::parent_dir = {:?}", parent_dir);
 
     let mut dn = 1; // Disc number
 
@@ -722,7 +727,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
             let dash = parent_dir.find('-').unwrap_or(256);
             let delimiter = if space < dash { ' ' } else { '-' };
             log::trace!(
-                "space = {}, dash = {}, delimiter = {}",
+                "get_disc_number::space = {}, dash = {}, delimiter = {}",
                 space,
                 dash,
                 delimiter
@@ -735,7 +740,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
                 .to_string();
         }
 
-        log::trace!("parent_dir = {:?}", parent_dir);
+        log::debug!("get_disc_number::parent_dir after processing = {:?}", parent_dir);
         dn = parent_dir.parse().unwrap_or(0);
 
         // Check for roman numerals
@@ -748,9 +753,9 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
             }
         }
     }
-    log::debug!("dn = {}", dn);
 
     // return safely
+    log::debug!("get_disc_number::dn = Ok({})", dn);
     Ok(dn)
 }
 
@@ -758,48 +763,49 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
     log::debug!("get_disc_count::get_disc_number filename: {}", filename);
 
-    let mut components = Path::new(filename).components();
-    log::debug!("get_disc_count::components = {:?}", components);
+    // Get the full path so we can figure out the grandparent below
+    let full_path = fs::canonicalize(&filename)?;
+    log::debug!("get_disc_count::full_path = {:?}", full_path);
 
-    // Get the grandparent directory
-    let parent_dir = components
-        .nth_back(2)
-        .unwrap_or(Component::ParentDir)
+    // Get the grandparent directory so we can look for disc subdirectories underneath.
+    let grandparent_dir = full_path
+        .ancestors()
+        .nth(2)
+        .unwrap_or_else(|| Path::new(&"."))
         .as_os_str()
         .to_str()
-        .unwrap_or("Something else")
-        .to_ascii_uppercase();
-
-    let mut disc_count = 0;
+        .unwrap_or("None");
+    log::debug!("get_disc_count::grandparent_dir = {:?}", grandparent_dir);
 
     // Find the subdirectories of the grandparent
-    log::debug!("get_disc_count::parent_dir = {:?}", parent_dir);
-    let dirs = fs::read_dir(&parent_dir)?;
+    let dirs = fs::read_dir(&grandparent_dir)?;
     log::debug!("get_disc_count::dirs = {:?}", dirs);
 
     // Determine the number of disc subdirs
+    let mut disc_count = 0;
     for entry in dirs {
         let path = entry?.path();
         log::debug!("get_disc_count::path = {:?}", path);
         if path.is_dir() {
-            let path_name = path
+            let component_name = path
                 .components()
-                .nth(1)
+                .last()
                 .unwrap_or(Component::CurDir)
                 .as_os_str()
                 .to_str()
                 .unwrap_or("None")
                 .to_ascii_uppercase();
 
-            log::trace!("get_disc_count::path_name = {:?}", path_name);
-            if path_name.starts_with("CD")
-                || path_name.starts_with("DISC")
-                || path_name.starts_with("PART")
+            log::debug!("get_disc_count::component_name = {}", component_name);
+            if component_name.starts_with("CD")
+                || component_name.starts_with("DISC")
+                || component_name.starts_with("PART")
             {
-                log::debug!("get_disc_count::path_name = {:?}", path_name);
                 disc_count += 1;
                 log::debug!("get_disc_count::disc_count = {}", disc_count);
             }
+        } else {
+            log::debug!("get_disc_count::path.is_dir() == false");
         }
     }
 
@@ -808,6 +814,7 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         disc_count = 1;
     }
 
+    log::debug!("get_disc_count::disc_count returned = Ok({})", disc_count);
     // return safely
     Ok(disc_count)
 }
