@@ -740,7 +740,10 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
                 .to_string();
         }
 
-        log::debug!("get_disc_number::parent_dir after processing = {:?}", parent_dir);
+        log::debug!(
+            "get_disc_number::parent_dir after processing = {:?}",
+            parent_dir
+        );
         dn = parent_dir.parse().unwrap_or(0);
 
         // Check for roman numerals
