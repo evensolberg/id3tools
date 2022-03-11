@@ -53,7 +53,7 @@ pub struct DefaultValues {
     pub track_artist: Option<String>,
 
     /// Set the track artist to be the same as the album artist
-    pub track_album_artist: Option<bool>,
+    pub track_album_artist: Option<String>,
 
     /// Default value for the track's artist sort.
     pub track_artist_sort: Option<String>,

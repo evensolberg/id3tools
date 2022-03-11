@@ -117,9 +117,30 @@ fn parse_options(
 
     // TODO: Refactor to check for -c and use, and then for parameter and overwrite.
 
+    // ALBUM & TRACK ARITST //
+
+    if args.is_present("track-album-artist") {
+        let taa = args
+            .value_of("track-album-artist")
+            .unwrap_or("")
+            .to_string();
+        new_tags.insert(tag_names.track_artist.clone(), taa.clone());
+        new_tags.insert(tag_names.album_artist.clone(), taa);
+    } else if args.is_present("config-file") {
+        if let Some(val) = &defaults.track_album_artist {
+            let taa = val.to_string();
+            new_tags.insert(tag_names.track_artist.clone(), taa.clone());
+            new_tags.insert(tag_names.album_artist.clone(), taa);
+        }
+    }
+
+    // We should never hit these two ("album-artist" and "track-artist") if we have the one above,
+    // but the compiler doesn't know that. So we have to do a bunch of cloning above to ensure the
+    // code below still compiles as expected.
+
     if args.is_present("album-artist") {
         new_tags.insert(
-            tag_names.album_artist,
+            tag_names.album_artist.clone(),
             args.value_of("album-artist").unwrap_or("").to_string(),
         );
     } else if args.is_present("config-file") {
@@ -127,6 +148,19 @@ fn parse_options(
             new_tags.insert(tag_names.album_artist, val.to_string());
         }
     }
+
+    if args.is_present("track-artist") {
+        new_tags.insert(
+            tag_names.track_artist.clone(),
+            args.value_of("track-artist").unwrap_or("").to_string(),
+        );
+    } else if args.is_present("config-file") {
+        if let Some(val) = &defaults.track_artist {
+            new_tags.insert(tag_names.track_artist.clone(), val.to_string());
+        }
+    }
+
+    // ALBUM DETAILS //
 
     if args.is_present("album-artist-sort") {
         new_tags.insert(
@@ -199,28 +233,6 @@ fn parse_options(
     }
 
     // TRACK //
-
-    if args.is_present("track-artist") {
-        new_tags.insert(
-            tag_names.track_artist.clone(),
-            args.value_of("track-artist").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_artist {
-            new_tags.insert(tag_names.track_artist.clone(), val.to_string());
-        }
-    }
-
-    if args.is_present("track-album-artist") || defaults.track_album_artist.unwrap_or(false) {
-        new_tags.insert(
-            tag_names.track_artist,
-            args.value_of("album-artist").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.album_artist {
-            new_tags.insert(tag_names.track_artist, val.to_string());
-        }
-    }
 
     if args.is_present("track-artist-sort") {
         new_tags.insert(
