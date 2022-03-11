@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Miscellaneous Tasks
+
+- CHANGELOG update
+
 ## [0.10.6] - 2022-03-11
 
 ### Features
