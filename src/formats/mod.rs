@@ -202,11 +202,22 @@ fn parse_options(
 
     if args.is_present("track-artist") {
         new_tags.insert(
-            tag_names.track_artist,
+            tag_names.track_artist.clone(),
             args.value_of("track-artist").unwrap_or("").to_string(),
         );
     } else if args.is_present("config-file") {
         if let Some(val) = &defaults.track_artist {
+            new_tags.insert(tag_names.track_artist.clone(), val.to_string());
+        }
+    }
+
+    if args.is_present("track-album-artist") || defaults.track_album_artist.unwrap_or(false) {
+        new_tags.insert(
+            tag_names.track_artist,
+            args.value_of("album-artist").unwrap_or("").to_string(),
+        );
+    } else if args.is_present("config-file") {
+        if let Some(val) = &defaults.album_artist {
             new_tags.insert(tag_names.track_artist, val.to_string());
         }
     }

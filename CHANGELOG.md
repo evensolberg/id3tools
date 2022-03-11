@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - CHANGELOG
+- Tidy up
 
 ## [0.10.4] - 2022-03-06
 

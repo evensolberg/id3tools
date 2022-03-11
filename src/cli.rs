@@ -178,6 +178,18 @@ pub fn build_cli() -> ArgMatches {
                 .require_equals(false)
                 .help_heading(tags_name)
         )
+        .arg( // Track artist
+            Arg::new("track-album-artist")
+                .long("track-album-artist")
+                .visible_alias("taa")
+                .help("Set track artist = album artist.")
+                .long_help("Sets the track artist to be the same as the album artist.")
+                .takes_value(false)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .conflicts_with("track-artist")
+                .help_heading(tags_name)
+        )
         .arg( // Track artist sort
             Arg::new("track-artist-sort")
                 .long("track-artist-sort")

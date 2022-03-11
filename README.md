@@ -42,6 +42,7 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--disc-number-count`|`--dnc`|No|Tries to figure out the disc number and total number of discs based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number and total number of discs. Otherwise these values are set to 1. Note that this conflicts with `--disc-number` and `--disc-number-total`. You can either use those two or this, but not both.
 |`--disc-number-total`|`--dt`|Yes|Sets the total number of discs for this album, usually 1. This is often set to be the same for all tracks and discs for an album.
 |`--track-artist`|`--ta`|Yes|Sets the track artist. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
+|`--track-album-artist`|`--taa`|No|Sets the track artist to be the same as the album artist, meaning only the latter needs to be supplied. Conflicts with `--track-artist`.
 |`--track-artist-sort`|`--tas`|Yes|Track artist sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-title`|`--tt`|Yes|Sets the name of the track. Use quotation marks for multi-word entries.
 |`--track-title-sort`|`--tts`|Yes|Track title sort. Use quotation marks for multi-word entries.
@@ -98,6 +99,7 @@ This file describes the configuration parameters found in the config file. You c
 |`disc_count|`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
 |`disc_number_total`|||The total number of discs that comprise the album, usually 1.
 |`track_artist`|||The track's artist.
+|`track_album_artist`|`true`/`false`|`false`|Set the track artist to be the same as the album artist.
 |`track_artist_sort`|||The track's artist sort.
 |`track_title`|||The track's title.
 |`track_title_sort`|||The track's title sort. Not commonly used.
@@ -126,6 +128,7 @@ log_config_file="~/.config/id3tag/logs.yml"
 
 track_count=true
 disc_count=true
+track_album_artist=true
 track_genre="Metal"
 track_composer="Hendrix, Jimi"
 picture_front="cover-small.jpg"
