@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.10.6] - 2022-03-11
 
 ### Features
 
 - Add --taa flag
+- -taa sets both track and album artist
 
 ### Miscellaneous Tasks
 
