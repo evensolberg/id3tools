@@ -185,7 +185,6 @@ pub fn build_cli() -> ArgMatches {
                 .help("Set album and track artist to be the same value.")
                 .long_help("Sets both the album artist and track artist to the value provided.")
                 .takes_value(true)
-                // .default_missing_value("")
                 .multiple_occurrences(false)
                 .require_equals(false)
                 .conflicts_with("track-artist")

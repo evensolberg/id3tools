@@ -141,12 +141,8 @@ impl DefaultValues {
     fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
 
-        let mut file = match File::open(&filename) {
-            Ok(file) => file,
-            Err(_) => {
-                return Err(format!("Config file {} not found.", filename).into());
-            }
-        };
+        let mut file = File::open(&filename)
+            .map_err(|err| format!("Config file {} not found. Error: {}", filename, err))?;
 
         file.read_to_string(&mut config_toml)?;
         let config = match toml::from_str(&config_toml) {
