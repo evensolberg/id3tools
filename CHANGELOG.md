@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Features
+
+- Check if filename is unchanged
+
 ## [0.10.7] - 2022-03-14
 
 ### Documentation
