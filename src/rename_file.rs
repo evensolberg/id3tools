@@ -82,6 +82,13 @@ pub fn rename_file(
         parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
+    // Return if the new filename is the same as the old
+    let np = new_path.to_string_lossy().to_string();
+    if np == *filename {
+        log::debug!("New filename == old filename. Returning.");
+        return Ok(np);
+    }
+
     // Check if a file with the new filename already exists - make the filename unique if it does.
     if Path::new(&new_path).exists() {
         // Set a unique value based on the current time.

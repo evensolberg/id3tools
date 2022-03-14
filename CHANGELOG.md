@@ -2,11 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.10.7] - 2022-03-14
+
+### Documentation
+
+- Updated docs to reflect changes
 
 ### Miscellaneous Tasks
 
 - CHANGELOG update
+
+### Refactor
+
+- Minor changes
 
 ## [0.10.6] - 2022-03-11
 
