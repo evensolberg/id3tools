@@ -738,10 +738,12 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     // Check if the parent directory starts "properly" and extract just the number
     if parent_dir.starts_with("CD")
         || parent_dir.starts_with("DISC")
+        || parent_dir.starts_with("DISK")
         || parent_dir.starts_with("PART")
     {
         parent_dir = parent_dir.replace("CD", "");
         parent_dir = parent_dir.replace("DISC", "").trim().to_string();
+        parent_dir = parent_dir.replace("DISK", "").trim().to_string();
         parent_dir = parent_dir.replace("PART", "").trim().to_string();
 
         // Check for longer name - eg CD01 - Something
@@ -825,6 +827,7 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
             log::debug!("get_disc_count::component_name = {}", component_name);
             if component_name.starts_with("CD")
                 || component_name.starts_with("DISC")
+                || component_name.starts_with("DISK")
                 || component_name.starts_with("PART")
             {
                 disc_count += 1;

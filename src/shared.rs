@@ -288,14 +288,17 @@ pub fn get_unique_value() -> u16 {
         % 10_000_000) as u16
 }
 
-/// Pretty-prints `usize` values;
+/// Pretty-prints integer values;
 /// Examples:
 ///
 /// ```
 /// assert_eq!(thousand_separated(10000), "10,000".to_string());
 /// assert_eq!(thousand_separated(10000000), "10,000,000".to_string());
 /// ```
-pub fn thousand_separated(val: usize) -> String {
+pub fn thousand_separated<T>(val: T) -> String
+where
+    T: std::fmt::Display,
+{
     let s = val.to_string();
     let bytes: Vec<_> = s.bytes().rev().collect();
     let chunks: Vec<_> = bytes
@@ -305,6 +308,10 @@ pub fn thousand_separated(val: usize) -> String {
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
     String::from_utf8(result).unwrap()
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//// TESTS
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]
 ///

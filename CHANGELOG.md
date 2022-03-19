@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.10.8] - 2022-03-14
 
 ### Features
 
 - Check if filename is unchanged
+
+### Miscellaneous Tasks
+
+- Changelog update
 
 ## [0.10.7] - 2022-03-14
 
