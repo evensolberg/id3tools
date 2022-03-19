@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactor
+
+- Minor updates
+
 ## [0.10.8] - 2022-03-14
 
 ### Features
