@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.10.8"
+version = "0.11.0"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -14,6 +14,7 @@ keywords = ["flac", "audio", "parser", "metadata"]
 [dependencies]
 ape = "0.4.0"
 clap = { version = "3.1.0", features = ["cargo", "color"] }
+dsf = { path = "../_crates/dsf" }
 id3 = "1.0.2"
 log = "0.4.14"
 log4rs = { version = "1.0.0", features = ["console_appender", "file_appender", "threshold_filter"] }

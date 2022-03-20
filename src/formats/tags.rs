@@ -1,6 +1,6 @@
 //! Contains the scaffoldig for processing tags in a generic way
 
-use super::FileTypes;
+use crate::shared::FileTypes;
 use std::collections::HashMap;
 
 /// Used to store the various tag names based on the file type.
@@ -52,7 +52,7 @@ pub fn get_tag_names(file_type: FileTypes) -> TagNames {
             picture_front: "PICTUREFRONT".to_string(),
             picture_back: "PICTUREBACK".to_string(),
         },
-        FileTypes::MP3 => TagNames {
+        FileTypes::MP3 | FileTypes::Dsf => TagNames {
             album_artist: "TPE2".to_string(),
             album_artist_sort: "TSO2".to_string(),
             album_title: "TALB".to_string(),

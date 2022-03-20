@@ -1,8 +1,12 @@
 # ID3tag
 
-A simple application for updating ID3 tags in APE, FLAC, MP3 and MP4 files.
+A simple application for updating and renaming ID3 tags in APE, FLAC, MP3 and MP4 files. The application also supports renaming DSF files based on tags [^rename].
+
+[^rename]: You can supply new tags to the application and these will be used when renaming.
 
 The main purpose of this application is to be able to (easily) process files in bulk, so some of the functionality is optimized towards this.
+
+Unless you supply the `-1` flag, files are processed in parallel.
 
 ## Usage
 
@@ -161,7 +165,7 @@ These are the tags in various formats that are set using the different command l
 |`--picture-front`|`picture_front`|`PICTUREFRONT`|`APIC` [^2]|`covr` [^3]|
 |`--picture-back`|`picture_back`|`PICTUREBACK`|`APIC` [^2]|NA [^3]|
 
-[^1]: This looks up a value which is then inserted into `track_genre`.
+[^1]: This looks up a value which is then inserted into `track_genre`. See [Wikipedia](https://en.wikipedia.org/wiki/ID3) for details. The Winamp Extended List is supported.
 
 [^2]: A modified version is actually used in the code, and the value is set using a dedicated function.
 

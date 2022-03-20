@@ -1,7 +1,6 @@
 //! Contains the functionality to process MP3 files.
 use crate::formats::tags::*;
-use crate::formats::FileTypes;
-use crate::shared;
+use crate::shared::{self, FileTypes};
 use crate::{default_values::DefaultValues, rename_file};
 use id3::frame::{self, ExtendedText};
 use id3::TagLike;
@@ -94,7 +93,7 @@ pub fn process_mp3(
                 }
             },
 
-            // Disc numbeer
+            // Disc number
             "TPOS" => {
                 let num;
                 match value.parse::<u32>() {

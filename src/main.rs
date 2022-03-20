@@ -135,22 +135,7 @@ fn process_file(
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    let file_type;
-
-    match shared::get_extension(filename).as_ref() {
-        "ape" => file_type = formats::FileTypes::Ape,
-        "flac" => file_type = formats::FileTypes::Flac, // process flac
-        "mp3" => file_type = formats::FileTypes::MP3,
-        "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = formats::FileTypes::MP4,
-        _ => {
-            if config.stop_on_error.unwrap_or(true) {
-                return Err("Unknown file type. Unable to proceed.".into());
-            } else {
-                log::debug!("Unknown file type. Skipping.");
-                file_type = formats::FileTypes::Unknown;
-            }
-        } // Unknown
-    }
+    let file_type = shared::get_filetype(&filename);
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 

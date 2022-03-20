@@ -2,6 +2,7 @@
 // use env_logger::{Builder, Target};
 
 use std::ffi::OsStr;
+use std::fmt;
 use std::path::Path;
 use std::time::UNIX_EPOCH;
 use std::{error::Error, time::SystemTime};
@@ -19,6 +20,33 @@ use log4rs::{
 };
 
 use crate::default_values::DefaultValues;
+
+/// The types of files we can process
+#[derive(Debug, Copy, Clone)]
+pub enum FileTypes {
+    Ape,
+    Dsf,
+    Flac,
+    MP3,
+    MP4,
+    Unknown,
+}
+
+impl fmt::Display for FileTypes {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let filetype = (match self {
+            FileTypes::Ape => "APE",
+            FileTypes::Dsf => "DSF",
+            FileTypes::Flac => "FLAC",
+            FileTypes::MP3 => "MP3",
+            FileTypes::MP4 => "MP4",
+            FileTypes::Unknown => "Unknown",
+        })
+        .to_string();
+
+        write!(f, "{}", filetype)
+    }
+}
 
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
 pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
@@ -49,6 +77,19 @@ pub fn get_extension(filename: &str) -> String {
         .to_str()
         .unwrap_or("")
         .to_string()
+}
+
+// Get the file type from the Extension
+pub fn get_filetype(filename: &str) -> FileTypes {
+    // return the file type
+    match get_extension(filename).as_ref() {
+        "ape" => FileTypes::Ape,
+        "dsf" => FileTypes::Dsf,
+        "flac" => FileTypes::Flac,
+        "mp3" => FileTypes::MP3,
+        "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => FileTypes::MP4,
+        _ => FileTypes::Unknown,
+    }
 }
 
 /// Creates a log entity for us
