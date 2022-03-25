@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- Cleaned up pedantic lints
+
+## [0.11.1] - 2022-03-20
+
+### Features
+
+- Add DSF (rename) support
+
+## [0.11.0] - 2022-03-19
+
 ### Miscellaneous Tasks
 
 - Changelog update
