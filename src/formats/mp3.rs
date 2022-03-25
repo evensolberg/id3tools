@@ -1,5 +1,5 @@
 //! Contains the functionality to process MP3 files.
-use crate::formats::tags::*;
+use crate::formats::tags::option_to_tag;
 use crate::shared::{self, FileTypes};
 use crate::{default_values::DefaultValues, rename_file};
 use id3::frame::{self, ExtendedText};
@@ -11,7 +11,7 @@ use std::error::Error;
 use std::fs;
 
 /// Performs the actual processing of MP4 files.
-pub fn process_mp3(
+pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
@@ -30,15 +30,11 @@ pub fn process_mp3(
     // Print new tags
     for (key, value) in new_tags {
         // Output information about tags getting changed
-        if !(config.detail_off.unwrap_or(false)) {
-            // If this is a dry run, output each change
-            if config.dry_run.unwrap_or(false) {
-                log::info!("{} :: New {} = {}", &filename, key, value);
-            } else {
-                log::debug!("{} :: New {} = {}", &filename, key, value);
-            }
+        if config.detail_off.unwrap_or(false) {
+            log::debug!("{} :: New {} = {}", &filename, key, value);
+        } else if config.dry_run.unwrap_or(false) {
+            log::info!("{} :: New {} = {}", &filename, key, value);
         } else {
-            // If not dry run and detail
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
 
@@ -55,9 +51,8 @@ pub fn process_mp3(
                             filename, err
                         )
                         .into());
-                    } else {
-                        log::error!("Unable to set front cover for {}. Error: {}", filename, err);
                     }
+                    log::error!("Unable to set front cover for {}. Error: {}", filename, err);
                 }
             },
 
@@ -71,9 +66,8 @@ pub fn process_mp3(
                             filename, err
                         )
                         .into());
-                    } else {
-                        log::error!("Unable to set back cover for {}. Error: {}", filename, err);
                     }
+                    log::error!("Unable to set back cover for {}. Error: {}", filename, err);
                 }
             },
 
@@ -87,17 +81,15 @@ pub fn process_mp3(
                             filename, err
                         )
                         .into());
-                    } else {
-                        log::error!("Unable to set comment for {}. Error: {}", filename, err);
                     }
+                    log::error!("Unable to set comment for {}. Error: {}", filename, err);
                 }
             },
 
             // Disc number
             "TPOS" => {
-                let num;
-                match value.parse::<u32>() {
-                    Ok(n) => num = n,
+                let num = match value.parse::<u32>() {
+                    Ok(n) => n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
@@ -105,24 +97,22 @@ pub fn process_mp3(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
-                                value,
-                                err
-                            );
-                            num = 1
                         }
+                        log::error!(
+                            "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
+                            value,
+                            err
+                        );
+                        1
                     }
-                }
+                };
                 tag.set_disc(num);
             }
 
             // Disc count
             "TPOS-T" => {
-                let num;
-                match value.parse::<u32>() {
-                    Ok(n) => num = n,
+                let num = match value.parse::<u32>() {
+                    Ok(n) => n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
@@ -130,24 +120,22 @@ pub fn process_mp3(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
-                                value,
-                                err
-                            );
-                            num = 1
                         }
+                        log::error!(
+                            "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
+                            value,
+                            err
+                        );
+                        1
                     }
-                }
+                };
                 tag.set_total_discs(num);
             }
 
             // Track number
             "TRCK" => {
-                let num;
-                match value.parse::<u32>() {
-                    Ok(n) => num = n,
+                let num = match value.parse::<u32>() {
+                    Ok(n) => n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
@@ -155,24 +143,22 @@ pub fn process_mp3(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
-                                value,
-                                err
-                            );
-                            num = 1
                         }
+                        log::error!(
+                            "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
+                            value,
+                            err
+                        );
+                        1
                     }
-                }
+                };
                 tag.set_track(num);
             }
 
             // Track count
             "TRCK-T" => {
-                let num;
-                match value.parse::<u32>() {
-                    Ok(n) => num = n,
+                let num = match value.parse::<u32>() {
+                    Ok(n) => n,
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
@@ -180,17 +166,16 @@ pub fn process_mp3(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
-                                value,
-                                err
-                            );
-                            num = 1
                         }
+                        log::error!(
+                            "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
+                            value,
+                            err
+                        );
+                        1
                     }
-                }
-                tag.set_total_tracks(num)
+                };
+                tag.set_total_tracks(num);
             }
 
             // Everything else
@@ -209,7 +194,7 @@ pub fn process_mp3(
 
     // Rename file
     if config.rename_file.is_some() {
-        if rename_mp3(filename, config, tag).is_ok() {
+        if rename_file(filename, config, &tag).is_ok() {
             processed_ok = true;
         } else {
             processed_ok = false;
@@ -277,7 +262,11 @@ fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(), Box<dyn Error>> {
+fn rename_file(
+    filename: &str,
+    config: &DefaultValues,
+    tag: &id3::Tag,
+) -> Result<(), Box<dyn Error>> {
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
@@ -345,14 +334,13 @@ fn rename_mp3(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(
                     filename, pattern, err
                 )
                 .into());
-            } else {
-                log::warn!(
-                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                    filename,
-                    pattern,
-                    err
-                );
             }
+            log::warn!(
+                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                filename,
+                pattern,
+                err
+            );
         }
     }
 

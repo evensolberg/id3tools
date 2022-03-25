@@ -6,6 +6,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
+//~ spec:startcode
 /// The default values for the flags and options.
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct DefaultValues {
@@ -101,9 +102,10 @@ pub struct DefaultValues {
     /// New filename pattern for rename
     pub rename_file: Option<String>,
 }
+//~ spec:endcode
 
 impl DefaultValues {
-    /// Initializes a new, empty set of DefaultValues. All values are set to `None`.
+    /// Initializes a new, empty set of `DefaultValues`. All values are set to `None`.
     pub fn new() -> Self {
         Self::default()
     }

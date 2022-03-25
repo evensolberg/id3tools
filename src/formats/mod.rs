@@ -52,11 +52,11 @@ pub fn process_file(
 
             log::debug!("Processing file {}", filename);
             let proc_res = match file_type {
-                FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
-                FileTypes::Dsf => dsf::process_dsf(filename, &new_tags, config),
-                FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
-                FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
-                FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
+                FileTypes::Ape => ape::process(filename, &new_tags, config),
+                FileTypes::Dsf => dsf::process(filename, &new_tags, config),
+                FileTypes::Flac => flac::process(filename, &new_tags, config),
+                FileTypes::MP3 => mp3::process(filename, &new_tags, config),
+                FileTypes::MP4 => mp4::process(filename, &new_tags, config),
                 FileTypes::Unknown => {
                     return Err("We should never get here. This is a problem.".into())
                 }
@@ -69,9 +69,8 @@ pub fn process_file(
                         return Err(
                             format!("Unable to process {}. Error: {}", filename, err).into()
                         );
-                    } else {
-                        log::error!("Unable to process {}. Error: {}", filename, err);
                     }
+                    log::error!("Unable to process {}. Error: {}", filename, err);
                 }
             } // match flag::process_flac
         } // Ok(_)
@@ -80,9 +79,8 @@ pub fn process_file(
                 return Err(
                     format!("Unable to parse tags for {}. Error: {}", filename, err).into(),
                 );
-            } else {
-                log::error!("Unable to parse tags for {}. Error: {}", filename, err);
             }
+            log::error!("Unable to parse tags for {}. Error: {}", filename, err);
         } // Err(err)
     } // match new_tags_result
 
@@ -90,7 +88,7 @@ pub fn process_file(
     Ok(processed)
 }
 
-/// Collect the various options/tags submitted into a HashMap for later use.
+/// Collect the various options/tags submitted into a `HashMap` for later use.
 /// Also checks the default values loaded from a config file.
 fn parse_options(
     filename: &str,
@@ -486,9 +484,9 @@ fn find_picture(
     } else if config.stop_on_error.unwrap_or(false) {
         // No picture found - act accordingly
         return Err(format!("Picture file {} does not exist.", p_filename).into());
-    } else {
-        Ok(None)
     }
+
+    Ok(None)
 }
 
 /// Convert a numerical ID3 genre to a string

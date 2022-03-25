@@ -25,11 +25,11 @@ use std::fs;
 ///
 /// **Example:**
 ///
-/// `process_flac("somefile.flac", &my_tags, &my_config)?;`
-pub fn process_flac(
+/// `flac::process("somefile.flac", &my_tags, &my_config)?;`
+pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
-    orig_config: &DefaultValues,
+    config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
     log::debug!("Filename: {}", filename);
@@ -41,7 +41,7 @@ pub fn process_flac(
         log::trace!("{:?}", block);
     }
 
-    let mut config = orig_config.clone();
+    let mut config = config.clone();
 
     // Read old tags
     if let Some(id3) = tags.vorbis_comments() {
@@ -78,11 +78,9 @@ pub fn process_flac(
     // Set new tags
     for (key, value) in new_tags {
         if !(config.detail_off.unwrap_or(false)) {
-            if config.dry_run.unwrap_or(false) {
-                log::info!("{} :: New {} = {}", &filename, key, value.trim());
-            } else {
-                log::debug!("{} :: New {} = {}", &filename, key, value);
-            }
+            log::debug!("{} :: New {} = {}", &filename, key, value);
+        } else if config.dry_run.unwrap_or(false) {
+            log::info!("{} :: New {} = {}", &filename, key, value.trim());
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -100,13 +98,12 @@ pub fn process_flac(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set front cover to {}. Continuing. Error message: {}",
-                                value,
-                                err
-                            );
                         }
+                        log::error!(
+                            "Unable to set front cover to {}. Continuing. Error message: {}",
+                            value,
+                            err
+                        );
                     }
                 } // match
             } // PICTUREFRONT
@@ -122,13 +119,12 @@ pub fn process_flac(
                                 value, err
                             )
                             .into());
-                        } else {
-                            log::error!(
-                                "Unable to set back cover to {}. Error message: {}",
-                                value,
-                                err
-                            );
                         }
+                        log::error!(
+                            "Unable to set back cover to {}. Error message: {}",
+                            value,
+                            err
+                        );
                     }
                 } // match
             } // PICTUREBACK
@@ -141,25 +137,19 @@ pub fn process_flac(
     if config.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
         processed_ok = true;
+    } else if tags.save().is_ok() {
+        processed_ok = true;
+        log::info!("{}   ✓", filename);
     } else {
-        match tags.save() {
-            Ok(_) => {
-                processed_ok = true;
-                log::info!("{}  ✓", filename);
-            }
-            Err(_) => {
-                if config.stop_on_error.unwrap_or(true) {
-                    return Err(format!("Unable to save {}", filename).into());
-                } else {
-                    log::warn!("Unable to save {}", filename);
-                }
-            }
+        if config.stop_on_error.unwrap_or(true) {
+            return Err(format!("Unable to save {}", filename).into());
         }
+        log::warn!("Unable to save {}", filename);
     }
 
     // Rename file
     if config.rename_file.is_some() {
-        rename_flac(filename, &config, &tags)?;
+        rename_file(filename, &config, &tags)?;
     }
 
     // Return safely
@@ -188,7 +178,7 @@ fn add_picture(
 }
 
 /// Renames a FLAC file based on the pattern provided
-fn rename_flac(
+fn rename_file(
     filename: &str,
     config: &DefaultValues,
     tags: &metaflac::Tag,
@@ -222,14 +212,13 @@ fn rename_flac(
                     filename, pattern, err
                 )
                 .into());
-            } else {
-                log::warn!(
-                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                    filename,
-                    pattern,
-                    err
-                );
             }
+            log::warn!(
+                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                filename,
+                pattern,
+                err
+            );
         }
     }
 

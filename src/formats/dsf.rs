@@ -2,13 +2,13 @@
 
 use crate::default_values::DefaultValues;
 use crate::rename_file;
-use crate::{formats::tags::*, shared::FileTypes};
+use crate::{formats::tags::option_to_tag, shared::FileTypes};
 use dsf::{self, DsfFile};
 use id3::TagLike;
 use std::{collections::HashMap, error::Error, path::Path};
 
 /// Performs the actual processing of DSF files.
-pub fn process_dsf(
+pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
@@ -17,7 +17,7 @@ pub fn process_dsf(
 
     let mut processed_ok = false;
 
-    if let Some(mut tag) = DsfFile::open(Path::new(&filename))?.id3_tag().to_owned() {
+    if let Some(mut tag) = DsfFile::open(Path::new(&filename))?.id3_tag().clone() {
         log::debug!("Tag: {:?}", tag);
         for frame in tag.frames() {
             log::debug!("{} = {}", frame.id(), frame.content());
@@ -26,15 +26,11 @@ pub fn process_dsf(
         // Print new tags
         for (key, value) in new_tags {
             // Output information about tags getting changed
-            if !(config.detail_off.unwrap_or(false)) {
-                // If this is a dry run, output each change
-                if config.dry_run.unwrap_or(false) {
-                    log::info!("{} :: New {} = {}", &filename, key, value);
-                } else {
-                    log::debug!("{} :: New {} = {}", &filename, key, value);
-                }
+            if config.detail_off.unwrap_or(false) {
+                log::debug!("{} :: New {} = {}", &filename, key, value);
+            } else if config.dry_run.unwrap_or(false) {
+                log::info!("{} :: New {} = {}", &filename, key, value);
             } else {
-                // If not dry run and detail
                 log::debug!("{} :: New {} = {}", &filename, key, value);
             }
 
@@ -46,102 +42,30 @@ pub fn process_dsf(
 
                 // Disc number
                 "TPOS" => {
-                    let num;
-                    match value.parse::<u32>() {
-                        Ok(n) => num = n,
-                        Err(err) => {
-                            if config.stop_on_error.unwrap_or(false) {
-                                return Err(format!(
-                                    "Unable to set disc number to {}. Error: {}",
-                                    value, err
-                                )
-                                .into());
-                            } else {
-                                log::error!(
-                                    "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
-                                    value,
-                                    err
-                                );
-                                num = 1
-                            }
-                        }
-                    }
+                    let num =
+                        get_number(value, "disc number", config.stop_on_error.unwrap_or(false))?;
                     tag.set_disc(num);
                 }
 
                 // Disc count
                 "TPOS-T" => {
-                    let num;
-                    match value.parse::<u32>() {
-                        Ok(n) => num = n,
-                        Err(err) => {
-                            if config.stop_on_error.unwrap_or(false) {
-                                return Err(format!(
-                                    "Unable to set total discs to {}. Error: {}",
-                                    value, err
-                                )
-                                .into());
-                            } else {
-                                log::error!(
-                                    "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
-                                    value,
-                                    err
-                                );
-                                num = 1
-                            }
-                        }
-                    }
+                    let num =
+                        get_number(value, "total discs", config.stop_on_error.unwrap_or(false))?;
                     tag.set_total_discs(num);
                 }
 
                 // Track number
                 "TRCK" => {
-                    let num;
-                    match value.parse::<u32>() {
-                        Ok(n) => num = n,
-                        Err(err) => {
-                            if config.stop_on_error.unwrap_or(false) {
-                                return Err(format!(
-                                    "Unable to set track number to {}. Error: {}",
-                                    value, err
-                                )
-                                .into());
-                            } else {
-                                log::error!(
-                                    "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
-                                    value,
-                                    err
-                                );
-                                num = 1
-                            }
-                        }
-                    }
+                    let num =
+                        get_number(value, "track number", config.stop_on_error.unwrap_or(false))?;
                     tag.set_track(num);
                 }
 
                 // Track count
                 "TRCK-T" => {
-                    let num;
-                    match value.parse::<u32>() {
-                        Ok(n) => num = n,
-                        Err(err) => {
-                            if config.stop_on_error.unwrap_or(false) {
-                                return Err(format!(
-                                    "Unable to set total tracks to {}. Error: {}",
-                                    value, err
-                                )
-                                .into());
-                            } else {
-                                log::error!(
-                                    "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
-                                    value,
-                                    err
-                                );
-                                num = 1
-                            }
-                        }
-                    }
-                    tag.set_total_tracks(num)
+                    let num =
+                        get_number(value, "total tracks", config.stop_on_error.unwrap_or(false))?;
+                    tag.set_total_tracks(num);
                 }
 
                 // Everything else
@@ -158,7 +82,7 @@ pub fn process_dsf(
 
         // Rename file
         if config.rename_file.is_some() {
-            if rename_dsf(filename, config, tag).is_ok() {
+            if rename_file(filename, config, &tag).is_ok() {
                 processed_ok = true;
             } else {
                 processed_ok = false;
@@ -170,7 +94,11 @@ pub fn process_dsf(
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_dsf(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(), Box<dyn Error>> {
+fn rename_file(
+    filename: &str,
+    config: &DefaultValues,
+    tag: &id3::Tag,
+) -> Result<(), Box<dyn Error>> {
     let tags_names = option_to_tag(FileTypes::Dsf);
     let mut replace_map = HashMap::new();
 
@@ -238,17 +166,51 @@ fn rename_dsf(filename: &str, config: &DefaultValues, tag: id3::Tag) -> Result<(
                     filename, pattern, err
                 )
                 .into());
-            } else {
-                log::warn!(
-                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                    filename,
-                    pattern,
-                    err
-                );
             }
+            log::warn!(
+                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                filename,
+                pattern,
+                err
+            );
         }
     }
 
     // Return safely
     Ok(())
+}
+
+/// Get get the item number based on a tag value (string).
+/// If the value is not a number, return an error.
+///
+/// # Arguments
+///
+/// * `value` - The value to convert to a number
+/// * `tag_name` - The name of the tag being processed
+/// * `stop_on_error` - Whether to stop processing on error
+///
+/// # Returns
+///     The number as an i32
+///
+/// # Errors
+///     If the value is not a number, return an error
+fn get_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dyn Error>> {
+    let num = match value.parse::<u32>() {
+        Ok(n) => n,
+        Err(err) => {
+            if stop_on_error {
+                return Err(format!("Unable to set {} to {}. Error: {}", item, value, err).into());
+            }
+            log::error!(
+                "Unable to set {} to {}. Setting to 1 and continuing. Error: {}",
+                item,
+                value,
+                err
+            );
+            1
+        }
+    };
+
+    // Return the value
+    Ok(num)
 }

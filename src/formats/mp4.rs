@@ -8,7 +8,7 @@ use std::error::Error;
 use std::fs;
 
 /// Performs the actual processing of MP4 files.
-pub fn process_mp4(
+pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
@@ -32,11 +32,9 @@ pub fn process_mp4(
     for (key, value) in new_tags {
         // Let the user know what we're processing
         if !(config.detail_off.unwrap_or(false)) {
-            if config.dry_run.unwrap_or(false) {
-                log::info!("{} :: New {} = {}", &filename, key, value);
-            } else {
-                log::debug!("{} :: New {} = {}", &filename, key, value);
-            }
+            log::debug!("{} :: New {} = {}", &filename, key, value);
+        } else if config.dry_run.unwrap_or(false) {
+            log::info!("{} :: New {} = {}", &filename, key, value);
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
         }
@@ -81,23 +79,21 @@ pub fn process_mp4(
                     return Err(
                         format!("Unable to save tags to {}. Error: {}", filename, err).into(),
                     );
-                } else {
-                    log::warn!("Unable to save tags to {}. Error: {}", filename, err);
                 }
+                log::warn!("Unable to save tags to {}. Error: {}", filename, err);
             }
         }
     }
 
     // Rename file
     if config.rename_file.is_some() {
-        match rename_mp4(filename, config, tag) {
+        match rename_file(filename, config, &tag) {
             Ok(_) => processed_ok = true,
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to rename {}. Error: {}", filename, err).into());
-                } else {
-                    log::warn!("Unable to rename {}. Error: {}", filename, err);
                 }
+                log::warn!("Unable to rename {}. Error: {}", filename, err);
             }
         }
     }
@@ -127,12 +123,12 @@ fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
 }
 
 /// Renames the MP4 file based on the pattern provided
-fn rename_mp4(
+fn rename_file(
     filename: &str,
     config: &DefaultValues,
-    tag: mp4ameta::Tag,
+    tag: &mp4ameta::Tag,
 ) -> Result<(), Box<dyn Error>> {
-    let tags_map = get_mp4_tags(&tag)?;
+    let tags_map = get_mp4_tags(tag)?;
     log::debug!("tags_map = {:?}", tags_map);
 
     let mut pattern = "".to_string();
@@ -150,14 +146,13 @@ fn rename_mp4(
                     filename, pattern, err
                 )
                 .into());
-            } else {
-                log::warn!(
-                    "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                    filename,
-                    pattern,
-                    err
-                );
             }
+            log::warn!(
+                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
+                filename,
+                pattern,
+                err
+            );
         }
     }
 

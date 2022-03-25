@@ -21,6 +21,7 @@ use log4rs::{
 
 use crate::default_values::DefaultValues;
 
+//~ spec:startcode
 /// The types of files we can process
 #[derive(Debug, Copy, Clone)]
 pub enum FileTypes {
@@ -31,6 +32,7 @@ pub enum FileTypes {
     MP4,
     Unknown,
 }
+//~ spec:endcode
 
 impl fmt::Display for FileTypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -114,7 +116,7 @@ pub fn build_log(
     let path = Path::new(&shellexpand::tilde(&config_filename).to_string()).to_owned();
     if path.exists() {
         // Read the logger config from file
-        log4rs::init_file(path, Default::default())?;
+        log4rs::init_file(path, log4rs::config::Deserializers::default())?;
     } else {
         // If, for some reason, we can't find the logger config file, create a default logger profile
 
@@ -301,7 +303,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     // Get the list of (music) files in the directory
     let file_list = std::fs::read_dir(Path::new(dir))?
         .into_iter()
-        .map(|x| x.unwrap())
+        .map(std::result::Result::unwrap)
         .filter(|x| {
             x.path()
                 .extension()
@@ -317,16 +319,16 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     Ok(file_count)
 }
 
-/// Gets the microsecond part of the current duration since UNIX_EPOCH and modulate to a 4-digit number.
+/// Gets the microsecond part of the current duration since `UNIX_EPOCH` and modulate to a 4-digit number.
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
-pub fn get_unique_value() -> u16 {
-    (SystemTime::now()
+pub fn get_unique_value() -> u128 {
+    SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards. Presumably, you have bigger things to worry about.")
         .as_micros()
-        % 10_000_000) as u16
+        % 10_000_000
 }
 
 /// Pretty-prints integer values;
