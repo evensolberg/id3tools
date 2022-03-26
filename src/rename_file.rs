@@ -119,14 +119,13 @@ pub fn rename_file(
                         err
                     )
                     .into());
-                } else {
-                    log::warn!(
-                        "Unable to rename {} to {}. Error message: {}",
-                        filename,
-                        new_path.to_string_lossy(),
-                        err
-                    );
                 }
+                log::warn!(
+                    "Unable to rename {} to {}. Error message: {}",
+                    filename,
+                    new_path.to_string_lossy(),
+                    err
+                );
             }
         }
     }

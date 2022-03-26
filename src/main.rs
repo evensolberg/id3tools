@@ -5,6 +5,7 @@
 //!
 //! In the future this application will endeavour to support reading tags from CSV files,
 //! moving and renaming files based on tags, etc.
+#![warn(clippy::pedantic)]
 
 use std::error::Error;
 use std::time::Instant;
@@ -21,7 +22,7 @@ mod shared;
 
 use rayon::prelude::*;
 
-use crate::default_values::*;
+use crate::default_values::DefaultValues;
 use crate::shared::thousand_separated;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -31,14 +32,14 @@ fn run() -> Result<(), Box<dyn Error>> {
     let now = Instant::now();
 
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build_cli();
+    let cli_args = cli::build();
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
     log::debug!("config = {:?}", config);
 
     // Configure logging
-    let mut _logs = shared::build_log(&cli_args, &config)?;
+    shared::build_log(&cli_args, &config)?;
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
@@ -71,12 +72,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let res_vec: Vec<bool> = if config.single_thread.unwrap_or(true) {
         filenames
             .iter()
-            .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
+            .map(|&filename| process_file(filename, &cli_args, &config))
             .collect()
     } else {
         filenames
             .par_iter()
-            .map(|&filename| process_file(filename, &cli_args, &config).unwrap_or(false))
+            .map(|&filename| process_file(filename, &cli_args, &config))
             .collect()
     };
 
@@ -134,28 +135,13 @@ fn process_file(
     filename: &str,
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
-    let file_type;
-
-    match shared::get_extension(filename).as_ref() {
-        "ape" => file_type = formats::FileTypes::Ape,
-        "flac" => file_type = formats::FileTypes::Flac, // process flac
-        "mp3" => file_type = formats::FileTypes::MP3,
-        "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => file_type = formats::FileTypes::MP4,
-        _ => {
-            if config.stop_on_error.unwrap_or(true) {
-                return Err("Unknown file type. Unable to proceed.".into());
-            } else {
-                log::debug!("Unknown file type. Skipping.");
-                file_type = formats::FileTypes::Unknown;
-            }
-        } // Unknown
-    }
+) -> bool {
+    let file_type = shared::get_filetype(filename);
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 
     log::debug!("process_file result = {}", res);
 
     // return safely
-    Ok(res)
+    res
 }

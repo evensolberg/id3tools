@@ -2,7 +2,7 @@
 use clap::{Arg, ArgMatches, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build_cli() -> ArgMatches {
+pub fn build() -> ArgMatches {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";

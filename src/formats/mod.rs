@@ -8,22 +8,16 @@ use std::{
     path::{Component, Path},
 };
 
-use crate::{default_values::DefaultValues, shared};
+use crate::{
+    default_values::DefaultValues,
+    shared::{self, FileTypes},
+};
 mod ape;
+mod dsf;
 mod flac;
 mod mp3;
 mod mp4;
 mod tags;
-
-/// The types of files we can process
-#[derive(Debug, Copy, Clone)]
-pub enum FileTypes {
-    Ape,
-    Flac,
-    MP3,
-    MP4,
-    Unknown,
-}
 
 /// Performs the actual file processing
 ///
@@ -45,13 +39,7 @@ pub fn process_file(
     config: &DefaultValues,
     cli_args: &clap::ArgMatches,
 ) -> Result<bool, Box<dyn Error>> {
-    match file_type {
-        FileTypes::Ape => log::debug!("Processing APE."),
-        FileTypes::Flac => log::debug!("Processing FLAC."),
-        FileTypes::MP3 => log::debug!("Processing MP3."),
-        FileTypes::MP4 => log::debug!("Processing MP4."),
-        FileTypes::Unknown => return Err(format!("Unknown file type: {}", filename).into()),
-    }
+    log::debug!("Processing {}", file_type);
 
     let new_tags_result = parse_options(filename, file_type, config, cli_args);
     log::debug!("new_tags_result: {:?}", new_tags_result);
@@ -64,12 +52,13 @@ pub fn process_file(
 
             log::debug!("Processing file {}", filename);
             let proc_res = match file_type {
-                FileTypes::Ape => ape::process_ape(filename, &new_tags, config),
-                FileTypes::Flac => flac::process_flac(filename, &new_tags, config),
-                FileTypes::MP3 => mp3::process_mp3(filename, &new_tags, config),
-                FileTypes::MP4 => mp4::process_mp4(filename, &new_tags, config),
+                FileTypes::Ape => ape::process(filename, &new_tags, config),
+                FileTypes::Dsf => dsf::process(filename, &new_tags, config),
+                FileTypes::Flac => flac::process(filename, &new_tags, config),
+                FileTypes::MP3 => mp3::process(filename, &new_tags, config),
+                FileTypes::MP4 => mp4::process(filename, &new_tags, config),
                 FileTypes::Unknown => {
-                    return Err("We should never get here. That's a problem.".into())
+                    return Err("We should never get here. This is a problem.".into())
                 }
             };
 
@@ -80,9 +69,8 @@ pub fn process_file(
                         return Err(
                             format!("Unable to process {}. Error: {}", filename, err).into()
                         );
-                    } else {
-                        log::error!("Unable to process {}. Error: {}", filename, err);
                     }
+                    log::error!("Unable to process {}. Error: {}", filename, err);
                 }
             } // match flag::process_flac
         } // Ok(_)
@@ -91,9 +79,8 @@ pub fn process_file(
                 return Err(
                     format!("Unable to parse tags for {}. Error: {}", filename, err).into(),
                 );
-            } else {
-                log::error!("Unable to parse tags for {}. Error: {}", filename, err);
             }
+            log::error!("Unable to parse tags for {}. Error: {}", filename, err);
         } // Err(err)
     } // match new_tags_result
 
@@ -101,11 +88,11 @@ pub fn process_file(
     Ok(processed)
 }
 
-/// Collect the various options/tags submitted into a HashMap for later use.
+/// Collect the various options/tags submitted into a `HashMap` for later use.
 /// Also checks the default values loaded from a config file.
 fn parse_options(
     filename: &str,
-    file_type: FileTypes,
+    file_type: shared::FileTypes,
     defaults: &DefaultValues,
     args: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
@@ -117,7 +104,7 @@ fn parse_options(
 
     // TODO: Refactor to check for -c and use, and then for parameter and overwrite.
 
-    // ALBUM & TRACK ARITST //
+    // ALBUM & TRACK ARTIST //
 
     if args.is_present("track-album-artist") {
         let taa = args
@@ -497,9 +484,9 @@ fn find_picture(
     } else if config.stop_on_error.unwrap_or(false) {
         // No picture found - act accordingly
         return Err(format!("Picture file {} does not exist.", p_filename).into());
-    } else {
-        Ok(None)
     }
+
+    Ok(None)
 }
 
 /// Convert a numerical ID3 genre to a string
