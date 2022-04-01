@@ -1,8 +1,8 @@
 //! Contains a single function to build the CLI
-use clap::{Arg, ArgMatches, Command};
+use clap::{Arg, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build() -> ArgMatches {
+pub fn build() -> Command<'static> {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";
@@ -85,6 +85,18 @@ pub fn build() -> ArgMatches {
                 .require_equals(false)
                 .default_missing_value("~/.config/id3tag/logs.yaml")
                 .display_order(2)
+        )
+        .arg( // export fig config
+            Arg::new("export-fig-config")
+                .short('f')
+                .long("fig-config")
+                .help("Export fig config file. Cannot be used with any other option.")
+                .takes_value(true)
+                .multiple_occurrences(false)
+                .require_equals(false)
+                .default_missing_value("~/id3tag.fig")
+                .display_order(3)
+                .exclusive(true)
         )
         //////////////////////////////////////////////
         // Options
@@ -361,7 +373,6 @@ pub fn build() -> ArgMatches {
                 .hide(false).help_heading(operations_name)
                 .display_order(1)
         )
-        .get_matches()
 }
 
 /// Checks that the specified genre number is in the valid range (0..=191)

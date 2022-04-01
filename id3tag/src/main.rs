@@ -32,7 +32,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let now = Instant::now();
 
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build();
+    let cli_args = cli::build().get_matches();
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
