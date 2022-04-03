@@ -1,7 +1,6 @@
 use std::{error::Error, time::Instant};
 
 // Logging
-use common;
 mod build_cli;
 use build_cli::build_cli;
 
@@ -24,7 +23,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let logging_config_filename = cli_args
         .value_of("log-config-file")
         .unwrap_or("~/.config/id3tag/id3show-logs.yaml");
-    common::build_log(&logging_config_filename)?;
+    common::build_log(logging_config_filename)?;
 
     // Initialize counters for total files, skipped and processed.
     let mut files_processed = 0;
@@ -43,12 +42,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     for filename in filenames {
         log::info!("{}", filename);
-        let proc_res = match common::get_file_type(&filename) {
-            common::FileTypes::Ape => ape::show_metadata(&filename, show_detail),
-            common::FileTypes::Dsf => dsf::show_metadata(&filename, show_detail),
-            common::FileTypes::Flac => flac::show_metadata(&filename, show_detail),
-            common::FileTypes::MP3 => mp3::show_metadata(&filename, show_detail),
-            common::FileTypes::MP4 => mp4::show_metadata(&filename, show_detail),
+        let proc_res = match common::get_file_type(filename) {
+            common::FileTypes::Ape => ape::show_metadata(filename, show_detail),
+            common::FileTypes::Dsf => dsf::show_metadata(filename, show_detail),
+            common::FileTypes::Flac => flac::show_metadata(filename, show_detail),
+            common::FileTypes::MP3 => mp3::show_metadata(filename, show_detail),
+            common::FileTypes::MP4 => mp4::show_metadata(filename, show_detail),
             common::FileTypes::Unknown => {
                 log::info!("  Unknown file type. Skipping.");
                 Ok(())
@@ -85,7 +84,7 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", err.to_string().replace("\"", ""));
+            log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem
         }
     });

@@ -1,5 +1,3 @@
-use common;
-
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     println!("Genereting Fig completions for id3tag - id3tag.js");
@@ -26,7 +24,7 @@ fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", err.to_string().replace("\"", ""));
+            log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem
         }
     });
