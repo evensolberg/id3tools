@@ -4,7 +4,6 @@ use crate::default_values::DefaultValues;
 use crate::formats::tags;
 use crate::formats::FileTypes;
 use crate::rename_file;
-use crate::shared;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
@@ -51,8 +50,8 @@ pub fn process(
                 log::debug!("Old {} = {}", key, value.trim());
 
                 // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
-                if key == "TRACKNUMBER" && shared::need_split(value) {
-                    let track_split = shared::split_val(value.trim())?;
+                if key == "TRACKNUMBER" && common::need_split(value) {
+                    let track_split = common::split_val(value.trim())?;
                     log::debug!("track_split = {:?}", track_split);
                     if track_split.0 != 0 {
                         config.track_number = Some(track_split.0);
@@ -61,8 +60,8 @@ pub fn process(
                         config.track_total = Some(track_split.1);
                     }
                 } // TRACKNUMBERid3t --help
-                if key == "DISCNUMBER" && shared::need_split(value) {
-                    let disc_split = shared::split_val(value.trim())?;
+                if key == "DISCNUMBER" && common::need_split(value) {
+                    let disc_split = common::split_val(value.trim())?;
                     log::debug!("disc_split = {:?}", disc_split);
                     if disc_split.0 != 0 {
                         config.disc_number = Some(disc_split.0);
@@ -166,7 +165,7 @@ fn add_picture(
     tags.remove_picture_type(cover_type);
 
     // Read the file and check the mime type
-    let mime_fmt = shared::get_mime_type(value)?;
+    let mime_fmt = common::get_mime_type(value)?;
     log::debug!("MIME type: {}", mime_fmt);
     log::debug!("Reading image file {}", value);
     let data = fs::read(value)?;

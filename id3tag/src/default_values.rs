@@ -171,7 +171,7 @@ impl DefaultValues {
     fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
         // Check if anything came from the config file and validate it
         if let Some(rnp) = &self.rename_file {
-            crate::shared::file_rename_pattern_validate(rnp)?;
+            common::file_rename_pattern_validate(rnp)?;
         }
 
         // Even if we have something from the config file, CLI takes presedence

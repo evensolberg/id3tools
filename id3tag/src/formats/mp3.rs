@@ -1,7 +1,7 @@
 //! Contains the functionality to process MP3 files.
 use crate::formats::tags::option_to_tag;
-use crate::shared::{self, FileTypes};
 use crate::{default_values::DefaultValues, rename_file};
+use common::FileTypes;
 use id3::frame::{self, ExtendedText};
 use id3::TagLike;
 use id3::{frame::PictureType, Tag, Version};
@@ -72,19 +72,7 @@ pub fn process(
             },
 
             // Comment
-            "COMM" => match set_comment(&mut tag, value.trim()) {
-                Ok(_) => (),
-                Err(err) => {
-                    if config.stop_on_error.unwrap_or(false) {
-                        return Err(format!(
-                            "Unable to set comment for {}. Error: {}",
-                            filename, err
-                        )
-                        .into());
-                    }
-                    log::error!("Unable to set comment for {}. Error: {}", filename, err);
-                }
-            },
+            "COMM" => set_comment(&mut tag, value.trim()),
 
             // Disc number
             "TPOS" => {
@@ -222,7 +210,7 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
-    let mime_type = shared::get_mime_type(value)?;
+    let mime_type = common::get_mime_type(value)?;
     log::debug!("Image format: {}", mime_type);
 
     log::debug!("Reading image file {}", value);
@@ -241,7 +229,7 @@ fn add_picture(
 }
 
 /// Sets the comments field
-fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
+fn set_comment(tags: &mut id3::Tag, value: &str) {
     log::debug!("Removing {} existing comment(s):", tags.comments().count());
     for comment in tags.comments() {
         log::debug!(
@@ -257,8 +245,6 @@ fn set_comment(tags: &mut id3::Tag, value: &str) -> Result<(), Box<dyn Error>> {
         description: "Comment".to_string(),
         value: value.to_string(),
     });
-    // return safely
-    Ok(())
 }
 
 /// Renames an MP3 file based on the pattern provided

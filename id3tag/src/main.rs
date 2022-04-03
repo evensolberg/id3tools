@@ -14,16 +14,14 @@ use std::time::Instant;
 // use log::LevelFilter;
 
 // Local modules
-mod cli;
 mod default_values;
 mod formats;
 mod rename_file;
-mod shared;
 
+use common::thousand_separated;
 use rayon::prelude::*;
 
 use crate::default_values::DefaultValues;
-use crate::shared::thousand_separated;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -32,14 +30,15 @@ fn run() -> Result<(), Box<dyn Error>> {
     let now = Instant::now();
 
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = cli::build().get_matches();
+    let cli_args = common::build_cli(env!("CARGO_PKG_VERSION")).get_matches();
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
     log::debug!("config = {:?}", config);
 
     // Configure logging
-    shared::build_log(&cli_args, &config)?;
+    let logging_config_filename = get_logging_config_filename(&cli_args, &config);
+    common::build_log(&logging_config_filename)?;
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
@@ -136,7 +135,7 @@ fn process_file(
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
 ) -> bool {
-    let file_type = shared::get_filetype(filename);
+    let file_type = common::get_file_type(filename);
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 
@@ -144,4 +143,26 @@ fn process_file(
 
     // return safely
     res
+}
+
+fn get_logging_config_filename(
+    cli_args: &clap::ArgMatches,
+    config: &default_values::DefaultValues,
+) -> String {
+    let default = "~/.config/id3tag/logs.yaml".to_string();
+    let mut config_filename = default.clone();
+
+    if config.log_config_file.is_some() {
+        config_filename = config.log_config_file.as_ref().unwrap_or(&default).clone();
+    }
+
+    if cli_args.is_present("log-config-file") {
+        config_filename = cli_args
+            .value_of("log-config-file")
+            .unwrap_or(&default)
+            .to_string();
+    }
+
+    // return the config filename
+    config_filename
 }

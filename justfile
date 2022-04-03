@@ -69,6 +69,11 @@ alias update := upgrade
     cargo lbuild --release  --color 'always'
     cargo strip
     -cp {{invocation_directory()}}/target/release/id3tag /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/id3show /usr/local/bin/
+    -{{invocation_directory()}}/target/release/id3cli-gen
+    echo "Moving Fig and man files."
+    -mv {{invocation_directory()}}/id3tag.1 /usr/local/share/man/man1/
+    -mv {{invocation_directory()}}/id3tag.js ~/.fig/autocomplete/
     cargo clean
 
 # Documents the project, builds and installs the release version, and cleans up
@@ -76,6 +81,7 @@ alias update := upgrade
     cargo lbuild --release  --color 'always' --target aarch64-apple-darwin
     cargo strip --target aarch64-apple-darwin
     cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3tag /usr/local/bin/
+    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3show /usr/local/bin/
     cargo clean
 
 # Build the documentation

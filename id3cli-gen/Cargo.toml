@@ -1,0 +1,14 @@
+[package]
+name = "id3cli-gen"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Our own package
+common = { path = "../common" }
+clap_complete = "3.1.1"
+clap_complete_fig = "3.1.4"
+clap_mangen = "0.1.2"
+log = "0.4.16"

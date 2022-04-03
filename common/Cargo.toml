@@ -1,0 +1,20 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+authors = ["Even Solberg <even.solberg@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+description = "Shared utility functions and structures for the id3tools"
+homepage = "https://github.com/evensolberg/id3tools/common/"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.1.0", features = ["cargo", "color"] }
+log = "0.4.14"
+log4rs = { version = "1.0.0", features = ["console_appender", "file_appender", "threshold_filter"] }
+shellexpand = "2.1.0"
+
+[dev-dependencies]
+assay = "0.1.0"

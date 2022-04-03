@@ -1,4 +1,5 @@
 //! Contains the functionality to process APE files.
+//! KEY: https://wiki.hydrogenaud.io/index.php?title=APE_key
 
 use crate::default_values::DefaultValues;
 // use crate shared; // for add_pictures

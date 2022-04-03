@@ -1,8 +1,9 @@
 //! Contains the functionality to process DSF files. Currently only rename is supported.
 
 use crate::default_values::DefaultValues;
+use crate::formats::tags::option_to_tag;
 use crate::rename_file;
-use crate::{formats::tags::option_to_tag, shared::FileTypes};
+use common::FileTypes;
 use dsf::{self, DsfFile};
 use id3::TagLike;
 use std::{collections::HashMap, error::Error, path::Path};

@@ -8,10 +8,9 @@ use std::{
     path::{Component, Path},
 };
 
-use crate::{
-    default_values::DefaultValues,
-    shared::{self, FileTypes},
-};
+use crate::default_values::DefaultValues;
+use common::FileTypes;
+
 mod ape;
 mod dsf;
 mod flac;
@@ -92,7 +91,7 @@ pub fn process_file(
 /// Also checks the default values loaded from a config file.
 fn parse_options(
     filename: &str,
-    file_type: shared::FileTypes,
+    file_type: common::FileTypes,
     defaults: &DefaultValues,
     args: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
@@ -279,7 +278,7 @@ fn parse_options(
     if args.is_present("track-count")
         || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
     {
-        let file_count = shared::count_files(filename)?;
+        let file_count = common::count_files(filename)?;
         log::debug!("file_count = {}", file_count);
         new_tags.insert(tag_names.track_number_total, file_count);
     }
@@ -760,7 +759,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
         // Check for roman numerals
         if dn == 0 {
-            dn = shared::roman_to_decimal(&parent_dir);
+            dn = common::roman_to_decimal(&parent_dir);
 
             // If roman --> decimal didn't work either, just go with 1.
             if dn == 0 {

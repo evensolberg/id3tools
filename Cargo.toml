@@ -1,7 +1,10 @@
 [workspace]
 
 members = [
+    "id3cli-gen",
+    "id3show",
     "id3tag",
+    "common",
 ]
 
 [profile.release]

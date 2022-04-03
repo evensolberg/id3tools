@@ -1,6 +1,6 @@
 //! Contains the scaffoldig for processing tags in a generic way
 
-use crate::shared::FileTypes;
+use common::FileTypes;
 use std::collections::HashMap;
 
 /// Used to store the various tag names based on the file type.
@@ -31,6 +31,28 @@ pub struct TagNames {
 /// Gets the tag names based on the file type
 pub fn get_tag_names(file_type: FileTypes) -> TagNames {
     match file_type {
+        // May need to revisit this, so keeping it for now.
+        // FileTypes::Ape => TagNames {
+        //     album_artist: "Artist".to_string(),
+        //     album_artist_sort: "ArtistSort".to_string(),
+        //     album_title: "Album".to_string(),
+        //     album_title_sort: "AlbumSort".to_string(),
+        //     disc_number: "Media".to_string(),
+        //     disc_number_total: "MediaTotal".to_string(),
+        //     track_artist: "Artist".to_string(),
+        //     track_artist_sort: "ArtistSort".to_string(),
+        //     track_title: "Title".to_string(),
+        //     track_title_sort: "TitleSort".to_string(),
+        //     track_number: "Track".to_string(),
+        //     track_number_total: "TrackTotal".to_string(),
+        //     track_genre: "Genre".to_string(),
+        //     track_composer: "Composer".to_string(),
+        //     track_composer_sort: "ComposerSort".to_string(),
+        //     track_date: "Year".to_string(),
+        //     track_comments: "Comment".to_string(),
+        //     picture_front: "PICTUREFRONT".to_string(),
+        //     picture_back: "PICTUREBACK".to_string(),
+        // },
         FileTypes::Ape | FileTypes::Flac => TagNames {
             album_artist: "ALBUMARTIST".to_string(),
             album_artist_sort: "ALBUMARTISTSORT".to_string(),

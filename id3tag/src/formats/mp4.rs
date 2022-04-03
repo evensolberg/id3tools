@@ -1,7 +1,7 @@
 //! Contains the functionality to process MP4 files.
 //!
 use crate::default_values::DefaultValues;
-use crate::{rename_file, shared};
+use crate::rename_file;
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
 use std::error::Error;
@@ -105,7 +105,7 @@ pub fn process(
 /// Sets the front or back cover
 fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Checking image file type.");
-    let ext = shared::get_extension(value);
+    let ext = common::get_extension(value);
     let fmt = match ext.as_ref() {
         "jpg" | "jpeg" => ImgFmt::Jpeg,
         "png" => ImgFmt::Png,
@@ -128,7 +128,7 @@ fn rename_file(
     config: &DefaultValues,
     tag: &mp4ameta::Tag,
 ) -> Result<(), Box<dyn Error>> {
-    let tags_map = get_mp4_tags(tag)?;
+    let tags_map = get_mp4_tags(tag);
     log::debug!("tags_map = {:?}", tags_map);
 
     let mut pattern = "".to_string();
@@ -161,7 +161,7 @@ fn rename_file(
 }
 
 /// Reads the existing values from the MP4 tags "the hard way"
-fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn Error>> {
+fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     let mut res = HashMap::<String, String>::new();
 
     let mut data = tags.album_artist().unwrap_or("").to_string();
@@ -261,5 +261,5 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> Result<HashMap<String, String>, Box<dyn
     res.insert("%td".to_string(), data);
 
     // Return safely
-    Ok(res)
+    res
 }

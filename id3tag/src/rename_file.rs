@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error, path::Path};
 
-use crate::{default_values::DefaultValues, shared::get_extension};
+use crate::default_values::DefaultValues;
 
 /// Renames the file provided based on the pattern provided.
 ///
@@ -79,7 +79,7 @@ pub fn rename_file(
 
     // Create the new filename
     let mut new_path =
-        parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+        parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
     log::debug!("new_path = {:?}", new_path);
 
     // Return if the new filename is the same as the old
@@ -92,14 +92,15 @@ pub fn rename_file(
     // Check if a file with the new filename already exists - make the filename unique if it does.
     if Path::new(&new_path).exists() {
         // Set a unique value based on the current time.
-        let unique_val = crate::shared::get_unique_value();
+        let unique_val = common::get_unique_value();
 
         log::warn!(
             "{} already exists. Appending unique identifier.",
             new_filename
         );
         new_filename = format!("{} ({:0>4})", new_filename, unique_val);
-        new_path = parent.join(Path::new(&new_filename).with_extension(get_extension(filename)));
+        new_path =
+            parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
     }
 
     // Perform the actual rename and check the outcome

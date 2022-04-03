@@ -1,17 +1,18 @@
-//! Contains a single function to build the CLI
+//! Contains a single function to build the main CLI for the `id3tag` program.
+//! This is also used by the `id3cli-gen` program to generate the CLI completion tags for Fig, Bash, etc.
 use clap::{Arg, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered.
-pub fn build() -> Command<'static> {
+pub fn build_cli(version: &'static str) -> Command<'static> {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";
     let operations_name = "OPERATIONS";
-    Command::new(clap::crate_name!())
-        .about(clap::crate_description!())
-        .version(clap::crate_version!())
+    Command::new("id3tag")
+        .about("A simple application for updating metadata (ID3) information in music files.")
+        .version(version)
         .author(clap::crate_authors!("\n"))
-        .long_about(clap::crate_description!())
+        .long_about("A simple application for updating metadata (ID3) information in music files.")
         .override_usage("id3tag <FILE(S)> [OPTIONS] [TAGS]")
         .arg( // Files - the files to process
             Arg::new("files")
@@ -83,20 +84,8 @@ pub fn build() -> Command<'static> {
                 .takes_value(true)
                 .multiple_occurrences(false)
                 .require_equals(false)
-                .default_missing_value("~/.config/id3tag/logs.yaml")
+                .default_missing_value("~/.config/id3tag/id3tag-logs.yaml")
                 .display_order(2)
-        )
-        .arg( // export fig config
-            Arg::new("export-fig-config")
-                .short('f')
-                .long("fig-config")
-                .help("Export fig config file. Cannot be used with any other option.")
-                .takes_value(true)
-                .multiple_occurrences(false)
-                .require_equals(false)
-                .default_missing_value("~/id3tag.fig")
-                .display_order(3)
-                .exclusive(true)
         )
         //////////////////////////////////////////////
         // Options
