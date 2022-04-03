@@ -86,47 +86,34 @@ pub fn process(
 
         // Process the tags
         match key.as_ref() {
-            "PICTUREFRONT" => {
-                log::debug!("Setting front cover.");
-                match add_picture(&mut tags, value.trim(), CoverFront) {
-                    Ok(_) => log::trace!("Picture set."),
-                    Err(err) => {
-                        if config.stop_on_error.unwrap_or(true) {
-                            return Err(format!(
-                                "Unable to set front cover to {}. Error message: {}",
-                                value, err
-                            )
-                            .into());
-                        }
-                        log::error!(
-                            "Unable to set front cover to {}. Continuing. Error message: {}",
-                            value,
-                            err
-                        );
-                    }
-                } // match
-            } // PICTUREFRONT
+            // Pictures need special treatment
+            "PICTUREFRONT" | "PICTUREBACK" => {
+                let cover_type = if key == "PICTUREFRONT" {
+                    CoverFront
+                } else {
+                    CoverBack
+                };
+                log::debug!("Setting {:?}.", cover_type);
 
-            "PICTUREBACK" => {
-                log::debug!("Setting back cover.");
-                match add_picture(&mut tags, value.trim(), CoverBack) {
+                match add_picture(&mut tags, value.trim(), cover_type) {
                     Ok(_) => log::trace!("Picture set."),
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
-                                "Unable to set back cover to {}. Error message: {}",
-                                value, err
+                                "Unable to set {:?} to {}. Error message: {}",
+                                cover_type, value, err
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set back cover to {}. Error message: {}",
+                            "Unable to set {:?} to {}. Continuing. Error message: {}",
+                            cover_type,
                             value,
                             err
                         );
                     }
                 } // match
-            } // PICTUREBACK
+            }
 
             _ => tags.set_vorbis(key.clone(), vec![value.clone().trim()]),
         } // match key.as_ref()

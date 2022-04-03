@@ -490,6 +490,7 @@ fn find_picture(
 
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
+#[allow(clippy::too_many_lines)]
 fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
     if tagnumber > 191 {
         return Err("Incorrect value supplied. Must be 0-191.".into());
