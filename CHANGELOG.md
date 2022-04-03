@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- Create id3show application
+
 ### Miscellaneous Tasks
 
 - Changelog update
