@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Trackinfo not set correctly for FLAC
+
 ### Features
 
 - Create id3show application
