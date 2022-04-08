@@ -199,7 +199,14 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 
     // return safely with the number of files found
     log::debug!("file_list = {:?}", &file_list);
-    let file_count = format!("{:0>2}", file_list.count());
+    let count = file_list.count();
+    log::debug!("count = {}", count);
+
+    let file_count = if count < 100 {
+        format!("{:0>2}", count)
+    } else {
+        format!("{:0>3}", count)
+    };
     Ok(file_count)
 }
 

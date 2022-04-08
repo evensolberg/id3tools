@@ -27,7 +27,7 @@ use std::fs;
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
 pub fn process(
     filename: &str,
-    new_tags: &HashMap<String, String>,
+    new_tags: &mut HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
     let mut tags = Tag::read_from_path(&filename)?;
@@ -55,9 +55,11 @@ pub fn process(
                     log::debug!("track_split = {:?}", track_split);
                     if track_split.0 != 0 {
                         config.track_number = Some(track_split.0);
+                        new_tags.insert("TRACKNUMBER".to_string(), track_split.0.to_string());
                     }
                     if track_split.1 != 0 {
                         config.track_total = Some(track_split.1);
+                        new_tags.insert("TRACKTOTAL".to_string(), track_split.1.to_string());
                     }
                 } // TRACKNUMBERid3t --help
                 if key == "DISCNUMBER" && common::need_split(value) {
@@ -65,9 +67,11 @@ pub fn process(
                     log::debug!("disc_split = {:?}", disc_split);
                     if disc_split.0 != 0 {
                         config.disc_number = Some(disc_split.0);
+                        new_tags.insert("DISCNUMBER".to_string(), disc_split.0.to_string());
                     }
                     if disc_split.1 != 0 {
                         config.disc_total = Some(disc_split.1);
+                        new_tags.insert("DISCTOTAL".to_string(), disc_split.1.to_string());
                     }
                 } // DISCNUMBER
             } // for value in values
