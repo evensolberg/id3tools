@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Changelog update
 - Changelog Update
 - Clean up lint
+- Changelog update
 
 ### Refactor
 
