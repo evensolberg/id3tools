@@ -44,28 +44,28 @@ pub fn process(
                 // Disc number
                 "TPOS" => {
                     let num =
-                        get_number(value, "disc number", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "disc number", config.stop_on_error.unwrap_or(false))?;
                     tag.set_disc(num);
                 }
 
                 // Disc count
                 "TPOS-T" => {
                     let num =
-                        get_number(value, "total discs", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "total discs", config.stop_on_error.unwrap_or(false))?;
                     tag.set_total_discs(num);
                 }
 
                 // Track number
                 "TRCK" => {
                     let num =
-                        get_number(value, "track number", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "track number", config.stop_on_error.unwrap_or(false))?;
                     tag.set_track(num);
                 }
 
                 // Track count
                 "TRCK-T" => {
                     let num =
-                        get_number(value, "total tracks", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "total tracks", config.stop_on_error.unwrap_or(false))?;
                     tag.set_total_tracks(num);
                 }
 
@@ -195,7 +195,7 @@ fn rename_file(
 ///
 /// # Errors
 ///     If the value is not a number, return an error
-fn get_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dyn Error>> {
+fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dyn Error>> {
     let num = match value.parse::<u32>() {
         Ok(n) => n,
         Err(err) => {
