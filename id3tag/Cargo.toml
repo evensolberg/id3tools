@@ -13,23 +13,23 @@ keywords = ["flac", "audio", "parser", "metadata"]
 
 [dependencies]
 ape = "0.4.0"
-clap = { version = "3", features = ["cargo", "color"] }
+clap = { version = "3.1.12", features = ["cargo", "color"] }
 id3 = "1.0.2"
-log = "0.4.14"
+log = "0.4.16"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
-rayon = "1.5.1"
+rayon = "1.5.2"
 serde = { version = "1.0.136", features = ["derive"] }
 shellexpand = "2.1.0"
-toml = "0.5.8"
+toml = "0.5.9"
 dsf = { path = "../../_crates/dsf" }
 
 # Our own package
 common = { path = "../common" }
 
 [dev-dependencies]
-assay = "0.1.0"
+assay = "0.1.1"
 
 [build-dependencies]
-toml = "0.5.8"
+toml = "0.5.9"
 serde = { version = "1.0.136", features = ["derive"] }

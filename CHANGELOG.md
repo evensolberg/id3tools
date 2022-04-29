@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Cleaned up pedantic lints
 - Move id3tag to a sub-project
 - Reduce FLAC processing fn size
+- Function rename for clarity
 
 ## [0.11.1] - 2022-03-20
 
