@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 # Our own package
 common = { path = "../common" }
-clap_complete = "3.1.2"
+clap_complete = "3.1.4"
 clap_complete_fig = "3.1.5"
 clap_mangen = "0.1.6"
-log = "0.4.16"
+log = "0.4.17"

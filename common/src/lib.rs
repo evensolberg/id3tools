@@ -1,5 +1,7 @@
 //! Contains shared code for the id3tools family of programs and is not intended to be used directly.
 
+#![forbid(unsafe_code)]
+
 mod file_types;
 mod log;
 mod main_cli;

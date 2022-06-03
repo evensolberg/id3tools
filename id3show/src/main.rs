@@ -42,7 +42,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     for filename in filenames {
         log::info!("{}", filename);
-        let proc_res = match common::get_file_type(filename) {
+        let proc_res = match common::get_file_type(filename)? {
             common::FileTypes::Ape => ape::show_metadata(filename, show_detail),
             common::FileTypes::Dsf => dsf::show_metadata(filename, show_detail),
             common::FileTypes::Flac => flac::show_metadata(filename, show_detail),

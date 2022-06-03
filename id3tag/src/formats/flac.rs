@@ -149,19 +149,21 @@ pub fn process(
 /// Set the front or back cover (for now)
 fn add_picture(
     tags: &mut metaflac::Tag,
-    value: &str,
+    filename: &str,
     cover_type: metaflac::block::PictureType,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_type(cover_type);
 
     // Read the file and check the mime type
-    let mime_fmt = common::get_mime_type(value)?;
+    let mime_fmt = common::get_mime_type(filename)?;
     log::debug!("MIME type: {}", mime_fmt);
-    log::debug!("Reading image file {}", value);
-    let data = fs::read(value)?;
+
+    log::debug!("Reading image file {}", filename);
+    let image_data = fs::read(filename)?;
+
     log::debug!("Attempting to set picture.");
-    tags.add_picture(mime_fmt, cover_type, data);
+    tags.add_picture(mime_fmt, cover_type, image_data);
 
     // Return safely
     Ok(())

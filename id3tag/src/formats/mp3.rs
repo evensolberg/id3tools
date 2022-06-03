@@ -196,12 +196,12 @@ pub fn process(
 /// Adds front or back covers
 fn add_picture(
     tags: &mut Tag,
-    value: &str,
+    filename: &str,
     picture_type: PictureType,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
-    log::debug!("Reading image file {}", value);
+    log::debug!("Reading image file {}", filename);
 
     let description = if picture_type == PictureType::CoverFront {
         "Front Cover".to_string()
@@ -210,18 +210,18 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
-    let mime_type = common::get_mime_type(value)?;
+    let mime_type = common::get_mime_type(filename)?;
     log::debug!("Image format: {}", mime_type);
 
-    log::debug!("Reading image file {}", value);
-    let data = fs::read(&value)?;
+    log::debug!("Reading image file {}", filename);
+    let image_data = fs::read(&filename)?;
 
-    log::debug!("Setting picture to {}", value);
+    log::debug!("Setting picture to {}", filename);
     tags.add_frame(frame::Picture {
         mime_type,
         picture_type,
         description,
-        data,
+        data: image_data,
     });
 
     // Return safely

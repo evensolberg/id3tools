@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Clean up lint
 - Changelog update
 - Update Changelog
+- Dependencies update
 
 ### Refactor
 

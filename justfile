@@ -33,7 +33,6 @@ alias update := upgrade
 # Compile a release version of the project without moving the binaries
 @buildr: format changelog
     cargo lbuild --release --color 'always'
-    cargo strip
 
 # Compile a release version of the project for Apple ARM64 without moving the binaries
 @buildra: format changelog
@@ -67,7 +66,6 @@ alias update := upgrade
 # Documents the project, lints it, builds and installs the release version, and cleans up
 @release: format changelog
     cargo lbuild --release  --color 'always'
-    cargo strip
     -cp {{invocation_directory()}}/target/release/id3tag /usr/local/bin/
     -cp {{invocation_directory()}}/target/release/id3show /usr/local/bin/
     -{{invocation_directory()}}/target/release/id3cli-gen

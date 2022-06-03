@@ -6,26 +6,25 @@ use std::path::Path;
 use std::time::UNIX_EPOCH;
 use std::{error::Error, time::SystemTime};
 
+use infer::MatcherType;
+
 use crate::file_types::FileTypes;
 
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
 pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
-    let ext = get_extension(filename);
-    let fmt_str = match ext.as_ref() {
-        "bmp" => "image/bmp",
-        "gif" => "image/gif",
-        "jpg" | "jpeg" => "image/jpeg",
-        "png" => "image/png",
-        "tif" | "tiff" => "image/tiff",
-        _ => {
-            return Err(
-                "Image format not supported. Must be one of BMP, GIF, JPEG, PNG or TIFF.".into(),
-            )
-        }
+    // Read the file and check the mime type
+    let file_type = if let Some(file_type) = infer::get_from_path(filename)? {
+        file_type
+    } else {
+        return Err("File type not supported".into());
     };
+    log::debug!("File type: {:?}", file_type);
+
+    let mime_fmt = file_type.mime_type();
+    log::debug!("MIME type: {}", mime_fmt);
 
     // Return safely
-    Ok(fmt_str.to_string())
+    Ok(mime_fmt.to_string())
 }
 
 /// Get the extension part of the filename and return it as a string
@@ -40,16 +39,46 @@ pub fn get_extension(filename: &str) -> String {
 }
 
 // Get the file type from the Extension
-pub fn get_file_type(filename: &str) -> FileTypes {
+pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     // return the file type
-    match get_extension(filename).as_ref() {
-        "ape" => FileTypes::Ape,
-        "dsf" => FileTypes::Dsf,
-        "flac" => FileTypes::Flac,
-        "mp3" => FileTypes::MP3,
-        "m4a" | "m4b" | "mp4" | "mp4a" | "mp4b" => FileTypes::MP4,
-        _ => FileTypes::Unknown,
+    let file_type = infer::get_from_path(filename)?;
+    log::debug!("File type = {:?}", file_type);
+    let file_type = if let Some(file_type) = file_type {
+        file_type
+    } else {
+        return Err("File type not supported".into());
+    };
+
+    let ft;
+
+    if file_type.matcher_type() == MatcherType::Audio
+        || file_type.matcher_type() == MatcherType::Video
+    {
+        log::debug!("File type is audio or video.");
+        ft = match file_type.mime_type() {
+            "audio/x-ape" => FileTypes::Ape,
+            "audio/x-dsf" => FileTypes::Dsf,
+            "audio/x-flac" => FileTypes::Flac,
+            "audio/mpeg" => FileTypes::MP3,
+            "audio/m4a" => FileTypes::MP4,
+            "video/mp4" => FileTypes::MP4,
+            _ => FileTypes::Unknown,
+        };
+        log::debug!("File type is {}", ft);
+    } else {
+        log::debug!("File type is not a recognized audio format. Trying MP4 variants.");
+        let mp4vec = vec!["mp4a", "mp4b"];
+        let ext = file_type.extension().to_lowercase();
+        log::debug!("Extension: {}", ext);
+        if mp4vec.contains(&ext.as_str()) {
+            ft = FileTypes::MP4;
+        } else {
+            return Err("File type not supported".into());
+        }
     }
+
+    // return safely
+    Ok(ft)
 }
 
 /// Checks that the new filename pattern results in a unique file
@@ -253,45 +282,45 @@ mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay]
+    #[assay(include = ["../music/01 Gavottes BWV 1012.mp3", "../music/01-13 Surf's Up.flac", "../music/01.ape", "../music/02 2. Prestissimo [Piano Sonata No.30].dsf", "../music/cover-small.jpg", "../music/glb.mp4", "../music/This Is The Story.m4a"])]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
-        assert!(get_mime_type("somefile.bmp").is_ok());
-        assert!(get_mime_type("somefile.gif").is_ok());
-        assert!(get_mime_type("somefile.jpg").is_ok());
-        assert!(get_mime_type("somefile.jpeg").is_ok());
-        assert!(get_mime_type("somefile.png").is_ok());
-        assert!(get_mime_type("somefile.tif").is_ok());
-        assert!(get_mime_type("somefile.tiff").is_ok());
+        assert!(get_mime_type("../music/01 Gavottes BWV 1012.mp3").is_ok());
+        assert!(get_mime_type("../music/01-13 Surf's Up.flac").is_ok());
+        assert!(get_mime_type("../music/01.ape").is_ok());
+        assert!(get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").is_ok());
+        assert!(get_mime_type("../music/cover-small.jpg").is_ok());
+        assert!(get_mime_type("../music/glb.mp4").is_ok());
+        assert!(get_mime_type("../music/This Is The Story.m4a").is_ok());
         assert!(get_mime_type("somefile.svg").is_err());
 
         assert_eq!(
-            get_mime_type("somefile.bmp").unwrap(),
-            "image/bmp".to_string()
+            get_mime_type("../music/01 Gavottes BWV 1012.mp3").unwrap(),
+            "audio/mpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("somefile.gif").unwrap(),
-            "image/gif".to_string()
+            get_mime_type("../music/01-13 Surf's Up.flac").unwrap(),
+            "audio/x-flac".to_string()
         );
         assert_eq!(
-            get_mime_type("somefile.jpg").unwrap(),
+            get_mime_type("../music/01.ape").unwrap(),
+            "audio/x-ape".to_string()
+        );
+        assert_eq!(
+            get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").unwrap(),
+            "audio/x-dsf".to_string()
+        );
+        assert_eq!(
+            get_mime_type("../music/cover-small.jpg").unwrap(),
             "image/jpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("somefile.jpeg").unwrap(),
-            "image/jpeg".to_string()
+            get_mime_type("../music/glb.mp4").unwrap(),
+            "video/mp4".to_string()
         );
         assert_eq!(
-            get_mime_type("somefile.png").unwrap(),
-            "image/png".to_string()
-        );
-        assert_eq!(
-            get_mime_type("somefile.tif").unwrap(),
-            "image/tiff".to_string()
-        );
-        assert_eq!(
-            get_mime_type("somefile.tiff").unwrap(),
-            "image/tiff".to_string()
+            get_mime_type("../music/This Is The Story.m4a").unwrap(),
+            "audio/m4a".to_string()
         );
     }
 

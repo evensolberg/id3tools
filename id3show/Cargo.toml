@@ -13,17 +13,14 @@ keywords = ["flac", "audio", "parser", "metadata", "display"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "3.1.12", features = ["cargo", "color"] }
+clap = { version = "3.1.18", features = ["cargo", "color"] }
 
 ape = "0.4.0"
-id3 = "1.0.2"
+id3 = "1.1.2"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
-dsf = { path = "../../_crates/dsf" }
-
-# serde = { version = "1.0.136", features = ["derive"] }
-# shellexpand = "2.1.0"
+dsf = "0.2.2"
 
 # Our own package
 common = { path = "../common" }
-log = "0.4.16"
+log = "0.4.17"

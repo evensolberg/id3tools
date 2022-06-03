@@ -135,7 +135,7 @@ fn process_file(
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
 ) -> bool {
-    let file_type = common::get_file_type(filename);
+    let file_type = common::get_file_type(filename).unwrap_or(common::FileTypes::Unknown);
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 

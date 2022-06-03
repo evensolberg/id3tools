@@ -1,7 +1,7 @@
 use mp4ameta::Tag;
 use std::error::Error;
 
-/// Show the MP4 metadata/
+/// Show the MP4 metadata
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
     let tag = Tag::read_from_path(&filename)?;
 
