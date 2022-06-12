@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Update Changelog
 - Dependencies update
 - Code cleanup
+- Changelog Update
 
 ### Refactor
 

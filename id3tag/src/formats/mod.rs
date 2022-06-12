@@ -1,6 +1,7 @@
 //! Various file format parsers. The different types of file formats (ie. APE, FLAC, MP3, MP4)
 //! all reside under this crate, so they don't have to be exposed to the main body of code.
 
+#![forbid(unsafe_code)]
 use std::{
     collections::HashMap,
     error::Error,
@@ -14,6 +15,7 @@ use common::FileTypes;
 mod ape;
 mod dsf;
 mod flac;
+mod images;
 mod mp3;
 mod mp4;
 mod tags;
@@ -44,6 +46,11 @@ pub fn process_file(
     log::debug!("new_tags_result: {:?}", new_tags_result);
     let mut new_tags;
     let mut processed = false;
+
+    // Check if we need to create one or more cover images.
+    images::process_images(&cli_args, &filename, config.dry_run.unwrap_or(true))?;
+
+    // Process the music files(s)
     match new_tags_result {
         Ok(res) => {
             new_tags = res;

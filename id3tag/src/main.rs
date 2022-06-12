@@ -6,6 +6,7 @@
 //! In the future this application will endeavour to support reading tags from CSV files,
 //! moving and renaming files based on tags, etc.
 #![warn(clippy::pedantic)]
+#![forbid(unsafe_code)]
 
 use std::error::Error;
 use std::time::Instant;

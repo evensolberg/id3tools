@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Trackinfo not set correctly for FLAC
+
 ### Features
 
 - Create id3show application
@@ -14,12 +18,18 @@ All notable changes to this project will be documented in this file.
 - Changelog update
 - Changelog Update
 - Clean up lint
+- Changelog update
+- Update Changelog
+- Dependencies update
+- Code cleanup
+- Changelog Update
 
 ### Refactor
 
 - Cleaned up pedantic lints
 - Move id3tag to a sub-project
 - Reduce FLAC processing fn size
+- Function rename for clarity
 
 ## [0.11.1] - 2022-03-20
 
