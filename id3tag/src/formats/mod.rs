@@ -15,7 +15,7 @@ use common::FileTypes;
 mod ape;
 mod dsf;
 mod flac;
-mod images;
+pub mod images;
 mod mp3;
 mod mp4;
 mod tags;
@@ -32,7 +32,7 @@ mod tags;
 ///
 /// Returns:
 ///
-/// - `Ok()` if everything goes well.
+/// - `Ok(bool)` if everything goes well. The boolean indicates whether the file was processed or not.
 /// - `Box<dyn Error>` if we run into problems
 pub fn process_file(
     file_type: FileTypes,
@@ -42,13 +42,15 @@ pub fn process_file(
 ) -> Result<bool, Box<dyn Error>> {
     log::debug!("Processing {}", file_type);
 
+    // Check if we need to create one or more cover images.
+    let (fcp, bcp) = images::process_images(&filename, &config)?;
+    log::debug!("fcp / bcp: {:?} / {:?}", fcp, bcp);
+
     let new_tags_result = parse_options(filename, file_type, config, cli_args);
+
     log::debug!("new_tags_result: {:?}", new_tags_result);
     let mut new_tags;
     let mut processed = false;
-
-    // Check if we need to create one or more cover images.
-    images::process_images(&cli_args, &filename, config.dry_run.unwrap_or(true))?;
 
     // Process the music files(s)
     match new_tags_result {
@@ -64,7 +66,9 @@ pub fn process_file(
                 FileTypes::MP3 => mp3::process(filename, &new_tags, config),
                 FileTypes::MP4 => mp4::process(filename, &new_tags, config),
                 FileTypes::Unknown => {
-                    return Err("We should never get here. This is a problem.".into())
+                    return Err(format!("{} is unknown file type.", filename)
+                        .to_string()
+                        .into())
                 }
             };
 
@@ -853,27 +857,15 @@ mod tests {
         assert!(get_genre_name(200).is_err());
     }
 
-    // #[test]
-    // fn test_get_disc_number() {
-    //     assert_eq!(
-    //         get_disc_number("Test/Part I/01 Veni, creator spiritus.flac").unwrap(),
-    //         1
-    //     );
-    //     assert_eq!(
-    //         get_disc_number("Test/Part II/01 Poco adagio.flac").unwrap(),
-    //         2
-    //     );
-    // }
+    #[assay(include = ["../testdata/sample.flac", "../testdata/sample.mp3"])]
+    fn test_get_disc_number() {
+        assert_eq!(get_disc_number("../testdata/sample.flac").unwrap(), 1);
+        assert_eq!(get_disc_number("../testdata/sample.mp3").unwrap(), 1);
+    }
 
-    // #[test]
-    // fn test_get_disc_count() {
-    //     assert_eq!(
-    //         get_disc_count("Test/Part I/01 Veni, creator spiritus.flac").unwrap(),
-    //         2
-    //     );
-    //     assert_eq!(
-    //         get_disc_count("Test/Part II/01 Poco adagio.flac").unwrap(),
-    //         2
-    //     );
-    // }
+    #[assay(include = ["../testdata/sample.flac", "../testdata/sample.mp3"])]
+    fn test_get_disc_count() {
+        assert_eq!(get_disc_count("../testdata/sample.flac").unwrap(), 1);
+        assert_eq!(get_disc_count("../testdata/sample.mp3").unwrap(), 1);
+    }
 }

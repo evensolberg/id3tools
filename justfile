@@ -224,3 +224,18 @@ alias update := upgrade
     -brew install PurpleBooth/repo/git-mit
     -brew install graphviz
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
+
+# Testing actions
+
+# Run the program with a bunch of parameters to test things
+@runit:
+    -rm id3tag.log
+    target/debug/id3tag \
+        --pfc folder.jpg --pfc Front.jpg \
+        --pbc Back.jpg --pbc Back-Cover.jpg \
+        --psf Artwork --psf "." --psf ".." \
+        --pms 300 \
+        --pf cover-small.jpg --pb back-small.jpg  \
+        -l id3tag/debug.yaml \
+        music/01-13\ Surf\'s\ Up.flac \
+        -r

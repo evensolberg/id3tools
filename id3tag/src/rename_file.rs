@@ -54,23 +54,31 @@ pub fn rename_file(
         let mut fixed_value = value.clone();
         fixed_value = fixed_value.trim().to_string();
 
-        for tag in &pad_tags {
-            if key == tag {
-                fixed_value = format!("{:0>2}", value.trim());
-            }
+        // for tag in &pad_tags {
+        //     if key == tag {
+        //         fixed_value = format!("{:0>2}", value.trim());
+        //     }
+        // }
+
+        if pad_tags.contains(&key.as_str()) {
+            fixed_value = format!("{:0>2}", value.trim());
         }
 
         // Do the actual filename replacement
+        if fixed_value.is_empty() {
+            log::warn!("Tag '{}' is empty.", key);
+            fixed_value = "unknown".to_string();
+        }
         new_filename = new_filename.replace(key, &fixed_value);
-
-        // Fix a few things we know will give us trouble later.
-        new_filename = new_filename.replace('/', "-");
-        new_filename = new_filename.replace(':', " -");
-        new_filename = new_filename.replace('.', "");
-
-        // Remove leading or trailing spaces
-        new_filename = new_filename.trim().to_string();
     }
+
+    // Fix a few things we know will give us trouble later.
+    new_filename = new_filename.replace('/', "-");
+    new_filename = new_filename.replace(':', " -");
+    new_filename = new_filename.replace('.', "");
+
+    // Remove leading or trailing spaces
+    new_filename = new_filename.trim().to_string();
 
     // Get the path in front of the filename (eg. "music/01.flac" returns "music/")
     let parent = Path::new(&filename)
@@ -134,4 +142,125 @@ pub fn rename_file(
     // return safely
     let result = new_path.to_string_lossy().into_owned();
     Ok(result)
+}
+
+/// Returns the filename provided with `-resize` appended to the file name stem.
+/// For example `somefile.jpg` would return `somefile-resize.jpg`.
+///
+/// # Parameters
+///
+/// - `filename: &str` -- the name of the file to be renamed
+///
+/// # Returns
+///
+/// - The new file name if successful
+/// - An error message if unsuccessful.
+///
+/// # Examples
+///
+/// ```
+/// assert_eq!(filename_resize("music/test.jpg")?, "music/test-resize.jpg");
+/// ```
+///
+pub fn filename_resize(src_fn: &str) -> Result<String, Box<dyn Error>> {
+    if src_fn.is_empty() {
+        return Err("No filename provided. Unable to continue.".into());
+    }
+
+    log::debug!("src_fn: {}", src_fn);
+    let path_dir = Path::new(src_fn)
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_str()
+        .unwrap();
+    let path_name = Path::new(src_fn).file_stem().unwrap().to_str().unwrap();
+    let path_ext = Path::new(src_fn).extension().unwrap().to_str().unwrap();
+
+    let new_name = if path_dir.is_empty() {
+        format!("{}-resize.{}", path_name, path_ext)
+    } else {
+        format!("{}/{}-resize.{}", path_dir, path_name, path_ext)
+    };
+    log::debug!("new_name: {}", new_name);
+
+    // return the new name
+    Ok(new_name)
+}
+
+/// Checks if the -resize version of the file exists and returns it if it does. Otherwise, returns the original file name.
+pub fn filename_resized(filename: &str) -> Result<String, Box<dyn Error>> {
+    let new_name = filename_resize(filename)?;
+    if Path::new(&new_name).exists() {
+        Ok(new_name)
+    } else {
+        Ok(filename.to_string())
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// Tests
+// --------------------------------------------------------------------------------------------------------------------
+
+#[cfg(test)]
+//
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay(include = ["../testdata/sample.flac"])]
+    fn test_rename_file() {
+        let mut config = DefaultValues::new();
+        config.rename_file = Some("%aa - %at".to_string());
+        config.dry_run = Some(true);
+
+        let mut tags = HashMap::new();
+        tags.insert("%aa".to_string(), "AlbumArtist".to_string());
+        tags.insert("%at".to_string(), "AlbumTitle".to_string());
+
+        assert_eq!(
+            rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
+            "../testdata/AlbumArtist - AlbumTitle.flac"
+        );
+    }
+
+    #[assay]
+    ///
+    fn test_filename_resize() {
+        assert_eq!(filename_resize("music/test.jpg")?, "music/test-resize.jpg");
+        assert_eq!(
+            filename_resize("cover-small.jpg")?,
+            "cover-small-resize.jpg"
+        );
+        assert_eq!(
+            filename_resize("/somewhere/there/is/music/test.file.jpg")?,
+            "/somewhere/there/is/music/test.file-resize.jpg"
+        );
+        assert_eq!(
+            filename_resize("/somewhere/there/is/music/cover-small.jpg")?,
+            "/somewhere/there/is/music/cover-small-resize.jpg"
+        );
+    }
+
+    #[assay(include = ["../testdata/DSOTM_Cover.jpeg", "../testdata/DSOTM_Back.jpeg"])]
+    fn test_filename_resized() {
+        // Create a resized version of the back cover of the DSOTM album.
+        let _ = crate::formats::images::create_cover(
+            "../testdata/DSOTM_Back.jpeg",
+            "../testdata/DSOTM_Back-resize.jpeg",
+            500,
+            false,
+        );
+
+        // The resized doesn't exist, so the original should be returned.
+        assert_eq!(
+            filename_resized("../testdata/DSOTM_Cover.jpeg").unwrap(),
+            "../testdata/DSOTM_Cover.jpeg"
+        );
+
+        // The resized does exist, so the resized should be returned.
+        assert_eq!(
+            filename_resized("../testdata/DSOTM_Back.jpeg").unwrap(),
+            "../testdata/DSOTM_Back-resize.jpeg"
+        );
+    }
 }

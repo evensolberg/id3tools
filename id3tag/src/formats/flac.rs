@@ -8,7 +8,8 @@ use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
+
+use crate::formats::images;
 
 /// Performs the actual processing of FLAC files.
 ///
@@ -156,11 +157,13 @@ fn add_picture(
     tags.remove_picture_type(cover_type);
 
     // Read the file and check the mime type
+    let filename_str = rename_file::filename_resized(filename)?;
+    let filename = filename_str.as_str();
     let mime_fmt = common::get_mime_type(filename)?;
     log::debug!("MIME type: {}", mime_fmt);
 
     log::debug!("Reading image file {}", filename);
-    let image_data = fs::read(filename)?;
+    let image_data = images::read_cover(filename, 0)?;
 
     log::debug!("Attempting to set picture.");
     tags.add_picture(mime_fmt, cover_type, image_data);

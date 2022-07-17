@@ -8,6 +8,7 @@ use std::io::Read;
 
 //~ spec:startcode
 /// The default values for the flags and options.
+/// TODO: Write Deserialize trait for this struct
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct DefaultValues {
     /// Flag: Do not output detail about each item processed.
@@ -99,20 +100,37 @@ pub struct DefaultValues {
     /// Default value for the album's back cover.
     pub picture_back: Option<String>,
 
+    /// A list of front cover candidates
+    pub picture_front_candidates: Option<Vec<String>>,
+
+    /// A list of back cover candidates
+    pub picture_back_candidates: Option<Vec<String>>,
+
+    /// A list of search folders for cover candidates
+    pub picture_search_folders: Option<Vec<String>>,
+
+    /// Picture max size (in pixels - height and width)
+    pub picture_max_size: Option<u32>,
+
     /// New filename pattern for rename
     pub rename_file: Option<String>,
 }
 //~ spec:endcode
 
 impl DefaultValues {
-    /// Initializes a new, empty set of `DefaultValues`. All values are set to `None`.
+    /// Initializes a new, empty set of `DefaultValues`. All values are set to `None` or empty vectors except the search folder which includes "." and "..".
     pub fn new() -> Self {
-        Self::default()
+        DefaultValues::default()
     }
 
     /// Builds a config based on CLI arguments
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = DefaultValues::new();
+
+        let mut psf_list: Vec<String> = Vec::new();
+        psf_list.push(".".to_string());
+        psf_list.push("..".to_string());
+        config.picture_search_folders = Some(psf_list);
 
         // Read the config file
         if cli_args.is_present("config-file") {
@@ -134,20 +152,28 @@ impl DefaultValues {
         config.check_for_detail_off(cli_args);
         config.check_for_dry_run(cli_args);
         config.check_for_single_thread(cli_args);
+        config.add_picture_search_folders(cli_args);
+        config.check_for_picture_max_size(cli_args);
+        config.check_for_picture_front(cli_args);
+        config.check_for_picture_back(cli_args);
+        config.check_for_picture_front_candidates(cli_args);
+        config.check_for_picture_back_candidates(cli_args);
         log::debug!("Working config: {:?}", &config);
 
         Ok(config)
     }
 
     /// Loads the config from the supplied TOML file.
-    fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
 
         let mut file = File::open(&filename)
             .map_err(|err| format!("Config file {} not found. Error: {}", filename, err))?;
 
         file.read_to_string(&mut config_toml)?;
-        let config = match toml::from_str(&config_toml) {
+        log::debug!("Config file contents: {}", &config_toml);
+
+        let mut config = match toml::from_str(&config_toml) {
             Ok(config) => config,
             Err(err) => {
                 log::warn!(
@@ -158,7 +184,18 @@ impl DefaultValues {
                 Self::new()
             }
         };
-        log::debug!("{:?}", config);
+
+        // Check if the picture_search_folders contain "." and "..". Add them if not.
+        let mut psf = config.picture_search_folders.clone().unwrap_or_default();
+        if !psf.contains(&'.'.to_string()) {
+            psf.push('.'.to_string());
+        }
+        if !psf.contains(&"..".to_string()) {
+            psf.push("..".to_string());
+        }
+        config.picture_search_folders = Some(psf);
+
+        log::debug!("Config: {:?}", config);
 
         Ok(config)
     } // pub fn load_config
@@ -232,47 +269,190 @@ impl DefaultValues {
             self.single_thread = Some(false);
         }
     }
+
+    /// Add any picture search folders from the CLI to the config.
+    /// Note that '.' and '..' are always added to the list.
+    fn add_picture_search_folders(&mut self, args: &clap::ArgMatches) {
+        let mut candidate_list: Vec<String> = Vec::new();
+        if let Some(folders) = args.values_of("picture-search-folder") {
+            for folder in folders {
+                candidate_list.push(folder.to_string());
+            }
+        }
+        self.picture_search_folders = Some(candidate_list);
+    }
+
+    /// Set the maximum picture size from the CLI to the config.
+    fn check_for_picture_max_size(&mut self, args: &clap::ArgMatches) {
+        if let Some(size) = args.value_of("picture-max-size") {
+            let pms: u32 = size.parse::<u32>().unwrap_or(0);
+            self.picture_max_size = Some(pms);
+            log::debug!("picture-max-size = {:?}", pms);
+        }
+    }
+
+    /// Check if the picture-front via the CLI, and add it to the config.
+    fn check_for_picture_front(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("picture-front") {
+            self.picture_front = Some(
+                args.value_of("picture-front")
+                    .unwrap_or_default()
+                    .to_string(),
+            );
+        }
+    }
+
+    /// Check if the picture-back via the CLI, and add it to the config.
+    fn check_for_picture_back(&mut self, args: &clap::ArgMatches) {
+        if args.is_present("picture-back") {
+            self.picture_back = Some(
+                args.value_of("picture-back")
+                    .unwrap_or_default()
+                    .to_string(),
+            );
+        }
+    }
+
+    /// Add the front cover candidates from the CLI to the config.
+    fn check_for_picture_front_candidates(&mut self, args: &clap::ArgMatches) {
+        let mut candidate_list: Vec<String> = Vec::new();
+        if let Some(candidates) = args.values_of("picture-front-candidate") {
+            for candidate in candidates {
+                candidate_list.push(candidate.to_string());
+            }
+        }
+        self.picture_front_candidates = Some(candidate_list);
+    }
+
+    /// Add the back cover candidates from the CLI to the config.
+    fn check_for_picture_back_candidates(&mut self, args: &clap::ArgMatches) {
+        let mut candidate_list: Vec<String> = Vec::new();
+        if let Some(candidates) = args.values_of("picture-back-candidate") {
+            for candidate in candidates {
+                candidate_list.push(candidate.to_string());
+            }
+        }
+        self.picture_back_candidates = Some(candidate_list);
+    }
 } // impl DefaultValues
+
+// --------------------------------------------------------------------------------------------------------------------
+// Tests
+// --------------------------------------------------------------------------------------------------------------------
 
 #[cfg(test)]
 ///
 mod tests {
     use super::*;
+    use assay::assay;
 
-    #[test]
+    #[assay]
     ///
-    fn test_default_values() {
+    fn test_new_default_values() {
         // Create a blank config
-        let mut def_val = DefaultValues::new();
+        let mut dfv = DefaultValues::new();
 
         // Check that some values are "None"
-        assert!(def_val.detail_off.is_none());
-        assert!(def_val.log_config_file.is_none());
-        assert!(def_val.album_artist.is_none());
-        assert!(def_val.track_count.is_none());
+        assert!(dfv.detail_off.is_none());
+        assert!(dfv.log_config_file.is_none());
+        assert!(dfv.album_artist.is_none());
+        assert!(dfv.track_count.is_none());
 
         // Assign a few values
-        def_val.disc_number = Some(1);
-        def_val.disc_count = Some(true);
+        dfv.disc_number = Some(1);
+        dfv.disc_count = Some(true);
 
         // Check that the values got assigned OK.
-        assert_eq!(def_val.disc_number.unwrap(), 1);
-        assert_eq!(def_val.disc_count.unwrap(), true);
+        assert_eq!(dfv.disc_number.unwrap(), 1);
+        assert_eq!(dfv.disc_count.unwrap(), true);
+    }
 
+    #[assay(include = ["../testdata/id3tag-config.toml"])]
+    fn test_load_config() {
         // Try to load a config file
-        let dfv2 = DefaultValues::load_config("id3tag-config.toml");
-        assert!(dfv2.is_ok());
+        let dfv = DefaultValues::load_config("../testdata/id3tag-config.toml");
+        println!("dfv = {:?}", dfv);
+        assert!(dfv.is_ok());
 
         // Make sure we can unwrap the loaded config file
-        let dfv2u = dfv2.unwrap();
-        assert_eq!(dfv2u.detail_off.unwrap(), false);
-        assert_eq!(dfv2u.print_summary.unwrap(), true);
-        assert_eq!(dfv2u.stop_on_error.unwrap(), false);
-        assert_eq!(dfv2u.track_genre.unwrap(), "Metal".to_string());
-        assert_eq!(dfv2u.picture_front.unwrap(), "cover-small.jpg".to_string());
+        let dfvu = dfv.unwrap();
+        println!("dfvu = {:?}", dfvu);
+
+        assert_eq!(dfvu.detail_off.unwrap(), false);
+        assert_eq!(dfvu.print_summary.unwrap(), true);
+        assert_eq!(dfvu.stop_on_error.unwrap(), false);
+        assert_eq!(dfvu.dry_run.unwrap(), true);
+        assert_eq!(dfvu.single_thread.unwrap(), false);
+        assert_eq!(dfvu.log_config_file.unwrap(), "log4rs.yaml".to_string());
+
+        assert_eq!(
+            dfvu.album_artist.unwrap(),
+            "Ludwig van Beethoven".to_string()
+        );
+        assert_eq!(
+            dfvu.album_artist_sort.unwrap(),
+            "Beethoven, Ludwig van".to_string()
+        );
+        assert_eq!(dfvu.album_title.unwrap(), "Piano Sonata No. 5".to_string());
+        assert_eq!(
+            dfvu.album_title_sort.unwrap(),
+            "Piano Sonata No. 5".to_string()
+        );
+
+        assert_eq!(dfvu.disc_number.unwrap(), 1);
+        assert_eq!(dfvu.disc_count.unwrap(), true);
+        assert_eq!(dfvu.disc_total.unwrap(), 2);
+
+        assert_eq!(
+            dfvu.track_artist.unwrap(),
+            "Ludwig van Beethoven".to_string()
+        );
+        assert_eq!(
+            dfvu.track_artist_sort.unwrap(),
+            "Beethoven, Ludwig van".to_string()
+        );
+        assert_eq!(
+            dfvu.track_title.unwrap(),
+            "Piano Sonata No. 5 - II. Adagio".to_string()
+        );
+        assert_eq!(
+            dfvu.track_title_sort.unwrap(),
+            "Piano Sonata No. 5 - II. Adagio".to_string()
+        );
+        assert_eq!(dfvu.track_number.unwrap(), 2);
+        assert_eq!(dfvu.track_count.unwrap(), true);
+        assert_eq!(dfvu.track_total.unwrap(), 5);
+
+        assert_eq!(dfvu.track_genre.unwrap(), "Classical".to_string());
+        assert_eq!(dfvu.track_genre_number.unwrap(), 33);
+
+        assert_eq!(
+            dfvu.track_composer.unwrap(),
+            "Ludwig van Beethoven".to_string()
+        );
+        assert_eq!(
+            dfvu.track_composer_sort.unwrap(),
+            "Beethoven, Ludwig van".to_string()
+        );
+
+        assert_eq!(dfvu.track_date.unwrap(), "1843".to_string());
+        assert_eq!(
+            dfvu.track_comments.unwrap(),
+            "I have no idea if this is correct".to_string()
+        );
+
+        assert_eq!(dfvu.picture_front.unwrap(), "cover-small.jpg".to_string());
+        assert_eq!(dfvu.picture_back.unwrap(), "back-small.jpg".to_string());
+
+        assert_eq!(dfvu.picture_search_folders.unwrap().len(), 4);
+        assert_eq!(dfvu.picture_front_candidates.unwrap().len(), 6);
+        assert_eq!(dfvu.picture_back_candidates.unwrap().len(), 4);
+        assert_eq!(dfvu.picture_max_size.unwrap(), 500);
+
+        assert_eq!(dfvu.rename_file.unwrap(), "%dn-%tn - %ta - %tt".to_string());
 
         // Loading a non-existent config file should give an error.
-        let dfv3 = DefaultValues::load_config("missing-file.toml");
-        assert!(dfv3.is_err());
+        let dfv2 = DefaultValues::load_config("missing-file.toml");
+        assert!(dfv2.is_err());
     }
 }

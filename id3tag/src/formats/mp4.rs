@@ -1,11 +1,11 @@
 //! Contains the functionality to process MP4 files.
 //!
 use crate::default_values::DefaultValues;
+use crate::formats::images;
 use crate::rename_file;
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 
 /// Performs the actual processing of MP4 files.
 pub fn process(
@@ -103,19 +103,21 @@ pub fn process(
 }
 
 /// Sets the front or back cover
-fn set_picture(tags: &mut Tag, value: &str) -> Result<(), Box<dyn Error>> {
+fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Checking image file type.");
-    let ext = common::get_extension(value);
-    let fmt = match ext.as_ref() {
+    let fmt = match common::get_extension(filename).as_ref() {
         "jpg" | "jpeg" => ImgFmt::Jpeg,
         "png" => ImgFmt::Png,
         "bmp" => ImgFmt::Bmp,
         _ => return Err("Unsupported image file format. Must be one of BMP, JPEG or PNG.".into()),
     };
-    log::debug!("Reading image file {}", value);
-    let data = fs::read(&value)?;
 
-    log::debug!("Setting picture to {}", value);
+    log::debug!("Reading image file {}", filename);
+    let filename_str = rename_file::filename_resized(filename)?;
+    let filename = filename_str.as_str();
+    let data = images::read_cover(&filename, 0)?;
+
+    log::debug!("Setting picture to {}", filename);
     tags.set_artwork(mp4ameta::Img { fmt, data });
 
     // Return safely

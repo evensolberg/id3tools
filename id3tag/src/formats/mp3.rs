@@ -6,9 +6,9 @@ use id3::frame::{self, ExtendedText};
 use id3::TagLike;
 use id3::{frame::PictureType, Tag, Version};
 
+use crate::formats::images;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 
 /// Performs the actual processing of MP4 files.
 pub fn process(
@@ -210,11 +210,13 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
+    let filename_str = rename_file::filename_resized(filename)?;
+    let filename = filename_str.as_str();
     let mime_type = common::get_mime_type(filename)?;
     log::debug!("Image format: {}", mime_type);
 
     log::debug!("Reading image file {}", filename);
-    let image_data = fs::read(&filename)?;
+    let image_data = images::read_cover(&filename, 0)?;
 
     log::debug!("Setting picture to {}", filename);
     tags.add_frame(frame::Picture {

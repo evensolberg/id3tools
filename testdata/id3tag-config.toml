@@ -1,0 +1,51 @@
+# ID3TAG Sample Config file for testing.
+
+detail_off = false
+print_summary = true
+stop_on_error = false
+dry_run = true
+single_thread = false
+log_config_file = "log4rs.yaml"
+
+album_artist = "Ludwig van Beethoven"
+album_artist_sort = "Beethoven, Ludwig van"
+album_title = "Piano Sonata No. 5"
+album_title_sort = "Piano Sonata No. 5"
+
+disc_number = 1
+disc_count = true
+disc_total = 2
+
+track_artist = "Ludwig van Beethoven"
+track_artist_sort = "Beethoven, Ludwig van"
+track_title = "Piano Sonata No. 5 - II. Adagio"
+track_title_sort = "Piano Sonata No. 5 - II. Adagio"
+track_number = 2
+track_count = true
+track_total = 5
+
+track_genre = "Classical"
+track_genre_number = 33
+
+track_composer = "Ludwig van Beethoven"
+track_composer_sort = "Beethoven, Ludwig van"
+
+track_date = "1843"
+track_comments = "I have no idea if this is correct"
+
+picture_front = "cover-small.jpg"
+picture_back = "back-small.jpg"
+
+picture_search_folders = ["Artwork", "Scans"] # Program will add '.' and '..' to the front of the list.
+picture_front_candidates = [
+  "Folder.jpg",
+  "folder.jpg",
+  "front.jpg",
+  "Front.jpg",
+  "Cover.jpg",
+  "cover.jpg",
+]
+picture_back_candidates = ["back.jpg", "Back.jpg", "back.png", "Back.png"]
+picture_max_size = 500
+
+rename_file = "%dn-%tn - %ta - %tt"
