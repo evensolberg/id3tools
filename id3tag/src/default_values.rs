@@ -127,9 +127,7 @@ impl DefaultValues {
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = DefaultValues::new();
 
-        let mut psf_list: Vec<String> = Vec::new();
-        psf_list.push(".".to_string());
-        psf_list.push("..".to_string());
+        let psf_list: Vec<String> = vec![".".to_string(), "..".to_string()];
         config.picture_search_folders = Some(psf_list);
 
         // Read the config file

@@ -115,7 +115,7 @@ fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
     log::debug!("Reading image file {}", filename);
     let filename_str = rename_file::filename_resized(filename)?;
     let filename = filename_str.as_str();
-    let data = images::read_cover(&filename, 0)?;
+    let data = images::read_cover(filename, 0)?;
 
     log::debug!("Setting picture to {}", filename);
     tags.set_artwork(mp4ameta::Img { fmt, data });

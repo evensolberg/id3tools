@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 /// Performs the actual processing of MP4 files.
+#[allow(clippy::too_many_lines)]
 pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
@@ -216,7 +217,7 @@ fn add_picture(
     log::debug!("Image format: {}", mime_type);
 
     log::debug!("Reading image file {}", filename);
-    let image_data = images::read_cover(&filename, 0)?;
+    let image_data = images::read_cover(filename, 0)?;
 
     log::debug!("Setting picture to {}", filename);
     tags.add_frame(frame::Picture {

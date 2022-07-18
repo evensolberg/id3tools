@@ -43,8 +43,12 @@ pub fn process_file(
     log::debug!("Processing {}", file_type);
 
     // Check if we need to create one or more cover images.
-    let (fcp, bcp) = images::process_images(&filename, &config)?;
-    log::debug!("fcp / bcp: {:?} / {:?}", fcp, bcp);
+    let (front_cover_path, back_cover_path) = images::process_images(filename, config)?;
+    log::debug!(
+        "front_cover_path / bcp: {:?} / {:?}",
+        front_cover_path,
+        back_cover_path
+    );
 
     let new_tags_result = parse_options(filename, file_type, config, cli_args);
 
@@ -66,9 +70,7 @@ pub fn process_file(
                 FileTypes::MP3 => mp3::process(filename, &new_tags, config),
                 FileTypes::MP4 => mp4::process(filename, &new_tags, config),
                 FileTypes::Unknown => {
-                    return Err(format!("{} is unknown file type.", filename)
-                        .to_string()
-                        .into())
+                    return Err(format!("{} is unknown file type.", filename).into())
                 }
             };
 
@@ -100,6 +102,7 @@ pub fn process_file(
 
 /// Collect the various options/tags submitted into a `HashMap` for later use.
 /// Also checks the default values loaded from a config file.
+#[allow(clippy::too_many_lines)]
 fn parse_options(
     filename: &str,
     file_type: common::FileTypes,

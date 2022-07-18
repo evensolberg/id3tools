@@ -7,7 +7,7 @@ use std::path::Path;
 
 use crate::default_values::DefaultValues;
 
-#[derive(PartialEq, Default)]
+#[derive(PartialEq, Default, Copy, Clone)]
 enum CoverType {
     #[default]
     Front,
@@ -16,6 +16,7 @@ enum CoverType {
 
 /// Catch the image-related CLI parameters and process the image(s).
 /// Returns OK if the image(s) were processed successfully. This may change to return the path to the resulting image(s).
+#[allow(clippy::too_many_lines, clippy::module_name_repetitions)]
 pub fn process_images(
     music_file: &str,
     config: &DefaultValues,
@@ -27,45 +28,43 @@ pub fn process_images(
     let max_size = config.picture_max_size.unwrap_or(500);
 
     // Placeholders for there resulting filenames.
-    let mut fcp_res = None;
-    let mut bcp_res = None;
+    let mut front_cover_path_resulting = None;
+    let mut back_cover_path_resulting = None;
 
     // Check if the front cover exists. If not, see if we can create it.
-    let front_cover_path = find_cover(CoverType::Front, &music_file, &config);
-    if front_cover_path.is_none() {
-        log::debug!("Front cover not found.");
-    } else {
-        log::debug!("Front cover found: {:?}", front_cover_path);
-        let fcp = front_cover_path.unwrap().clone();
-        fcp_res = Some(fcp.clone());
+    let front_cover_path = find_cover(CoverType::Front, music_file, config);
+    if let Some(fcp) = front_cover_path {
+        log::debug!("Front cover found: {:?}", fcp);
+        front_cover_path_resulting = Some(fcp.clone());
         if cover_needs_resizing(&fcp, max_size)? {
             log::debug!("Resizing front cover.");
             let fcp_resize = crate::rename_file::filename_resize(&fcp)?;
-            fcp_res = Some(fcp_resize.clone());
+            front_cover_path_resulting = Some(fcp_resize.clone());
             let res = create_cover(&fcp, &fcp_resize, max_size, dry_run)?;
             log::debug!("Resized front cover size: {} bytes.", res.len());
         }
+    } else {
+        log::debug!("Front cover not found.");
     }
 
     // Check if the back cover exists. If it does, resize if necessary and return the path.
-    let back_cover_path = find_cover(CoverType::Back, &music_file, &config);
-    if back_cover_path.is_none() {
-        log::debug!("Back cover not found.");
-    } else {
-        log::debug!("Back cover found: {:?}", back_cover_path);
-        let bcp = back_cover_path.unwrap().clone();
-        bcp_res = Some(bcp.clone());
+    let back_cover_path = find_cover(CoverType::Back, music_file, config);
+    if let Some(bcp) = back_cover_path {
+        log::debug!("Back cover found: {:?}", bcp);
+        back_cover_path_resulting = Some(bcp.clone());
         if cover_needs_resizing(&bcp, max_size)? {
             log::debug!("Resizing back cover.");
             let bcp_resize = crate::rename_file::filename_resize(&bcp)?;
-            bcp_res = Some(bcp_resize.clone());
+            back_cover_path_resulting = Some(bcp_resize.clone());
             let res = create_cover(&bcp, &bcp_resize, max_size, dry_run)?;
             log::debug!("Resized back cover size: {} bytes.", res.len());
         }
+    } else {
+        log::debug!("Back cover not found.");
     }
 
     // return safely
-    Ok((fcp_res, bcp_res))
+    Ok((front_cover_path_resulting, back_cover_path_resulting))
 } // fn process_images()
 
 /// Search for the cover file in the locations provided.
@@ -90,14 +89,13 @@ fn find_cover(cover_type: CoverType, music_file: &str, config: &DefaultValues) -
     // Look for the cover file in the music file's directory and in the config's picture_search_folders.
     let mut cover_path = None;
     if !cover_file_name.is_empty() {
-        cover_path = find_in_folders(&cover_file_name, &music_path, &config)
+        cover_path = find_in_folders(&cover_file_name, &music_path, config);
     }
     if cover_path.is_some() {
         log::debug!("Found cover file: {:?}", cover_path.as_ref().unwrap());
         return cover_path;
-    } else {
-        log::debug!("No cover file found yet.");
     }
+    log::debug!("No cover file found yet.");
 
     // If we get here, we didn't find the cover. Let's see if we can create it from the candidate images.
     let candidate_images = if cover_type == CoverType::Front {
@@ -109,16 +107,15 @@ fn find_cover(cover_type: CoverType, music_file: &str, config: &DefaultValues) -
     if candidate_images.is_empty() {
         log::debug!("No candidate images found.");
         return None;
-    } else {
-        log::debug!(
-            "Cover not found. Searching for candidate images: {:?}",
-            candidate_images
-        );
     }
+    log::debug!(
+        "Cover not found. Searching for candidate images: {:?}",
+        candidate_images
+    );
 
     // Look for the cadidate images in the music file's directory and in the config's picture_search_folders.
     for candidate_image in &candidate_images {
-        cover_path = find_in_folders(&candidate_image, &music_file, &config);
+        cover_path = find_in_folders(candidate_image, music_file, config);
         if cover_path.is_some() {
             break;
         }
@@ -150,7 +147,7 @@ fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> 
         log::debug!("Checking path: {}", cover_path);
         if std::path::Path::new(&cover_path).exists() {
             log::debug!("Found cover: {}", cover_path);
-            return Some(cover_path.to_string());
+            return Some(cover_path);
         }
     }
     None
@@ -172,12 +169,12 @@ fn cover_needs_resizing(filename: &str, max_size: u32) -> Result<bool, Box<dyn E
     let img_y = img.height();
     log::debug!("{} dimensions: {}x{}", filename, img_x, img_y);
 
-    let size_factor = (img_x as f64) / (img_y as f64);
+    let size_factor = f64::from(img_x) / f64::from(img_y);
 
     // Check if the image (likely) contains multiple covers.
     let size_factor_str = format!("{:.2}", size_factor);
     log::debug!("{} size factor: {}", filename, size_factor_str);
-    if size_factor > 1.5 || size_factor < 0.5 {
+    if !(0.5..=1.5).contains(&size_factor) {
         return Err("Image is not in the expected ratio.".into());
     }
 
@@ -234,13 +231,13 @@ pub fn create_cover(
     log::debug!("{} dimensions: {}x{}", src_filename, img_x, img_y);
 
     // Check if the iamge (likely) contains multiple covers.
-    let size_factor = img_x as f64 / img_y as f64;
+    let size_factor = f64::from(img_x) / f64::from(img_y);
     log::debug!(
         "{} size factor: {}",
         src_filename,
         format!("{:2}", size_factor)
     );
-    if size_factor > 1.5 || size_factor < 0.5 {
+    if !(0.5..=1.5).contains(&size_factor) {
         return Err("Image is not in the expected ratio.".into());
     }
 
@@ -270,7 +267,7 @@ pub fn create_cover(
 }
 
 /// Reads the image file and resizes it if needed. Returns the resized image as a vector of bytes.
-/// Set max_size to 0 to disable resizing.
+/// Set `max_size` to 0 to disable resizing.
 /// Returns a vector of bytes with the image data.
 pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
     log::debug!("read_cover: Reading image file: {}", cover_file);
@@ -285,25 +282,22 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         }
     };
 
-    // Placeholder return vector
-    let return_vec: Vec<u8>;
-
     // Check image dimensions
     let img_x = img.width();
     let img_y = img.height();
     log::debug!("{} dimensions: {}x{}", cover_file, img_x, img_y);
 
-    if (img_x > max_size || img_y > max_size) && max_size > 0 {
+    let return_vec: Vec<u8> = if (img_x > max_size || img_y > max_size) && max_size > 0 {
         log::debug!("Resizing.");
 
         // Check if the iamge (likely) contains multiple covers.
-        let size_factor = img_x as f64 / img_y as f64;
+        let size_factor = f64::from(img_x) / f64::from(img_y);
         log::debug!(
             "{} size factor: {}",
             cover_file,
             format!("{:2}", size_factor)
         );
-        if size_factor > 1.5 || size_factor < 0.5 {
+        if !(0.5..=1.5).contains(&size_factor) {
             return Err("Image is not in the expected ratio.".into());
         }
 
@@ -316,11 +310,11 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         );
 
         // Return safely with the saved image data as a vector for later use.
-        return_vec = img_resized.as_rgb8().unwrap().to_vec();
+        img_resized.as_rgb8().unwrap().to_vec()
     } else {
         log::debug!("File does not need resizing.");
-        return_vec = img.as_rgb8().unwrap().to_vec();
-    }
+        img.as_rgb8().unwrap().to_vec()
+    };
 
     log::debug!(
         "Returning image data as vector with length {} bytes. Exiting create_cover function.",
@@ -388,7 +382,7 @@ mod tests {
 
         // Read the file without resizing.
         let max_size = 0;
-        let return_vec = read_cover(cover_file, max_size).unwrap();
+        let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
         println!("Image size: {}", return_vec.len());
         assert!(!return_vec.is_empty());
         assert!(return_vec.len() > 0);

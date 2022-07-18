@@ -81,14 +81,18 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     Ok(ft)
 }
 
-/// Checks that the new filename pattern results in a unique file
+/// Checks that the new filename pattern results in a unique file.
+/// Not perfect since the track title can occur multiple times on the same album.
+/// TODO: Make this better. Include a check for the disc number and track title combo, for example.
 pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
     if !pattern.contains("%tn")
         && !pattern.contains("%tt")
         && !pattern.contains("%track-number")
         && !pattern.contains("%track-title")
+        && !pattern.contains("%tts")
+        && !pattern.contains("%track-title-sort")
     {
-        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern))
+        Err(format!("Pattern \"{}\" would likely not yield unique file names. Pattern should contain track number and/or track name variants.", pattern))
     } else {
         Ok(())
     }
@@ -325,7 +329,7 @@ mod tests {
     }
 
     #[assay]
-    ///
+    /// Tests the `get_extension` function to ensure it returns the correct extension.
     fn test_get_extension() {
         assert_eq!(get_extension("somefile.png"), "png".to_string());
         assert_eq!(get_extension("somewhere/somefile.png"), "png".to_string());
@@ -338,6 +342,8 @@ mod tests {
     fn test_file_rename_pattern_validate() {
         assert!(file_rename_pattern_validate("%dn-%tn %tt").is_ok());
         assert!(file_rename_pattern_validate("%track-number %track-title").is_ok());
+        assert!(file_rename_pattern_validate("%track-number %track-title-sort").is_ok());
+        assert!(file_rename_pattern_validate("%track-title-sort").is_ok());
 
         assert!(file_rename_pattern_validate("%disc-number").is_err());
     }
@@ -446,6 +452,12 @@ mod tests {
             count_files("../music/somefile.notfound").unwrap(),
             "00".to_string()
         );
+    }
+
+    /// Test the unique value generator
+    #[assay]
+    fn test_get_unique_value() {
+        assert!(get_unique_value() < 10_000_000);
     }
 
     #[assay]

@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - Move id3tag to a sub-project
 - Reduce FLAC processing fn size
 - Function rename for clarity
+- Improved test, refactored image module
 
 ## [0.11.1] - 2022-03-20
 
