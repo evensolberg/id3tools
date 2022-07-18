@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Create id3show application
 - Imaging cont
 - Image search and resize
+- Minor version bump
 
 ### Miscellaneous Tasks
 

@@ -413,6 +413,9 @@ mod tests {
     #[test]
     ///
     fn test_count_files() {
+        if Path::new("../music/cover-small-resize.jpg").exists() {
+            let _res = std::fs::remove_file(Path::new("../music/cover-small-resize.jpg"));
+        }
         assert!(count_files("../music/01.ape").is_ok());
         assert!(count_files("../music/01 Gavottes BWV 1012.mp3").is_ok());
         assert!(count_files("../music/01-13 Surf's Up.flac").is_ok());
