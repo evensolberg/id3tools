@@ -17,6 +17,7 @@ enum CoverType {
 /// Catch the image-related CLI parameters and process the image(s).
 /// Returns OK if the image(s) were processed successfully. This may change to return the path to the resulting image(s).
 #[allow(clippy::too_many_lines, clippy::module_name_repetitions)]
+// TODO: Refactor this function.
 pub fn process_images(
     music_file: &str,
     config: &DefaultValues,

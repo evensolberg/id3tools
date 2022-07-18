@@ -103,6 +103,7 @@ pub fn process_file(
 /// Collect the various options/tags submitted into a `HashMap` for later use.
 /// Also checks the default values loaded from a config file.
 #[allow(clippy::too_many_lines)]
+// TODO: This function is too long. Split it up.
 fn parse_options(
     filename: &str,
     file_type: common::FileTypes,
@@ -504,7 +505,7 @@ fn find_picture(
 
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines)] // Not much we can do about this one.
 fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
     if tagnumber > 191 {
         return Err("Incorrect value supplied. Must be 0-191.".into());
