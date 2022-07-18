@@ -355,6 +355,7 @@ mod tests {
         let _ = create_cover(fc_filename, "../testdata/cover-small.jpg", 500, false);
 
         let cover_file = find_cover(CoverType::Front, music_file, &dv);
+        println!("cover_file = {:?}", cover_file);
         assert!(cover_file.is_some());
         assert_eq!(cover_file.unwrap(), "../testdata/cover-small.jpg");
         fs::remove_file(Path::new("../testdata/cover-small.jpg")).unwrap();
