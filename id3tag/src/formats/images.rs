@@ -299,7 +299,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
             format!("{:2}", size_factor)
         );
         if !(0.5..=1.5).contains(&size_factor) {
-            return Err("Image is not in the expected ratio.".into());
+            return Err("Image is not in the expected ratio (0.5..=1.5).".into());
         }
 
         // Resize the image to the max size.
@@ -335,7 +335,7 @@ mod tests {
     use assay::assay;
     use std::fs;
 
-    #[assay(include = ["../testdata/DSOTM_Cover.jpeg", "../testdata/id3tag-config.toml", "../testdata/sample.flac", "../testdata/DSOTM_Back.jpeg"])]
+    #[assay(include = ["../testdata/DSOTM_Back.jpeg", "../testdata/DSOTM_Cover.jpeg", "../testdata/id3tag-config.toml", "../testdata/sample.flac"])]
     /// Tests the find_cover function.
     fn test_find_cover() {
         let music_file = "../testdata/sample.flac";
@@ -394,7 +394,7 @@ mod tests {
     /// Tests that the create_cover function works as expected.
     fn test_create_cover() {
         let src_filename = "../testdata/DSOTM_Cover.jpeg";
-        let dst_filename = "../testdata/DSOTM_Cover_resized.jpeg";
+        let dst_filename = "../testdata/DSOTM_Cover-resized.jpeg";
         let max_size = 500;
         let dry_run = false;
 

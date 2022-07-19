@@ -215,3 +215,27 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
     // Return the value
     Ok(num)
 }
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+    use assay::assay;
+
+    #[assay]
+    /// Test the to_number function.
+    fn test_to_number() {
+        for n in 0..=100 {
+            let num1 = to_number(&format!("{}", n), "test", false).unwrap();
+            assert_eq!(num1, n);
+
+            let num2 = to_number(&format!("{}", n), "test", true).unwrap();
+            assert_eq!(num2, n);
+        }
+
+        assert!(to_number("error", "some value", true).is_err());
+        assert!(to_number("error", "some value", false).is_ok());
+        assert_eq!(to_number("error", "some value", false).unwrap(), 1);
+        assert_eq!(to_number("-1", "some value", false).unwrap(), 1);
+    }
+}

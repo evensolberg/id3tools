@@ -430,13 +430,25 @@ mod tests {
     use assay::assay;
 
     #[assay]
-    /// Test that the genre number validator returns OK if genre 0 <= genre number <= 191, otherwise error.
+    /// Test that the genre number validator returns OK if genre number is 0..=191, otherwise error.
     fn test_genre_numbervalidator() {
-        assert!(genre_number_validator("0").is_ok());
-        assert!(genre_number_validator("9").is_ok());
-        assert!(genre_number_validator("191").is_ok());
+        // Check the valid range.
+        for i in 0..=191 {
+            assert_eq!(
+                genre_number_validator(&i.to_string()),
+                Ok(()),
+                "genre_number_validator failed for {}",
+                i
+            );
+        }
+
+        // Check numbers outside the valid range.
         assert!(genre_number_validator("192").is_err());
         assert!(genre_number_validator("200").is_err());
+        assert!(genre_number_validator("200_000").is_err());
+
+        // Check that other types of input are rejected.
+        assert!(genre_number_validator("wrong!").is_err());
     }
 
     // TODO: Create tests for the build_cli() function.

@@ -72,7 +72,7 @@ pub fn process(
     }
 
     if config.rename_file.is_some() {
-        rename_file(filename, config, &tags);
+        rename_file(filename, config, &tags)?;
         processed_ok = true;
     }
 
@@ -81,32 +81,39 @@ pub fn process(
 }
 
 /// Renames the APE file based on the tags
-fn rename_file(_filename: &str, _config: &DefaultValues, _tags: &ape::Tag) {
+fn rename_file(
+    _filename: &str,
+    _config: &DefaultValues,
+    _tags: &ape::Tag,
+) -> Result<(), Box<dyn Error>> {
     log::warn!(
         "Rename is currently not supported for APE files because the metadata is not standardized."
     );
+
+    // Return safely
+    Ok(())
 }
 
-/*
 #[cfg(test)]
 mod tests {
     use super::*;
     use assay::assay;
 
-#[assay]
-fn test_rename_file() {
-    let blank_defaults = DefaultValues::new();
-    let blank_ape = ape::Tag::default();
+    #[assay(include = ["../testdata/sample.ape"])]
+    fn test_rename_file() {
+        let blank_defaults = DefaultValues::new();
+        let blank_ape = ape::Tag::default();
 
-    assert!(rename_file("somefile.ape", &blank_defaults, &blank_ape));
-}
+        // Don't need to do a lot because this function just issues a warning and exits without error.
+        assert!(rename_file("../testdata/sample.ape", &blank_defaults, &blank_ape).is_ok());
+    }
 
-    #[assay]
+    #[assay(include = ["../testdata/sample.ape"])]
     fn test_process_ape() {
-        let new_values = HashMap::<String, String>::new();
+        let mut new_values = HashMap::<String, String>::new();
+        new_values.insert("ALBUMARTIST".to_string(), "New Album Artist".to_string());
         let blank_defaults = DefaultValues::new();
 
-        assert!(process("music/01.ape", &new_values, &blank_defaults).is_ok());
+        assert!(process("../testdata/sample.ape", &new_values, &blank_defaults).is_ok());
     }
 }
- */

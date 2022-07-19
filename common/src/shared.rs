@@ -286,44 +286,39 @@ mod tests {
     use super::*;
     use assay::assay;
 
-    #[assay(include = ["../music/01 Gavottes BWV 1012.mp3", "../music/01-13 Surf's Up.flac", "../music/01.ape", "../music/02 2. Prestissimo [Piano Sonata No.30].dsf", "../music/cover-small.jpg", "../music/glb.mp4", "../music/This Is The Story.m4a"])]
+    #[assay(include = ["../testdata/sample.mp3", "../testdata/sample.flac", "../testdata/sample.ape", "../testdata/sample.dsf", "../testdata/DSOTM_Cover.jpeg", "../testdata/sample.mp4", "../testdata/sample.m4a"])]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
-        assert!(get_mime_type("../music/01 Gavottes BWV 1012.mp3").is_ok());
-        assert!(get_mime_type("../music/01-13 Surf's Up.flac").is_ok());
-        assert!(get_mime_type("../music/01.ape").is_ok());
-        assert!(get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").is_ok());
-        assert!(get_mime_type("../music/cover-small.jpg").is_ok());
-        assert!(get_mime_type("../music/glb.mp4").is_ok());
-        assert!(get_mime_type("../music/This Is The Story.m4a").is_ok());
+        assert!(get_mime_type("../testdata/sample.mp3").is_ok());
+        assert!(get_mime_type("../testdata/sample.flac").is_ok());
+        assert!(get_mime_type("../testdata/sample.ape").is_ok());
+        assert!(get_mime_type("../testdata/sample.dsf").is_ok());
+        assert!(get_mime_type("../testdata/DSOTM_Cover.jpeg").is_ok());
+        assert!(get_mime_type("../testdata/sample.m4a").is_ok());
         assert!(get_mime_type("somefile.svg").is_err());
 
         assert_eq!(
-            get_mime_type("../music/01 Gavottes BWV 1012.mp3").unwrap(),
+            get_mime_type("../testdata/sample.mp3").unwrap(),
             "audio/mpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/01-13 Surf's Up.flac").unwrap(),
+            get_mime_type("../testdata/sample.flac").unwrap(),
             "audio/x-flac".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/01.ape").unwrap(),
+            get_mime_type("../testdata/sample.ape").unwrap(),
             "audio/x-ape".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").unwrap(),
+            get_mime_type("../testdata/sample.dsf").unwrap(),
             "audio/x-dsf".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/cover-small.jpg").unwrap(),
+            get_mime_type("../testdata/DSOTM_Cover.jpeg").unwrap(),
             "image/jpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/glb.mp4").unwrap(),
-            "video/mp4".to_string()
-        );
-        assert_eq!(
-            get_mime_type("../music/This Is The Story.m4a").unwrap(),
+            get_mime_type("../testdata/sample.m4a").unwrap(),
             "audio/m4a".to_string()
         );
     }
@@ -409,6 +404,8 @@ mod tests {
         assert!(split_val("1/2").is_ok());
 
         assert!(split_val("1-2").is_err());
+        assert!(split_val("1-2-3").is_err());
+        assert!(split_val("1 av 2").is_err());
 
         assert_eq!(split_val("1 of 2").unwrap(), (1, 2));
         assert_eq!(split_val("1of2").unwrap(), (1, 2));
@@ -419,33 +416,39 @@ mod tests {
     #[test]
     ///
     fn test_count_files() {
-        if Path::new("../music/cover-small-resize.jpg").exists() {
-            let _res = std::fs::remove_file(Path::new("../music/cover-small-resize.jpg"));
+        if Path::new("../testdata/DOSTM_Cover-reesize.jpg").exists() {
+            let _res = std::fs::remove_file(Path::new("../testdata/DOSTM_Cover-reesize.jpg"));
         }
-        assert!(count_files("../music/01.ape").is_ok());
-        assert!(count_files("../music/01 Gavottes BWV 1012.mp3").is_ok());
-        assert!(count_files("../music/01-13 Surf's Up.flac").is_ok());
-        assert!(count_files("../music/glb.mp4").is_ok());
-        assert!(count_files("../music/This Is The Story.m4a").is_ok());
-        assert!(count_files("../music/cover-small.jpg").is_ok());
+        assert!(count_files("../testdata/sample.ape").is_ok());
+        assert!(count_files("../testdata/sample.mp3").is_ok());
+        assert!(count_files("../testdata/sample.flac").is_ok());
+        assert!(count_files("../testdata/sample.mp4").is_ok());
+        assert!(count_files("../testdata/sample.m4a").is_ok());
+        assert!(count_files("../testdata/DSOTM_Cover.jpeg").is_ok());
 
-        assert_eq!(count_files("../music/01.ape").unwrap(), "02".to_string());
         assert_eq!(
-            count_files("../music/01 Gavottes BWV 1012.mp3").unwrap(),
+            count_files("../testdata/sample.ape").unwrap(),
             "01".to_string()
         );
         assert_eq!(
-            count_files("../music/01-13 Surf's Up.flac").unwrap(),
+            count_files("../testdata/sample.mp3").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/sample.flac").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/sample.mp4").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/sample.m4a").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/DSOTM_Cover.jpeg").unwrap(),
             "02".to_string()
-        );
-        assert_eq!(count_files("../music/glb.mp4").unwrap(), "01".to_string());
-        assert_eq!(
-            count_files("../music/This Is The Story.m4a").unwrap(),
-            "01".to_string()
-        );
-        assert_eq!(
-            count_files("../music/cover-small.jpg").unwrap(),
-            "01".to_string()
         );
 
         assert_eq!(
