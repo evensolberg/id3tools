@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Imaging cont
 - Image search and resize
 - Minor version bump
+- Imaging working - hopefully
 
 ### Miscellaneous Tasks
 

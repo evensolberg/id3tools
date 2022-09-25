@@ -482,7 +482,7 @@ dependencies = [
 
 [[package]]
 name = "id3cli-gen"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap_complete",
  "clap_complete_fig",
@@ -507,7 +507,7 @@ dependencies = [
 
 [[package]]
 name = "id3tag"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "ape",
  "assay",

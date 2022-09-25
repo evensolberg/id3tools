@@ -340,6 +340,7 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
                 .takes_value(true)
                 .multiple_occurrences(true)
                 .require_equals(false).help_heading(images_name)
+                .requires("picture-front")
         )
         .arg( // Back cover picture
             Arg::new("picture-back")
@@ -361,6 +362,7 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
                 .takes_value(true)
                 .multiple_occurrences(true)
                 .require_equals(false).help_heading(images_name)
+                .requires("picture-back")
         )
         .arg( // Picture search folder
             Arg::new("picture-search-folder")

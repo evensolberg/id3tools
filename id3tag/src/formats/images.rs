@@ -107,7 +107,7 @@ fn get_cover(
             log::debug!(
                 "{cover_type} cover path parameter differs from found path. Creating cover: {cover_file_name}.",
             );
-            // Create the PF.
+            // Create the picture file.
             cover_path_resulting = cover_path.clone();
             let cover_output_filename = music_file_path
                 .join(cover_file_name)
@@ -122,7 +122,7 @@ fn get_cover(
         } else {
             // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
             log::debug!("Cover path parameter equals found path.");
-            // Create the PB.
+            // Create the picture file.
             cover_path_resulting = cover_path.clone();
             if cover_needs_resizing(&cover_path, max_size)? {
                 log::debug!("Resizing {cover_type} cover.");
