@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Create id3show application
+- Imaging cont
+- Image search and resize
+- Minor version bump
 
 ### Miscellaneous Tasks
 
@@ -23,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - Dependencies update
 - Code cleanup
 - Changelog Update
+- Added notes to refactor some functions
 
 ### Refactor
 
@@ -30,6 +34,12 @@ All notable changes to this project will be documented in this file.
 - Move id3tag to a sub-project
 - Reduce FLAC processing fn size
 - Function rename for clarity
+- Improved test, refactored image module
+- Cleaned up lints and added tests
+
+### Testing
+
+- Added a bunch of tests
 
 ## [0.11.1] - 2022-03-20
 

@@ -3,6 +3,8 @@
 use image;
 use image::imageops::FilterType;
 use std::error::Error;
+use std::fmt::{Display, Formatter};
+use std::fs::canonicalize;
 use std::path::Path;
 
 use crate::default_values::DefaultValues;
@@ -14,6 +16,16 @@ enum CoverType {
     Back,
 }
 
+impl Display for CoverType {
+    /// Display function for the CoverType.
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        match self {
+            CoverType::Front => write!(f, "front"),
+            CoverType::Back => write!(f, "back"),
+        }
+    }
+}
+
 /// Catch the image-related CLI parameters and process the image(s).
 /// Returns OK if the image(s) were processed successfully. This may change to return the path to the resulting image(s).
 #[allow(clippy::too_many_lines, clippy::module_name_repetitions)]
@@ -22,51 +34,111 @@ pub fn process_images(
     music_file: &str,
     config: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
-    let dry_run = config.dry_run.unwrap_or(true);
-    if dry_run {
+    if config.dry_run.unwrap_or(true) {
         log::debug!("process_images dry run.");
     }
-    let max_size = config.picture_max_size.unwrap_or(500);
 
-    // Placeholders for there resulting filenames.
-    let mut front_cover_path_resulting = None;
-    let mut back_cover_path_resulting = None;
+    // Check if the front cover path is set. Return None if not, otherwise return the path.
+    let fcp = get_cover(CoverType::Front, music_file, config)?;
+    let fcp_r = if fcp.is_empty() { None } else { Some(fcp) };
 
-    // Check if the front cover exists. If not, see if we can create it.
-    let front_cover_path = find_cover(CoverType::Front, music_file, config);
-    if let Some(fcp) = front_cover_path {
-        log::debug!("Front cover found: {:?}", fcp);
-        front_cover_path_resulting = Some(fcp.clone());
-        if cover_needs_resizing(&fcp, max_size)? {
-            log::debug!("Resizing front cover.");
-            let fcp_resize = crate::rename_file::filename_resize(&fcp)?;
-            front_cover_path_resulting = Some(fcp_resize.clone());
-            let res = create_cover(&fcp, &fcp_resize, max_size, dry_run)?;
-            log::debug!("Resized front cover size: {} bytes.", res.len());
-        }
-    } else {
-        log::debug!("Front cover not found.");
-    }
-
-    // Check if the back cover exists. If it does, resize if necessary and return the path.
-    let back_cover_path = find_cover(CoverType::Back, music_file, config);
-    if let Some(bcp) = back_cover_path {
-        log::debug!("Back cover found: {:?}", bcp);
-        back_cover_path_resulting = Some(bcp.clone());
-        if cover_needs_resizing(&bcp, max_size)? {
-            log::debug!("Resizing back cover.");
-            let bcp_resize = crate::rename_file::filename_resize(&bcp)?;
-            back_cover_path_resulting = Some(bcp_resize.clone());
-            let res = create_cover(&bcp, &bcp_resize, max_size, dry_run)?;
-            log::debug!("Resized back cover size: {} bytes.", res.len());
-        }
-    } else {
-        log::debug!("Back cover not found.");
-    }
+    // Check if the back cover path is set. Return None if not, otherwise return the path.
+    let bcp = get_cover(CoverType::Back, music_file, config)?;
+    let bcp_r = if bcp.is_empty() { None } else { Some(bcp) };
 
     // return safely
-    Ok((front_cover_path_resulting, back_cover_path_resulting))
+    Ok((fcp_r, bcp_r))
 } // fn process_images()
+
+/// Find the cover image for the given type.
+///
+/// Argi,emts:
+///
+/// `cover_type: CoverType` - the type of cover, i.e., `CoverType::Front` or `CoverType::Back`
+/// `music_file: &str` - the name of the music file being processed. This is used to find relative paths.
+/// `config: &DefaultValues` - the configuration for the program, containing parameters such as search paths, dry run, etc.
+///
+/// Returns:
+///
+/// `Result<String, Box<dyn Error>>` - returns a string with the path to the cover if found, or an empty string if not.
+/// Returns an error if something goes wrong
+///
+/// To do:
+///
+/// Change the `String` to `Option<String>` to be able to return `None` if nothing is found.
+fn get_cover(
+    cover_type: CoverType,
+    music_file: &str,
+    config: &DefaultValues,
+) -> Result<String, Box<dyn Error>> {
+    // TODO: Consider replacing the String with Option<String> so we can return None if not found.
+    let dry_run = config.dry_run.unwrap_or(true);
+    let max_size = config.picture_max_size.unwrap_or(500);
+    let mut cover_path_resulting = String::new();
+
+    if let Some(cover_path) = find_cover(cover_type, music_file, config) {
+        log::debug!("{} cover found: {:?}", cover_type, cover_path);
+
+        // Get the cover name from the config.
+        let cover_file_name = if cover_type == CoverType::Front {
+            config
+                .picture_front
+                .as_ref()
+                .unwrap_or(&"front-cover.jpg".to_string())
+                .to_owned()
+        } else {
+            config
+                .picture_back
+                .as_ref()
+                .unwrap_or(&"back-cover.jpg".to_string())
+                .to_owned()
+        };
+
+        // Get the path to the music file, so we can save the cover file next to it if needed.
+        let mut music_file_path = canonicalize(music_file)?;
+        music_file_path = music_file_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_path_buf();
+        log::debug!("music_file_path = {:?}", music_file_path);
+
+        // If the cover found is different from the --picture-XXXXX parameter, we need to create the cover.
+        if cover_file_name != cover_path {
+            log::debug!(
+                "{cover_type} cover path parameter differs from found path. Creating cover: {cover_file_name}.",
+            );
+            // Create the PF.
+            cover_path_resulting = cover_path.clone();
+            let cover_output_filename = music_file_path
+                .join(cover_file_name)
+                .to_str()
+                .unwrap()
+                .to_owned();
+            if !dry_run {
+                let res = create_cover(&cover_path, &cover_output_filename, max_size, dry_run)
+                    .unwrap_or_default();
+                log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
+            }
+        } else {
+            // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
+            log::debug!("Cover path parameter equals found path.");
+            // Create the PB.
+            cover_path_resulting = cover_path.clone();
+            if cover_needs_resizing(&cover_path, max_size)? {
+                log::debug!("Resizing {cover_type} cover.");
+                let cp_resize = crate::rename_file::filename_resize(&cover_path)?;
+                cover_path_resulting = cp_resize.clone();
+                let res = create_cover(&cover_path, &cp_resize, max_size, dry_run)?;
+                log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
+            }
+        }
+    } else {
+        log::debug!("Cover not found.");
+    }
+
+    // return the resulting path
+    Ok(cover_path_resulting)
+}
 
 /// Search for the cover file in the locations provided.
 fn find_cover(cover_type: CoverType, music_file: &str, config: &DefaultValues) -> Option<String> {
@@ -116,7 +188,7 @@ fn find_cover(cover_type: CoverType, music_file: &str, config: &DefaultValues) -
 
     // Look for the cadidate images in the music file's directory and in the config's picture_search_folders.
     for candidate_image in &candidate_images {
-        cover_path = find_in_folders(candidate_image, music_file, config);
+        cover_path = find_in_folders(candidate_image, &music_path, config);
         if cover_path.is_some() {
             break;
         }

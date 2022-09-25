@@ -37,6 +37,10 @@ All notable changes to this project will be documented in this file.
 - Improved test, refactored image module
 - Cleaned up lints and added tests
 
+### Testing
+
+- Added a bunch of tests
+
 ## [0.11.1] - 2022-03-20
 
 ### Features

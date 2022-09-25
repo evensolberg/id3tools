@@ -276,6 +276,8 @@ impl DefaultValues {
             for folder in folders {
                 candidate_list.push(folder.to_string());
             }
+            candidate_list.push(".".to_string());
+            candidate_list.push("..".to_string());
         }
         self.picture_search_folders = Some(candidate_list);
     }
