@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Image search and resize
 - Minor version bump
 - Imaging working - hopefully
+- Add CLI dependency
 
 ### Miscellaneous Tasks
 
