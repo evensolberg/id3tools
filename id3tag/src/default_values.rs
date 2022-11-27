@@ -441,8 +441,8 @@ mod tests {
             "I have no idea if this is correct".to_string()
         );
 
-        assert_eq!(dfvu.picture_front.unwrap(), "cover-small.jpg".to_string());
-        assert_eq!(dfvu.picture_back.unwrap(), "back-small.jpg".to_string());
+        assert_eq!(dfvu.picture_front.unwrap(), "cover-resized.jpg".to_string());
+        assert_eq!(dfvu.picture_back.unwrap(), "back-resized.jpg".to_string());
 
         assert_eq!(dfvu.picture_search_folders.unwrap().len(), 4);
         assert_eq!(dfvu.picture_front_candidates.unwrap().len(), 6);

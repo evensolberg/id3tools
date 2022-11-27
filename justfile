@@ -14,6 +14,8 @@ alias bra := buildra
 alias fmt := format
 alias r := release
 alias update := upgrade
+alias t := test
+alias tp := testp
 
 # SHORTCUTS AND COMMANDS
 
@@ -113,6 +115,10 @@ alias update := upgrade
 # Tests the project
 @test:
     cargo nextest run
+
+# Tests the project with output
+@testp:
+    cargo nextest run --no-capture | tee {{invocation_directory()}}/test.txt
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint spell

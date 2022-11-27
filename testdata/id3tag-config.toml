@@ -33,8 +33,8 @@ track_composer_sort = "Beethoven, Ludwig van"
 track_date = "1843"
 track_comments = "I have no idea if this is correct"
 
-picture_front = "cover-small.jpg"
-picture_back = "back-small.jpg"
+picture_front = "cover-resized.jpg"
+picture_back = "back-resized.jpg"
 
 picture_search_folders = ["Artwork", "Scans"] # Program will add '.' and '..' to the front of the list.
 picture_front_candidates = [
