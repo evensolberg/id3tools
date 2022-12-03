@@ -787,8 +787,12 @@ mod tests {
         let res = find_first_image(music_file, &image_vec);
         assert!(res.is_err());
 
-        // Should find something
+        // should now return with None
         music_file = "../testdata/sample.flac";
+        let res = find_first_image(music_file, &image_vec).unwrap();
+        assert!(res.is_none());
+
+        // Should find something
         image_vec.push("../testdata/DSOTM_Cover.jpeg".to_string());
         let res = find_first_image(music_file, &image_vec);
         assert!(res.is_ok());
