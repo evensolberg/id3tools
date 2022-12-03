@@ -5,7 +5,7 @@ use image::imageops::FilterType;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::fs::canonicalize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::default_values::DefaultValues;
 use crate::rename_file::filename_resize;
@@ -437,6 +437,7 @@ fn gather_cover_paths(
 ) -> Result<Vec<String>, Box<dyn Error>> {
     let mut res_vec: Vec<String> = Vec::new();
 
+    // Gather the folders - we'll use these in all cases.
     let psf = cfg.picture_search_folders.as_ref();
     let psf = if let Some(ps) = psf {
         ps.to_owned()
@@ -445,6 +446,7 @@ fn gather_cover_paths(
     };
     log::debug!("formats::images::gather_cover_paths::psf = {:?}", psf);
 
+    // Depending on the cover type, collect the folder+filename combos
     for f in psf {
         let folder = Path::new(&f);
         match cover_type {
@@ -456,6 +458,8 @@ fn gather_cover_paths(
                     let pr = filename_resize(&pn)?;
                     let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
                     res_vec.push(prp);
+                } else {
+                    return Err("No front cover submitted.".into());
                 }
             }
             CoverType::Back => {
@@ -466,6 +470,8 @@ fn gather_cover_paths(
                     let pr = filename_resize(&pn)?;
                     let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
                     res_vec.push(prp);
+                } else {
+                    return Err("No back cover submitted.".into());
                 }
             }
             CoverType::FrontCandidate => {
@@ -478,6 +484,8 @@ fn gather_cover_paths(
                         let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
                         res_vec.push(prp);
                     }
+                } else {
+                    return Err("No front cover candidates identified.".into());
                 }
             }
             CoverType::BackCandidate => {
@@ -490,6 +498,8 @@ fn gather_cover_paths(
                         let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
                         res_vec.push(prp);
                     }
+                } else {
+                    return Err("No back cover candidates identified.".into());
                 }
             } // CoverType::BackCandidate
         } // match cover_type
@@ -501,6 +511,45 @@ fn gather_cover_paths(
         res_vec
     );
     Ok(res_vec)
+}
+
+/// Finds the first image from a list relative to a music file.
+fn find_first_image(
+    music_file: &str,
+    image_vec: &Vec<String>,
+) -> Result<Option<PathBuf>, Box<dyn Error>> {
+    if music_file.is_empty() {
+        return Err("No music file supplied.".into());
+    }
+
+    if image_vec.is_empty() {
+        return Err("No image candidates supplied.".into());
+    }
+
+    let mf = Path::new(music_file);
+    if !mf.exists() {
+        return Err(format!("music file {} does not appear to exist.", music_file).into());
+    }
+
+    let music_path = mf.canonicalize()?;
+    log::debug!("music_path = {:?}", music_path);
+
+    let music_dir = music_path.parent().unwrap_or_else(|| Path::new("."));
+    log::debug!("music_dir = {:?}", music_dir);
+
+    for img_candidate in image_vec {
+        let image_path = music_dir.join(Path::new(&img_candidate));
+        log::debug!("image_path = {:?}", image_path);
+        if image_path.exists() {
+            let image_path = image_path.canonicalize()?;
+            return Ok(Some(image_path));
+        }
+    }
+
+    log::warn!("No images found among the candidates supplied.");
+
+    // Nothing found - return safely
+    Ok(None)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -639,7 +688,11 @@ mod tests {
 
         // Test CoverType::Front
         let res = gather_cover_paths(CoverType::Front, &cfg);
-        println!("CoverType::Front res ={:?} ({})", res, res.as_ref().unwrap().len());
+        println!(
+            "CoverType::Front res ={:?} ({})",
+            res,
+            res.as_ref().unwrap().len()
+        );
         assert!(res.is_ok());
         assert_eq!(res.as_ref().unwrap().len(), 10);
         assert_eq!(res.as_ref().unwrap()[0], "../front-resize.jpg".to_string());
@@ -664,7 +717,11 @@ mod tests {
 
         // Test CoverType::Back
         let res = gather_cover_paths(CoverType::Back, &cfg);
-        println!("CoverType::Back res = {:?} ({})", res, res.as_ref().unwrap().len());
+        println!(
+            "CoverType::Back res = {:?} ({})",
+            res,
+            res.as_ref().unwrap().len()
+        );
         assert!(res.is_ok());
         assert_eq!(res.as_ref().unwrap().len(), 10);
         assert_eq!(res.as_ref().unwrap()[0], "../back-resize.jpg".to_string());
@@ -689,14 +746,52 @@ mod tests {
 
         // Test CoverType::FrontCandidate
         let res = gather_cover_paths(CoverType::FrontCandidate, &cfg);
-        println!("CoverType::FrontCandidate res = {:?} ({})", res, res.as_ref().unwrap().len());
+        println!(
+            "CoverType::FrontCandidate res = {:?} ({})",
+            res,
+            res.as_ref().unwrap().len()
+        );
         assert!(res.is_ok());
         assert_eq!(res.as_ref().unwrap().len(), 30);
 
         // Test CoverType::BackCandidate
         let res = gather_cover_paths(CoverType::BackCandidate, &cfg);
-        println!("CoverType::BackCandidate res = {:?} ({})", res, res.as_ref().unwrap().len());
+        println!(
+            "CoverType::BackCandidate res = {:?} ({})",
+            res,
+            res.as_ref().unwrap().len()
+        );
         assert!(res.is_ok());
         assert_eq!(res.as_ref().unwrap().len(), 30);
+    }
+
+    #[assay(include = ["../testdata/sample.flac", "../testdata/DSOTM_Cover.jpeg"])]
+    /// tests the find_first_image function
+    fn test_find_first_image() {
+        // test the failure scenarios first
+        let mut music_file = "";
+        let mut image_vec: Vec<String> = Vec::new();
+
+        // Start with everything empty - should fail on the music file.
+        let res = find_first_image(music_file, &image_vec);
+        assert!(res.is_err());
+
+        // Shoould now fail on the empty vector.
+        music_file = "../testdata/somefile.flac";
+        let res = find_first_image(music_file, &image_vec);
+        assert!(res.is_err());
+
+        // Should now fail on the music file not being found.
+        image_vec.push("front.jpg".to_string());
+        image_vec.push("cover.jpg".to_string());
+        let res = find_first_image(music_file, &image_vec);
+        assert!(res.is_err());
+
+        // Should find something
+        music_file = "../testdata/sample.flac";
+        image_vec.push("../testdata/DSOTM_Cover.jpeg".to_string());
+        let res = find_first_image(music_file, &image_vec);
+        assert!(res.is_ok());
+        println!("res = {:?}", res);
     }
 }

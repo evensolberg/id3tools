@@ -70,51 +70,58 @@ dfv = Ok(DefaultValues { detail_off: Some(false), print_summary: Some(true), sto
 dfvu = DefaultValues { detail_off: Some(false), print_summary: Some(true), stop_on_error: Some(false), dry_run: Some(true), single_thread: Some(false), log_config_file: Some("log4rs.yaml"), album_artist: Some("Ludwig van Beethoven"), album_artist_sort: Some("Beethoven, Ludwig van"), album_title: Some("Piano Sonata No. 5"), album_title_sort: Some("Piano Sonata No. 5"), disc_number: Some(1), disc_count: Some(true), disc_total: Some(2), track_artist: Some("Ludwig van Beethoven"), track_album_artist: None, track_artist_sort: Some("Beethoven, Ludwig van"), track_title: Some("Piano Sonata No. 5 - II. Adagio"), track_title_sort: Some("Piano Sonata No. 5 - II. Adagio"), track_number: Some(2), track_total: Some(5), track_count: Some(true), track_genre: Some("Classical"), track_genre_number: Some(33), track_composer: Some("Ludwig van Beethoven"), track_composer_sort: Some("Beethoven, Ludwig van"), track_date: Some("1843"), track_comments: Some("I have no idea if this is correct"), picture_front: Some("cover-resized.jpg"), picture_back: Some("back-resized.jpg"), picture_front_candidates: Some(["Folder.jpg", "folder.jpg", "front.jpg", "Front.jpg", "Cover.jpg", "cover.jpg"]), picture_back_candidates: Some(["back.jpg", "Back.jpg", "back.png", "Back.png"]), picture_search_folders: Some(["Artwork", "Scans", ".", ".."]), picture_max_size: Some(500), rename_file: Some("%dn-%tn - %ta - %tt") }
 test default_values::tests::test_load_config ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test default_values::tests::test_new_default_values ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::ape::tests::test_process_ape ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::ape::tests::test_rename_file ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::dsf::tests::test_rename_file ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::dsf::tests::test_to_number ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 Image size: 750000
 test formats::images::tests::test_create_cover ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 2.87s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 2.86s
 
 
 running 1 test
 cover_file = Some("/private/var/folders/cr/r69x9vjx45j9wt7jy3zbl2v00000gn/T/testdata/cover-resized.jpg")
 test formats::images::tests::test_find_cover ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 5.71s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 5.71s
+
+
+running 1 test
+res = Ok(Some("/private/var/folders/cr/r69x9vjx45j9wt7jy3zbl2v00000gn/T/testdata/DSOTM_Cover.jpeg"))
+test formats::images::tests::test_find_first_image ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
@@ -124,66 +131,66 @@ CoverType::FrontCandidate res = Ok(["../cover-resize.jpg", "../cover.jpg", "../f
 CoverType::BackCandidate res = Ok(["../back-resize.jpg", "../back-resize.png", "../back.jpg", "../back.png", "../backcover-resize.jpg", "../backcover.jpg", "./back-resize.jpg", "./back-resize.png", "./back.jpg", "./back.png", "./backcover-resize.jpg", "./backcover.jpg", "Artwork/back-resize.jpg", "Artwork/back-resize.png", "Artwork/back.jpg", "Artwork/back.png", "Artwork/backcover-resize.jpg", "Artwork/backcover.jpg", "Images/back-resize.jpg", "Images/back-resize.png", "Images/back.jpg", "Images/back.png", "Images/backcover-resize.jpg", "Images/backcover.jpg", "Scans/back-resize.jpg", "Scans/back-resize.png", "Scans/back.jpg", "Scans/back.png", "Scans/backcover-resize.jpg", "Scans/backcover.jpg"]) (30)
 test formats::images::tests::test_gather_cover_paths ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::images::tests::test_needs_resizing ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.79s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.80s
 
 
 running 1 test
 Image size: 3630000
 test formats::images::tests::test_read_cover ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.40s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.40s
 
 
 running 1 test
 test formats::tags::tests::test_get_tag_names ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::tags::tests::test_option_to_tag ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::tests::test_get_disc_count ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.01s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.01s
 
 
 running 1 test
 test formats::tests::test_get_disc_number ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test formats::tests::test_get_genre_name ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test rename_file::tests::test_filename_resize ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
 
 running 1 test
 test rename_file::tests::test_filename_resized ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 3.54s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 3.54s
 
 
 running 1 test
 test rename_file::tests::test_rename_file ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 0.00s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
 
