@@ -514,6 +514,12 @@ fn gather_cover_paths(
 }
 
 /// Finds the first image from a list relative to a music file.
+/// Grabs the path (ie. directory) of the music file and looks for images relative to this.
+/// The function will return with the full path of the first image found, or `Ok(None)` if nothing is found.
+///
+/// Parameters:
+/// `music_file: &str` - the name (and full path) of the music file being used as the basis for the search.
+/// `image_vec: &Vec<String>` - a vector of string values containing the candidate filenames to be searched.
 fn find_first_image(
     music_file: &str,
     image_vec: &Vec<String>,
@@ -782,20 +788,33 @@ mod tests {
         assert!(res.is_err());
 
         // Should now fail on the music file not being found.
-        image_vec.push("front.jpg".to_string());
-        image_vec.push("cover.jpg".to_string());
+
         let res = find_first_image(music_file, &image_vec);
         assert!(res.is_err());
 
         // should now return with None
         music_file = "../testdata/sample.flac";
+        image_vec.push("front.jpg".to_string());
+        image_vec.push("cover.jpg".to_string());
         let res = find_first_image(music_file, &image_vec).unwrap();
         assert!(res.is_none());
 
-        // Should find something
+        // Should find DSOTM_Cover.jpeg
+        image_vec.clear();
+        image_vec.push("front.jpg".to_string());
+        image_vec.push("cover.jpg".to_string());
         image_vec.push("../testdata/DSOTM_Cover.jpeg".to_string());
+        println!("image_vec = {:?}", image_vec);
         let res = find_first_image(music_file, &image_vec);
-        assert!(res.is_ok());
         println!("res = {:?}", res);
+
+        assert!(res.is_ok());
+        assert!(res.as_ref().unwrap().is_some());
+        println!("res = {:?}", res);
+
+        // There's gotta be a better way to do this
+        let filename = res.unwrap().unwrap();
+        let filename = filename.file_name().unwrap().to_str().unwrap();
+        assert_eq!(filename, "DSOTM_Cover.jpeg");
     }
 }
