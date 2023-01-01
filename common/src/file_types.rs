@@ -16,12 +16,12 @@ pub enum FileTypes {
 impl fmt::Display for FileTypes {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let filetype = (match self {
-            FileTypes::Ape => "APE",
-            FileTypes::Dsf => "DSF",
-            FileTypes::Flac => "FLAC",
-            FileTypes::MP3 => "MP3",
-            FileTypes::MP4 => "MP4",
-            FileTypes::Unknown => "Unknown",
+            Self::Ape => "APE",
+            Self::Dsf => "DSF",
+            Self::Flac => "FLAC",
+            Self::MP3 => "MP3",
+            Self::MP4 => "MP4",
+            Self::Unknown => "Unknown",
         })
         .to_string();
 
