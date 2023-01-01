@@ -106,7 +106,7 @@ pub fn rename_file(
             "{} already exists. Appending unique identifier.",
             new_filename
         );
-        new_filename = format!("{} ({:0>4})", new_filename, unique_val);
+        new_filename = format!("{new_filename} ({unique_val:0>4})");
         new_path =
             parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
     }
@@ -116,7 +116,7 @@ pub fn rename_file(
         log::debug!("dr: {} --> {}", filename, new_path.display());
     } else {
         // Get parent dir
-        let rn_res = std::fs::rename(&filename, &new_path);
+        let rn_res = std::fs::rename(filename, &new_path);
         match rn_res {
             Ok(_) => log::debug!("{} --> {}", filename, new_path.to_string_lossy()),
             Err(err) => {
@@ -177,9 +177,9 @@ pub fn filename_resize(src_fn: &str) -> Result<String, Box<dyn Error>> {
     let path_ext = Path::new(src_fn).extension().unwrap().to_str().unwrap();
 
     let new_name = if path_dir.is_empty() {
-        format!("{}-resize.{}", path_name, path_ext)
+        format!("{path_name}-resize.{path_ext}")
     } else {
-        format!("{}/{}-resize.{}", path_dir, path_name, path_ext)
+        format!("{path_dir}/{path_name}-resize.{path_ext}")
     };
     log::debug!("new_name: {}", new_name);
 

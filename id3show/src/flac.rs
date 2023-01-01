@@ -19,7 +19,7 @@ use std::error::Error;
 ///
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
-    let tags = Tag::read_from_path(&filename)?;
+    let tags = Tag::read_from_path(filename)?;
 
     // Output existing blocks
     for block in tags.blocks() {

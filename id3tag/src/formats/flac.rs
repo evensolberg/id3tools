@@ -31,7 +31,7 @@ pub fn process(
     new_tags: &mut HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    let mut tags = Tag::read_from_path(&filename)?;
+    let mut tags = Tag::read_from_path(filename)?;
     log::debug!("Filename: {}", filename);
 
     let mut processed_ok = false;
@@ -133,7 +133,7 @@ pub fn process(
         log::info!("{}   ✓", filename);
     } else {
         if config.stop_on_error.unwrap_or(true) {
-            return Err(format!("Unable to save {}", filename).into());
+            return Err(format!("Unable to save {filename}").into());
         }
         log::warn!("Unable to save {}", filename);
     }
@@ -180,7 +180,7 @@ fn rename_file(
 ) -> Result<(), Box<dyn Error>> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }

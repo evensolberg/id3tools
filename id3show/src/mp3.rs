@@ -4,7 +4,7 @@ use std::error::Error;
 /// Performs the actual processing of MP3 files.
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
     // Reat the tag - bomb out if it doesn't work.
-    let tag = Tag::read_from_path(&filename)?;
+    let tag = Tag::read_from_path(filename)?;
 
     log::debug!("Tag = {:?}", tag);
     log::debug!("Frames:");

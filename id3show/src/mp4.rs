@@ -3,7 +3,7 @@ use std::error::Error;
 
 /// Show the MP4 metadata
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
-    let tag = Tag::read_from_path(&filename)?;
+    let tag = Tag::read_from_path(filename)?;
 
     log::trace!("Tag = {:?}", tag);
     for (data_ident, data) in tag.data() {

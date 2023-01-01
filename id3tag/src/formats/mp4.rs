@@ -62,7 +62,7 @@ pub fn process(
             "trkn-t" => tag.set_total_tracks(value.parse::<u16>().unwrap_or(1)),
             _ => {
                 // tag.set_data(Fourcc(key.as_bytes().try_into()?), Data::Utf8(value.into()));
-                return Err(format!("Unknown key: {}", key).into());
+                return Err(format!("Unknown key: {key}").into());
             }
         }
     }
@@ -77,7 +77,7 @@ pub fn process(
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(
-                        format!("Unable to save tags to {}. Error: {}", filename, err).into(),
+                        format!("Unable to save tags to {filename}. Error: {err}").into(),
                     );
                 }
                 log::warn!("Unable to save tags to {}. Error: {}", filename, err);
@@ -91,7 +91,7 @@ pub fn process(
             Ok(_) => processed_ok = true,
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
-                    return Err(format!("Unable to rename {}. Error: {}", filename, err).into());
+                    return Err(format!("Unable to rename {filename}. Error: {err}").into());
                 }
                 log::warn!("Unable to rename {}. Error: {}", filename, err);
             }
@@ -133,7 +133,7 @@ fn rename_file(
     let tags_map = get_mp4_tags(tag);
     log::debug!("tags_map = {:?}", tags_map);
 
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }
@@ -173,7 +173,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     data = tags // Album Artist Sort
         .data_of(&Fourcc(*b"soaa"))
         .next()
-        .unwrap_or(&Data::Utf8("".to_owned()))
+        .unwrap_or(&Data::Utf8(String::new()))
         .string()
         .unwrap_or("")
         .to_string();
@@ -187,7 +187,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     data = tags // Album Title Sort
         .data_of(&Fourcc(*b"soal"))
         .next()
-        .unwrap_or(&Data::Utf8("".to_owned()))
+        .unwrap_or(&Data::Utf8(String::new()))
         .string()
         .unwrap_or("")
         .to_string();
@@ -210,7 +210,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     data = tags // Track Artist Sort
         .data_of(&Fourcc(*b"soar"))
         .next()
-        .unwrap_or(&Data::Utf8("".to_owned()))
+        .unwrap_or(&Data::Utf8(String::new()))
         .string()
         .unwrap_or("")
         .to_string();
@@ -224,7 +224,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     data = tags // Track Title Sort
         .data_of(&Fourcc(*b"sonm"))
         .next()
-        .unwrap_or(&Data::Utf8("".to_owned()))
+        .unwrap_or(&Data::Utf8(String::new()))
         .string()
         .unwrap_or("")
         .to_string();
@@ -251,7 +251,7 @@ fn get_mp4_tags(tags: &mp4ameta::Tag) -> HashMap<String, String> {
     data = tags // Track Composer Sort
         .data_of(&Fourcc(*b"soco"))
         .next()
-        .unwrap_or(&Data::Utf8("".to_owned()))
+        .unwrap_or(&Data::Utf8(String::new()))
         .string()
         .unwrap_or("")
         .to_string();

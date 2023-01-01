@@ -103,7 +103,7 @@ fn rename_file(
     let tags_names = option_to_tag(FileTypes::Dsf);
     let mut replace_map = HashMap::new();
 
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }
@@ -200,7 +200,7 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
         Ok(n) => n,
         Err(err) => {
             if stop_on_error {
-                return Err(format!("Unable to set {} to {}. Error: {}", item, value, err).into());
+                return Err(format!("Unable to set {item} to {value}. Error: {err}").into());
             }
             log::error!(
                 "Unable to set {} to {}. Setting to 1 and continuing. Error: {}",
@@ -226,10 +226,10 @@ mod tests {
     /// Test the to_number function.
     fn test_to_number() {
         for n in 0..=100 {
-            let num1 = to_number(&format!("{}", n), "test", false).unwrap();
+            let num1 = to_number(&format!("{n}"), "test", false).unwrap();
             assert_eq!(num1, n);
 
-            let num2 = to_number(&format!("{}", n), "test", true).unwrap();
+            let num2 = to_number(&format!("{n}"), "test", true).unwrap();
             assert_eq!(num2, n);
         }
 

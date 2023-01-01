@@ -16,7 +16,7 @@ pub fn process(
 
     let mut processed_ok = false;
 
-    let mut tags = ape::read_from_path(&filename)?;
+    let mut tags = ape::read_from_path(filename)?;
     for item in tags.iter() {
         log::debug!("Old {} = {:?}", item.key, item.value);
     }

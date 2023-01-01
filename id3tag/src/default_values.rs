@@ -165,8 +165,8 @@ impl DefaultValues {
     pub fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
 
-        let mut file = File::open(&filename)
-            .map_err(|err| format!("Config file {} not found. Error: {}", filename, err))?;
+        let mut file = File::open(filename)
+            .map_err(|err| format!("Config file {filename} not found. Error: {err}"))?;
 
         file.read_to_string(&mut config_toml)?;
         log::debug!("Config file contents: {}", &config_toml);
@@ -371,12 +371,12 @@ mod tests {
     fn test_load_config() {
         // Try to load a config file
         let dfv = DefaultValues::load_config("../testdata/id3tag-config.toml");
-        println!("dfv = {:?}", dfv);
+        println!("dfv = {dfv:?}");
         assert!(dfv.is_ok());
 
         // Make sure we can unwrap the loaded config file
         let dfvu = dfv.unwrap();
-        println!("dfvu = {:?}", dfvu);
+        println!("dfvu = {dfvu:?}");
 
         assert_eq!(dfvu.detail_off.unwrap(), false);
         assert_eq!(dfvu.print_summary.unwrap(), true);

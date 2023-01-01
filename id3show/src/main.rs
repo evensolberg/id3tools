@@ -33,7 +33,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut file_count = 0;
 
     for filename in cli_args.values_of("files").unwrap() {
-        filenames.push(&*filename);
+        filenames.push(filename);
         file_count += 1;
     }
 

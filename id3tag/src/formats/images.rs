@@ -20,7 +20,7 @@ enum CoverType {
 }
 
 impl Display for CoverType {
-    /// Display function for the CoverType.
+    /// Display function for the `CoverType`.
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             CoverType::Front => write!(f, "front"),
@@ -87,13 +87,11 @@ fn get_cover(
         let cover_file_name = if cover_type == CoverType::Front {
             cfg.picture_front
                 .as_ref()
-                .unwrap_or(&"front-cover.jpg".to_string())
-                .to_owned()
+                .unwrap_or(&"front-cover.jpg".to_string()).clone()
         } else {
             cfg.picture_back
                 .as_ref()
-                .unwrap_or(&"back-cover.jpg".to_string())
-                .to_owned()
+                .unwrap_or(&"back-cover.jpg".to_string()).clone()
         };
 
         // Get the path to the music file, so we can save the cover file next to it if needed.
@@ -232,9 +230,9 @@ fn find_cover(
 fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> Option<String> {
     for folder_name in config.picture_search_folders.as_ref().unwrap() {
         let cover_path = if folder_name == "." {
-            format!("{}/{}", music_path, filename)
+            format!("{music_path}/{filename}")
         } else {
-            format!("{}/{}/{}", music_path, folder_name, filename)
+            format!("{music_path}/{folder_name}/{filename}")
         };
         log::debug!("Checking path: {}", cover_path);
         if std::path::Path::new(&cover_path).exists() {
@@ -247,7 +245,7 @@ fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> 
 
 /// Check if the cover needs resizing and if the X:Y ratio is acceptable (i.e. not too wide or tall).
 fn cover_needs_resizing(filename: &str, max_size: u32) -> Result<bool, Box<dyn Error>> {
-    let img_res = image::open(&filename);
+    let img_res = image::open(filename);
     let img = match img_res {
         Ok(img) => img,
         Err(err) => {
@@ -264,7 +262,7 @@ fn cover_needs_resizing(filename: &str, max_size: u32) -> Result<bool, Box<dyn E
     let size_factor = f64::from(img_x) / f64::from(img_y);
 
     // Check if the image (likely) contains multiple covers.
-    let size_factor_str = format!("{:.2}", size_factor);
+    let size_factor_str = format!("{size_factor:.2}");
     log::debug!("{} size factor: {}", filename, size_factor_str);
     if !(0.5..=1.5).contains(&size_factor) {
         return Err("Image is not in the expected ratio.".into());
@@ -308,7 +306,7 @@ pub fn create_cover(
     log::debug!("create_cover: Reading image file: {}", src_filename);
     // Read the source file.
     // `open` returns a `DynamicImage` on success.
-    let img_res = image::open(&src_filename);
+    let img_res = image::open(src_filename);
     let img = match img_res {
         Ok(img) => img,
         Err(err) => {
@@ -327,7 +325,7 @@ pub fn create_cover(
     log::debug!(
         "{} size factor: {}",
         src_filename,
-        format!("{:2}", size_factor)
+        format!("{size_factor:2}")
     );
     if !(0.5..=1.5).contains(&size_factor) {
         return Err("Image is not in the expected ratio.".into());
@@ -364,7 +362,7 @@ pub fn create_cover(
 pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
     log::debug!("read_cover: Reading image file: {}", cover_file);
     // Read the source file.
-    let img_res = image::open(&cover_file);
+    let img_res = image::open(cover_file);
     let img = match img_res {
         Ok(img) => img,
         Err(err) => {
@@ -386,7 +384,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         log::debug!(
             "{} size factor: {}",
             cover_file,
-            format!("{:2}", size_factor)
+            format!("{size_factor:2}")
         );
         if !(0.5..=1.5).contains(&size_factor) {
             return Err("Image is not in the expected ratio (0.5..=1.5).".into());
@@ -440,7 +438,7 @@ fn gather_cover_paths(
     // Gather the folders - we'll use these in all cases.
     let psf = cfg.picture_search_folders.as_ref();
     let psf = if let Some(ps) = psf {
-        ps.to_owned()
+        ps.clone()
     } else {
         vec![".".to_string(), "..".to_string()]
     };
@@ -453,10 +451,10 @@ fn gather_cover_paths(
             CoverType::Front => {
                 if let Some(pn) = &cfg.picture_front {
                     let p = Path::new(&pn);
-                    let ppath = folder.join(&p).to_str().unwrap_or_default().to_owned();
+                    let ppath = folder.join(p).to_str().unwrap_or_default().to_owned();
                     res_vec.push(ppath);
-                    let pr = filename_resize(&pn)?;
-                    let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
+                    let pr = filename_resize(pn)?;
+                    let prp = folder.join(pr).to_str().unwrap_or_default().to_owned();
                     res_vec.push(prp);
                 } else {
                     return Err("No front cover submitted.".into());
@@ -465,10 +463,10 @@ fn gather_cover_paths(
             CoverType::Back => {
                 if let Some(pn) = &cfg.picture_back {
                     let p = Path::new(&pn);
-                    let ppath = folder.join(&p).to_str().unwrap_or_default().to_owned();
+                    let ppath = folder.join(p).to_str().unwrap_or_default().to_owned();
                     res_vec.push(ppath);
-                    let pr = filename_resize(&pn)?;
-                    let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
+                    let pr = filename_resize(pn)?;
+                    let prp = folder.join(pr).to_str().unwrap_or_default().to_owned();
                     res_vec.push(prp);
                 } else {
                     return Err("No back cover submitted.".into());
@@ -478,10 +476,10 @@ fn gather_cover_paths(
                 if let Some(pcs) = &cfg.picture_front_candidates {
                     for c in pcs {
                         let pc = Path::new(&c);
-                        let ppath = folder.join(&pc).to_str().unwrap_or_default().to_owned();
+                        let ppath = folder.join(pc).to_str().unwrap_or_default().to_owned();
                         res_vec.push(ppath);
-                        let pr = filename_resize(&c)?;
-                        let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
+                        let pr = filename_resize(c)?;
+                        let prp = folder.join(pr).to_str().unwrap_or_default().to_owned();
                         res_vec.push(prp);
                     }
                 } else {
@@ -492,10 +490,10 @@ fn gather_cover_paths(
                 if let Some(pcs) = &cfg.picture_back_candidates {
                     for c in pcs {
                         let pc = Path::new(&c);
-                        let ppath = folder.join(&pc).to_str().unwrap_or_default().to_owned();
+                        let ppath = folder.join(pc).to_str().unwrap_or_default().to_owned();
                         res_vec.push(ppath);
-                        let pr = filename_resize(&c)?;
-                        let prp = folder.join(&pr).to_str().unwrap_or_default().to_owned();
+                        let pr = filename_resize(c)?;
+                        let prp = folder.join(pr).to_str().unwrap_or_default().to_owned();
                         res_vec.push(prp);
                     }
                 } else {
@@ -534,7 +532,7 @@ fn find_first_image(
 
     let mf = Path::new(music_file);
     if !mf.exists() {
-        return Err(format!("music file {} does not appear to exist.", music_file).into());
+        return Err(format!("music file {music_file} does not appear to exist.").into());
     }
 
     let music_path = mf.canonicalize()?;
@@ -586,7 +584,7 @@ mod tests {
         let _ = create_cover(fc_filename, "../testdata/cover-resized.jpg", 500, false);
 
         let cover_file = find_cover(CoverType::Front, music_file, &dv)?;
-        println!("cover_file = {:?}", cover_file);
+        println!("cover_file = {cover_file:?}");
         assert!(cover_file.is_some());
         // assert_eq!(cover_file.unwrap(), "../testdata/cover-resized.jpg");
         fs::remove_file(Path::new("../testdata/cover-resized.jpg")).unwrap();
@@ -622,7 +620,7 @@ mod tests {
         let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
         println!("Image size: {}", return_vec.len());
         assert!(!return_vec.is_empty());
-        assert!(return_vec.len() > 0);
+        assert!(!return_vec.is_empty());
         assert_eq!(return_vec.len(), 3_630_000);
     }
 
@@ -630,7 +628,7 @@ mod tests {
     /// Tests that the create_cover function works as expected.
     fn test_create_cover() {
         let src_filename = "../testdata/DSOTM_Cover.jpeg";
-        let dst_filename = filename_resize(&src_filename).unwrap();
+        let dst_filename = filename_resize(src_filename).unwrap();
         let max_size = 500;
         let dry_run = false;
 
@@ -639,7 +637,7 @@ mod tests {
         let return_vec = res.unwrap();
         println!("Image size: {}", return_vec.len());
         assert!(!return_vec.is_empty());
-        assert!(return_vec.len() > 0);
+        assert!(!return_vec.is_empty());
         assert_eq!(return_vec.len(), 750_000);
 
         // Check that the file was created.
@@ -804,13 +802,13 @@ mod tests {
         image_vec.push("front.jpg".to_string());
         image_vec.push("cover.jpg".to_string());
         image_vec.push("../testdata/DSOTM_Cover.jpeg".to_string());
-        println!("image_vec = {:?}", image_vec);
+        println!("image_vec = {image_vec:?}");
         let res = find_first_image(music_file, &image_vec);
-        println!("res = {:?}", res);
+        println!("res = {res:?}");
 
         assert!(res.is_ok());
         assert!(res.as_ref().unwrap().is_some());
-        println!("res = {:?}", res);
+        println!("res = {res:?}");
 
         // There's gotta be a better way to do this
         let filename = res.unwrap().unwrap();

@@ -21,7 +21,7 @@ pub fn process(
     let mut processed_ok = false;
 
     // Reat the tag - bomb out if it doesn't work.
-    let mut tag = Tag::read_from_path(&filename)?;
+    let mut tag = Tag::read_from_path(filename)?;
 
     log::trace!("Tag = {:?}", tag);
     for frame in tag.frames() {
@@ -259,7 +259,7 @@ fn rename_file(
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }

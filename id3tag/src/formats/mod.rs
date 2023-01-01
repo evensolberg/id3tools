@@ -70,7 +70,7 @@ pub fn process_file(
                 FileTypes::MP3 => mp3::process(filename, &new_tags, config),
                 FileTypes::MP4 => mp4::process(filename, &new_tags, config),
                 FileTypes::Unknown => {
-                    return Err(format!("{} is unknown file type.", filename).into())
+                    return Err(format!("{filename} is unknown file type.").into())
                 }
             };
 
@@ -79,7 +79,7 @@ pub fn process_file(
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(true) {
                         return Err(
-                            format!("Unable to process {}. Error: {}", filename, err).into()
+                            format!("Unable to process {filename}. Error: {err}").into()
                         );
                     }
                     log::error!("Unable to process {}. Error: {}", filename, err);
@@ -89,7 +89,7 @@ pub fn process_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(
-                    format!("Unable to parse tags for {}. Error: {}", filename, err).into(),
+                    format!("Unable to parse tags for {filename}. Error: {err}").into(),
                 );
             }
             log::error!("Unable to parse tags for {}. Error: {}", filename, err);
@@ -226,10 +226,10 @@ fn parse_options(
         log::debug!("parse_options::disc number: {}", disc_num);
         let disc_count = get_disc_count(filename)?;
         log::debug!("parse_options: disc count: {}", disc_count);
-        new_tags.insert(tag_names.disc_number.clone(), format!("{:0>2}", disc_num));
+        new_tags.insert(tag_names.disc_number.clone(), format!("{disc_num:0>2}"));
         new_tags.insert(
             tag_names.disc_number_total.clone(),
-            format!("{:0>2}", disc_count),
+            format!("{disc_count:0>2}"),
         );
     }
 
@@ -497,7 +497,7 @@ fn find_picture(
         return Ok(Some(Path::new(p_filename).to_str().unwrap().to_string()));
     } else if config.stop_on_error.unwrap_or(false) {
         // No picture found - act accordingly
-        return Err(format!("Picture file {} does not exist.", p_filename).into());
+        return Err(format!("Picture file {p_filename} does not exist.").into());
     }
 
     Ok(None)
@@ -715,7 +715,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     log::trace!("get_disc_number::filename: {}", filename);
 
     // Get the full path so we can figure out the parent below
-    let full_path = fs::canonicalize(&filename)?;
+    let full_path = fs::canonicalize(filename)?;
     log::debug!("get_disc_number::full_path = {:?}", full_path);
 
     // Get the parent directory
@@ -791,7 +791,7 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
     log::debug!("get_disc_count::get_disc_number filename: {}", filename);
 
     // Get the full path so we can figure out the grandparent below
-    let full_path = fs::canonicalize(&filename)?;
+    let full_path = fs::canonicalize(filename)?;
     log::debug!("get_disc_count::full_path = {:?}", full_path);
 
     // Get the grandparent directory so we can look for disc subdirectories underneath.
@@ -805,7 +805,7 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
     log::debug!("get_disc_count::grandparent_dir = {:?}", grandparent_dir);
 
     // Find the subdirectories of the grandparent
-    let dirs = fs::read_dir(&grandparent_dir)?;
+    let dirs = fs::read_dir(grandparent_dir)?;
     log::debug!("get_disc_count::dirs = {:?}", dirs);
 
     // Determine the number of disc subdirs
