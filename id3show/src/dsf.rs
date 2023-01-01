@@ -14,7 +14,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             }
             Err(error) => {
                 return Err(
-                    format!("Unable to read DSF file {}. Error: {}", filename, error).into(),
+                    format!("Unable to read DSF file {filename}. Error: {error}").into(),
                 );
             }
         }
@@ -24,7 +24,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             log::info!("  {} = {}", frame.id(), frame.content());
         }
     } else {
-        return Err(format!("Unable to read DSF file {}", filename).into());
+        return Err(format!("Unable to read DSF file {filename}").into());
     }
 
     Ok(())

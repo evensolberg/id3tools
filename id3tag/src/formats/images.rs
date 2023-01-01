@@ -23,10 +23,10 @@ impl Display for CoverType {
     /// Display function for the `CoverType`.
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
-            CoverType::Front => write!(f, "front"),
-            CoverType::Back => write!(f, "back"),
-            CoverType::FrontCandidate => write!(f, "front candidate"),
-            CoverType::BackCandidate => write!(f, "back candidate"),
+            Self::Front => write!(f, "front"),
+            Self::Back => write!(f, "back"),
+            Self::FrontCandidate => write!(f, "front candidate"),
+            Self::BackCandidate => write!(f, "back candidate"),
         }
     }
 }

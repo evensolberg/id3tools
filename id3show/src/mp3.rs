@@ -111,7 +111,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 }
             }
             _ => {
-                return Err(format!("Unknown content type in file {}", filename).into());
+                return Err(format!("Unknown content type in file {filename}").into());
             }
         }
     }

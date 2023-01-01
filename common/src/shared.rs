@@ -28,7 +28,7 @@ pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
 }
 
 /// Get the extension part of the filename and return it as a string
-pub fn get_extension(filename: &str) -> String {
+#[must_use] pub fn get_extension(filename: &str) -> String {
     Path::new(&filename)
         .extension()
         .unwrap_or_else(|| OsStr::new("unknown"))
@@ -92,14 +92,14 @@ pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
         && !pattern.contains("%tts")
         && !pattern.contains("%track-title-sort")
     {
-        Err(format!("Pattern \"{}\" would likely not yield unique file names. Pattern should contain track number and/or track name variants.", pattern))
+        Err(format!("Pattern \"{pattern}\" would likely not yield unique file names. Pattern should contain track number and/or track name variants."))
     } else {
         Ok(())
     }
 }
 
 /// Roman to Decimal conversion
-pub fn roman_to_decimal(roman: &str) -> u16 {
+#[must_use] pub fn roman_to_decimal(roman: &str) -> u16 {
     struct RomanNumeral {
         symbol: &'static str,
         value: u16,
@@ -171,7 +171,7 @@ pub fn roman_to_decimal(roman: &str) -> u16 {
 
 /// Determines if a value (typically track or disc number) needs to be split into two values.
 /// This is determined if the provided value contains "/" or "of"
-pub fn need_split(value: &str) -> bool {
+#[must_use] pub fn need_split(value: &str) -> bool {
     value.contains('/') || value.contains("of")
 }
 
@@ -214,7 +214,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     }
 
     if !dir.is_dir() {
-        return Err(format!("Unable to get directory name from filename {}.", filename).into());
+        return Err(format!("Unable to get directory name from filename {filename}.").into());
     }
 
     // Get the list of (music) files in the directory
@@ -236,9 +236,9 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     log::debug!("count = {}", count);
 
     let file_count = if count < 100 {
-        format!("{:0>2}", count)
+        format!("{count:0>2}")
     } else {
-        format!("{:0>3}", count)
+        format!("{count:0>3}")
     };
     Ok(file_count)
 }
@@ -247,7 +247,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
-pub fn get_unique_value() -> u128 {
+#[must_use] pub fn get_unique_value() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards. Presumably, you have bigger things to worry about.")
@@ -329,7 +329,7 @@ mod tests {
         assert_eq!(get_extension("somefile.png"), "png".to_string());
         assert_eq!(get_extension("somewhere/somefile.png"), "png".to_string());
         assert_eq!(get_extension("noextension"), "unknown".to_string());
-        assert_eq!(get_extension("noextension."), "".to_string());
+        assert_eq!(get_extension("noextension."), String::new());
     }
 
     #[assay]
@@ -468,6 +468,6 @@ mod tests {
     fn test_thousand_separated() {
         assert_eq!(thousand_separated(10), "10".to_string());
         assert_eq!(thousand_separated(1000), "1,000".to_string());
-        assert_eq!(thousand_separated(1000000), "1,000,000".to_string());
+        assert_eq!(thousand_separated(1_000_000), "1,000,000".to_string());
     }
 }

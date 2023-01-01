@@ -25,7 +25,7 @@ impl fmt::Display for FileTypes {
         })
         .to_string();
 
-        write!(f, "{}", filetype)
+        write!(f, "{filetype}")
     }
 }
 

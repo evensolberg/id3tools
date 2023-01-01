@@ -120,12 +120,12 @@ pub struct DefaultValues {
 impl DefaultValues {
     /// Initializes a new, empty set of `DefaultValues`. All values are set to `None` or empty vectors except the search folder which includes "." and "..".
     pub fn new() -> Self {
-        DefaultValues::default()
+        Self::default()
     }
 
     /// Builds a config based on CLI arguments
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
-        let mut config = DefaultValues::new();
+        let mut config = Self::new();
 
         let psf_list: Vec<String> = vec![".".to_string(), "..".to_string()];
         config.picture_search_folders = Some(psf_list);
@@ -139,7 +139,7 @@ impl DefaultValues {
             )
             .to_string();
             log::debug!("Config filename: {}", config_filename);
-            config = DefaultValues::load_config(&config_filename)?;
+            config = Self::load_config(&config_filename)?;
             log::debug!("Loaded config: {:?}", &config);
         }
 
