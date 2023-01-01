@@ -28,7 +28,8 @@ pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
 }
 
 /// Get the extension part of the filename and return it as a string
-#[must_use] pub fn get_extension(filename: &str) -> String {
+#[must_use]
+pub fn get_extension(filename: &str) -> String {
     Path::new(&filename)
         .extension()
         .unwrap_or_else(|| OsStr::new("unknown"))
@@ -60,8 +61,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
             "audio/x-dsf" => FileTypes::Dsf,
             "audio/x-flac" => FileTypes::Flac,
             "audio/mpeg" => FileTypes::MP3,
-            "audio/m4a" => FileTypes::MP4,
-            "video/mp4" => FileTypes::MP4,
+            "audio/m4a" | "video/mp4" => FileTypes::MP4,
             _ => FileTypes::Unknown,
         };
         log::debug!("File type is {}", ft);
@@ -99,7 +99,8 @@ pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
 }
 
 /// Roman to Decimal conversion
-#[must_use] pub fn roman_to_decimal(roman: &str) -> u16 {
+#[must_use]
+pub fn roman_to_decimal(roman: &str) -> u16 {
     struct RomanNumeral {
         symbol: &'static str,
         value: u16,
@@ -160,18 +161,18 @@ pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
         },
     ];
 
-    match NUMERALS
+    NUMERALS
         .iter()
         .find(|num| roman.to_uppercase().starts_with(num.symbol))
-    {
-        Some(num) => num.value + roman_to_decimal(&roman[num.symbol.len()..]),
-        None => 0, // if string empty, add nothing
-    }
+        .map_or(0, |num| {
+            num.value + roman_to_decimal(&roman[num.symbol.len()..])
+        })
 }
 
 /// Determines if a value (typically track or disc number) needs to be split into two values.
 /// This is determined if the provided value contains "/" or "of"
-#[must_use] pub fn need_split(value: &str) -> bool {
+#[must_use]
+pub fn need_split(value: &str) -> bool {
     value.contains('/') || value.contains("of")
 }
 
@@ -247,7 +248,8 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
-#[must_use] pub fn get_unique_value() -> u128 {
+#[must_use]
+pub fn get_unique_value() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Time went backwards. Presumably, you have bigger things to worry about.")

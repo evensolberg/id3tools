@@ -119,7 +119,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 } // fn run()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/// The actual executable function that gets called when the program in invoked.
+/// The actual executable function that gets called when the program in invoked. This in turn calls the `run` function.
 fn main() {
     std::process::exit(match run() {
         Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
@@ -146,24 +146,32 @@ fn process_file(
     res
 }
 
+/// Gets the file name for the logging config.
+///
+/// The function will first check if the `log-config-file` flag has been set.<br>
+///   - If a file name has been provided along with the flag, this will be used.<br>
+///   - If no file name was supplied along with the flag, the default is used.<br>
+///
+/// If no flag is set, we will check the program's configuration.<br>
+///   - If something has been provided in the config file<br>
+///       - If the config file entry for some reason can't be read, we use the default.<br>
+///   - If nothing has been provided, we use the default.<br>
+///
+///
 fn get_logging_config_filename(
     cli_args: &clap::ArgMatches,
     config: &default_values::DefaultValues,
 ) -> String {
     let default = "~/.config/id3tag/logs.yaml".to_string();
-    let mut config_filename = default.clone();
-
-    if config.log_config_file.is_some() {
-        config_filename = config.log_config_file.as_ref().unwrap_or(&default).clone();
-    }
 
     if cli_args.is_present("log-config-file") {
-        config_filename = cli_args
+        cli_args
             .value_of("log-config-file")
             .unwrap_or(&default)
-            .to_string();
+            .to_string()
+    } else if config.log_config_file.is_some() {
+        config.log_config_file.as_ref().unwrap_or(&default).clone()
+    } else {
+        default
     }
-
-    // return the config filename
-    config_filename
 }

@@ -135,6 +135,10 @@ alias tp := testp
 @lintfix:
     cargo lclippy --fix -- -W clippy::pedantic -W clippy::nursery -W clippy::unwrap_used
 
+# Checks for potential code improvements except unsafe unwraps.
+@lintnuw:
+    cargo lclippy -- -W clippy::pedantic -W clippy::nursery
+
 # Initialize directory for various services such as cargo deny
 @init:
     cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml

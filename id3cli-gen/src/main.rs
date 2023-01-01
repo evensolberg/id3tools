@@ -12,7 +12,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     println!("Genereting man file for id3tag - id3tag.1 ");
     let out_dir = std::path::PathBuf::from(".");
     let man = clap_mangen::Man::new(cli);
-    let mut buffer: Vec<u8> = Default::default();
+    let mut buffer: Vec<u8> = std::vec::Vec::default();
     man.render(&mut buffer)?;
 
     std::fs::write(out_dir.join("id3tag.1"), buffer)?;

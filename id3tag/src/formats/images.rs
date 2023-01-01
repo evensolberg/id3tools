@@ -87,11 +87,13 @@ fn get_cover(
         let cover_file_name = if cover_type == CoverType::Front {
             cfg.picture_front
                 .as_ref()
-                .unwrap_or(&"front-cover.jpg".to_string()).clone()
+                .unwrap_or(&"front-cover.jpg".to_string())
+                .clone()
         } else {
             cfg.picture_back
                 .as_ref()
-                .unwrap_or(&"back-cover.jpg".to_string()).clone()
+                .unwrap_or(&"back-cover.jpg".to_string())
+                .clone()
         };
 
         // Get the path to the music file, so we can save the cover file next to it if needed.
@@ -103,7 +105,19 @@ fn get_cover(
         log::debug!("music_file_path = {:?}", music_file_path);
 
         // If the cover found is different from the --picture-XXXXX parameter, we need to create the cover.
-        if cover_file_name != cover_found_path {
+        if cover_file_name == cover_found_path {
+            // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
+            log::debug!("Cover path parameter equals found path.");
+            // Create the picture file.
+            cover_path_returned = cover_found_path.clone();
+            if cover_needs_resizing(&cover_found_path, max_size)? {
+                log::debug!("Resizing {cover_type} cover.");
+                let cp_resize = crate::rename_file::filename_resize(&cover_found_path)?;
+                cover_path_returned = cp_resize.clone();
+                let res = create_cover(&cover_found_path, &cp_resize, max_size, dry_run)?;
+                log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
+            }
+        } else {
             log::debug!(
                 "{cover_type} cover path parameter differs from found path. Creating cover: {cover_file_name}.",
             );
@@ -114,24 +128,12 @@ fn get_cover(
                 .to_str()
                 .unwrap()
                 .to_owned();
-            if !dry_run {
+            if dry_run {
+                log::debug!("Not creating the resized cover since we're in dry-run mode.");
+            } else {
                 let res =
                     create_cover(&cover_found_path, &cover_output_filename, max_size, dry_run)
                         .unwrap_or_default();
-                log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
-            } else {
-                log::debug!("Not creating the resized cover since we're in dry-run mode.")
-            }
-        } else {
-            // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
-            log::debug!("Cover path parameter equals found path.");
-            // Create the picture file.
-            cover_path_returned = cover_found_path.clone();
-            if cover_needs_resizing(&cover_found_path, max_size)? {
-                log::debug!("Resizing {cover_type} cover.");
-                let cp_resize = crate::rename_file::filename_resize(&cover_found_path)?;
-                cover_path_returned = cp_resize.clone();
-                let res = create_cover(&cover_found_path, &cp_resize, max_size, dry_run)?;
                 log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
             }
         }
@@ -177,10 +179,11 @@ fn find_cover(
     log::debug!("music_path = {:?}", music_path);
 
     // Look for the cover file in the music file's directory and in the config's picture_search_folders.
-    let mut cover_path = None;
-    if !cover_file_name.is_empty() {
-        cover_path = find_in_folders(&cover_file_name, &music_path, config);
-    }
+    let mut cover_path = if cover_file_name.is_empty() {
+        None
+    } else {
+        find_in_folders(&cover_file_name, &music_path, config)
+    };
     if cover_path.is_some() {
         log::debug!("Found cover file: {:?}", cover_path.as_ref().unwrap());
         return Ok(cover_path);
@@ -381,11 +384,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
 
         // Check if the image (likely) contains multiple covers.
         let size_factor = f64::from(x) / f64::from(y);
-        log::debug!(
-            "{} size factor: {}",
-            cover_file,
-            format!("{size_factor:2}")
-        );
+        log::debug!("{} size factor: {}", cover_file, format!("{size_factor:2}"));
         if !(0.5..=1.5).contains(&size_factor) {
             return Err("Image is not in the expected ratio (0.5..=1.5).".into());
         }
@@ -437,11 +436,10 @@ fn gather_cover_paths(
 
     // Gather the folders - we'll use these in all cases.
     let psf = cfg.picture_search_folders.as_ref();
-    let psf = if let Some(ps) = psf {
-        ps.clone()
-    } else {
-        vec![".".to_string(), "..".to_string()]
-    };
+    let psf = psf.map_or_else(
+        || vec![".".to_string(), "..".to_string()],
+        std::clone::Clone::clone,
+    );
     log::debug!("formats::images::gather_cover_paths::psf = {:?}", psf);
 
     // Depending on the cover type, collect the folder+filename combos

@@ -76,9 +76,7 @@ pub fn process(
             Ok(_) => processed_ok = true,
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
-                    return Err(
-                        format!("Unable to save tags to {filename}. Error: {err}").into(),
-                    );
+                    return Err(format!("Unable to save tags to {filename}. Error: {err}").into());
                 }
                 log::warn!("Unable to save tags to {}. Error: {}", filename, err);
             }

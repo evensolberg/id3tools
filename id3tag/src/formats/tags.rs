@@ -389,10 +389,7 @@ mod tests {
             ape_tag.get("%dnt").unwrap().clone(),
             "DISCTOTAL".to_string()
         );
-        assert_eq!(
-            ape_tag.get("%dt").unwrap().clone(),
-            "DISCTOTAL".to_string()
-        );
+        assert_eq!(ape_tag.get("%dt").unwrap().clone(), "DISCTOTAL".to_string());
         assert_eq!(
             ape_tag.get("%track-artist").unwrap().clone(),
             "ARTIST".to_string()
@@ -448,10 +445,7 @@ mod tests {
             ape_tag.get("%track-composer").unwrap().clone(),
             "COMPOSER".to_string()
         );
-        assert_eq!(
-            ape_tag.get("%tc").unwrap().clone(),
-            "COMPOSER".to_string()
-        );
+        assert_eq!(ape_tag.get("%tc").unwrap().clone(), "COMPOSER".to_string());
         assert_eq!(
             ape_tag.get("%track-composer-sort").unwrap().clone(),
             "COMPOSERSORT".to_string()
@@ -520,10 +514,7 @@ mod tests {
             flac_tag.get("%track-artist").unwrap().clone(),
             "ARTIST".to_string()
         );
-        assert_eq!(
-            flac_tag.get("%ta").unwrap().clone(),
-            "ARTIST".to_string()
-        );
+        assert_eq!(flac_tag.get("%ta").unwrap().clone(), "ARTIST".to_string());
         assert_eq!(
             flac_tag.get("%track-artist-sort").unwrap().clone(),
             "ARTISTSORT".to_string()
@@ -574,10 +565,7 @@ mod tests {
             flac_tag.get("%track-composer").unwrap().clone(),
             "COMPOSER".to_string()
         );
-        assert_eq!(
-            flac_tag.get("%tc").unwrap().clone(),
-            "COMPOSER".to_string()
-        );
+        assert_eq!(flac_tag.get("%tc").unwrap().clone(), "COMPOSER".to_string());
         assert_eq!(
             flac_tag.get("%track-composer-sort").unwrap().clone(),
             "COMPOSERSORT".to_string()
@@ -622,10 +610,7 @@ mod tests {
             mp3_tag.get("%disc-number-total").unwrap().clone(),
             "TPOS-T".to_string()
         );
-        assert_eq!(
-            mp3_tag.get("%dnt").unwrap().clone(),
-            "TPOS-T".to_string()
-        );
+        assert_eq!(mp3_tag.get("%dnt").unwrap().clone(), "TPOS-T".to_string());
         assert_eq!(mp3_tag.get("%dt").unwrap().clone(), "TPOS-T".to_string());
         assert_eq!(
             mp3_tag.get("%track-artist").unwrap().clone(),
@@ -657,10 +642,7 @@ mod tests {
             "TRCK-T".to_string()
         );
         assert_eq!(mp3_tag.get("%to").unwrap().clone(), "TRCK-T".to_string());
-        assert_eq!(
-            mp3_tag.get("%tnt").unwrap().clone(),
-            "TRCK-T".to_string()
-        );
+        assert_eq!(mp3_tag.get("%tnt").unwrap().clone(), "TRCK-T".to_string());
         assert_eq!(
             mp3_tag.get("%track-genre").unwrap().clone(),
             "TCON".to_string()
@@ -712,10 +694,7 @@ mod tests {
             mp4_tag.get("%disc-number-total").unwrap().clone(),
             "disk-t".to_string()
         );
-        assert_eq!(
-            mp4_tag.get("%dnt").unwrap().clone(),
-            "disk-t".to_string()
-        );
+        assert_eq!(mp4_tag.get("%dnt").unwrap().clone(), "disk-t".to_string());
         assert_eq!(mp4_tag.get("%dt").unwrap().clone(), "disk-t".to_string());
         assert_eq!(
             mp4_tag.get("%track-artist").unwrap().clone(),
@@ -747,10 +726,7 @@ mod tests {
             "trkn-t".to_string()
         );
         assert_eq!(mp4_tag.get("%to").unwrap().clone(), "trkn-t".to_string());
-        assert_eq!(
-            mp4_tag.get("%tnt").unwrap().clone(),
-            "trkn-t".to_string()
-        );
+        assert_eq!(mp4_tag.get("%tnt").unwrap().clone(), "trkn-t".to_string());
         assert_eq!(
             mp4_tag.get("%track-genre").unwrap().clone(),
             "©gen".to_string()

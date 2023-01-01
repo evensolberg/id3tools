@@ -13,9 +13,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 log::info!("DSF file metadata:\n\n{}", dsf_file);
             }
             Err(error) => {
-                return Err(
-                    format!("Unable to read DSF file {filename}. Error: {error}").into(),
-                );
+                return Err(format!("Unable to read DSF file {filename}. Error: {error}").into());
             }
         }
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {

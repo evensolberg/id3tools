@@ -2,7 +2,7 @@
 //! This is also used by the `id3cli-gen` program to generate the CLI completion tags for Fig, Bash, etc.
 use clap::{Arg, Command};
 
-/// Builds the CLI so the main file doesn't get cluttered.
+/// Builds the CLI so the main file doesn't get cluttered. Note that the `<'static>` means it returns a global variable.
 pub fn build_cli(version: &'static str) -> Command<'static> {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
@@ -414,18 +414,21 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
 /// Checks that the specified genre number is in the valid range (0..=191)
 fn genre_number_validator(input: &str) -> Result<(), String> {
     let genre_num = input.parse::<u16>();
-    match genre_num {
-        Ok(gn) => {
+
+    genre_num.map_or_else(
+        |_| {
+            Err(String::from(
+                "Unable to parse the input provided to --track-genre-number.",
+            ))
+        },
+        |gn| {
             if gn <= 191 {
                 Ok(())
             } else {
                 Err(String::from("track-genre-number must be 0-191."))
             }
-        }
-        Err(_) => Err(String::from(
-            "Unable to parse the input provided to --track-genre-number.",
-        )),
-    }
+        },
+    )
 }
 
 #[cfg(test)]

@@ -78,9 +78,7 @@ pub fn process_file(
                 Ok(_) => processed = true,
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(true) {
-                        return Err(
-                            format!("Unable to process {filename}. Error: {err}").into()
-                        );
+                        return Err(format!("Unable to process {filename}. Error: {err}").into());
                     }
                     log::error!("Unable to process {}. Error: {}", filename, err);
                 }
@@ -88,9 +86,7 @@ pub fn process_file(
         } // Ok(_)
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
-                return Err(
-                    format!("Unable to parse tags for {filename}. Error: {err}").into(),
-                );
+                return Err(format!("Unable to parse tags for {filename}. Error: {err}").into());
             }
             log::error!("Unable to parse tags for {}. Error: {}", filename, err);
         } // Err(err)
@@ -468,11 +464,9 @@ fn find_picture(
     config: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
     // Assume that the music file exists
-    let m_component_name = if let Some(base_path) = Path::new(&m_filename).parent() {
-        base_path
-    } else {
-        Path::new(".")
-    };
+    let m_component_name = Path::new(&m_filename)
+        .parent()
+        .map_or_else(|| Path::new("."), |base_path| base_path);
 
     log::debug!("music component_name = {:?}", m_component_name);
 
