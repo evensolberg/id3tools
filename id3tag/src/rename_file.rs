@@ -162,7 +162,7 @@ pub fn rename_file(
 /// assert_eq!(filename_resize("music/test.jpg")?, "music/test-resize.jpg");
 /// ```
 ///
-pub fn filename_resize(src_fn: &str) -> Result<String, Box<dyn Error>> {
+pub fn resized_filename(src_fn: &str) -> Result<String, Box<dyn Error>> {
     if src_fn.is_empty() {
         return Err("No filename provided. Unable to continue.".into());
     }
@@ -189,7 +189,7 @@ pub fn filename_resize(src_fn: &str) -> Result<String, Box<dyn Error>> {
 
 /// Checks if the -resize version of the file exists and returns it if it does. Otherwise, returns the original file name.
 pub fn filename_resized(filename: &str) -> Result<String, Box<dyn Error>> {
-    let new_name = filename_resize(filename)?;
+    let new_name = resized_filename(filename)?;
     if Path::new(&new_name).exists() {
         Ok(new_name)
     } else {
@@ -226,17 +226,17 @@ mod tests {
     #[assay]
     ///
     fn test_filename_resize() {
-        assert_eq!(filename_resize("music/test.jpg")?, "music/test-resize.jpg");
+        assert_eq!(resized_filename("music/test.jpg")?, "music/test-resize.jpg");
         assert_eq!(
-            filename_resize("cover-small.jpg")?,
+            resized_filename("cover-small.jpg")?,
             "cover-small-resize.jpg"
         );
         assert_eq!(
-            filename_resize("/somewhere/there/is/music/test.file.jpg")?,
+            resized_filename("/somewhere/there/is/music/test.file.jpg")?,
             "/somewhere/there/is/music/test.file-resize.jpg"
         );
         assert_eq!(
-            filename_resize("/somewhere/there/is/music/cover-small.jpg")?,
+            resized_filename("/somewhere/there/is/music/cover-small.jpg")?,
             "/somewhere/there/is/music/cover-small-resize.jpg"
         );
     }

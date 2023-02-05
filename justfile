@@ -24,7 +24,7 @@ alias tp := testp
 
 # Check if it builds at all
 @check: format
-    cargo lcheck  --color 'always'
+    cargo lcheck --color 'always'
 
 # Only compiles the project
 @build: format changelog
@@ -107,6 +107,11 @@ alias tp := testp
     cargo nextest list | tee tests.txt
     tokei | tee tokei.txt
     cargo outdated
+
+# Build the documentation and open it
+@docr:
+    cargo doc --no-deps
+    open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
 
 # Formats the project source files
 @format:

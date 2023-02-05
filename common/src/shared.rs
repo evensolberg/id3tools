@@ -196,6 +196,16 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
 }
 
 /// Counts the number of files in with the same extension in the same directory as the file specified.
+/// The count is returned as a formatted `String`.
+///
+/// # Arguments
+/// `filename: &str` - the name of the file to be used as the example. The function will get the extension and look for the number of files with the same extension.
+///
+/// # Returns
+/// `Result<String, Box<dyn Error>>` - a formatted string with the number of files found, or an error if something went wrong.
+///
+/// # Panics
+/// None.
 pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let ext = get_extension(filename);
     log::debug!("ext = {}", ext);
@@ -236,11 +246,14 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let count = file_list.count();
     log::debug!("count = {}", count);
 
+    // Format the file count
     let file_count = if count < 100 {
         format!("{count:0>2}")
     } else {
         format!("{count:0>3}")
     };
+
+    // Return safely with the formatted file count
     Ok(file_count)
 }
 
@@ -264,6 +277,11 @@ pub fn get_unique_value() -> u128 {
 /// assert_eq!(thousand_separated(10000), "10,000".to_string());
 /// assert_eq!(thousand_separated(10000000), "10,000,000".to_string());
 /// ```
+///
+/// # Panics
+///
+/// Mapping from UTF8 to u8 can panic if the unwrap fails.
+/// Mapping the result from UTF8 to String can panic if the unwrap fails.
 pub fn thousand_separated<T>(val: T) -> String
 where
     T: std::fmt::Display,
@@ -276,6 +294,27 @@ where
         .collect();
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
     String::from_utf8(result).unwrap()
+}
+
+/// Gets the complete directory path to the file, sans the filename.
+///
+/// # Arguments
+/// `filename: &str` - the name of the file for which we need the full path
+///
+/// # Returns
+/// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
+///
+/// # Example
+/// get_full_path_directory("/some/path/myfile.txt") returns "/some/path/"
+pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
+    let mut music_file_path = std::fs::canonicalize(filename)?;
+    music_file_path = music_file_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf();
+    log::debug!("music_file_path = {:?}", music_file_path);
+
+    Ok(music_file_path)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

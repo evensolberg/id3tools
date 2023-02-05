@@ -18,6 +18,7 @@ pub use crate::log::build_log;
 
 // Misc utility functions
 pub use crate::shared::count_files;
+pub use crate::shared::directory;
 pub use crate::shared::file_rename_pattern_validate;
 pub use crate::shared::get_extension;
 pub use crate::shared::get_file_type;
