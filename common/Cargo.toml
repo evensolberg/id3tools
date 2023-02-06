@@ -11,9 +11,9 @@ homepage = "https://github.com/evensolberg/id3tools/common/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "3.2.22", features = ["cargo", "color"] }
+clap = { version = "3.2.23", features = ["cargo", "color"] }
 log = "0.4.17"
-log4rs = { version = "1.1.1", features = ["console_appender", "file_appender", "threshold_filter"] }
+log4rs = { version = "1.2.0", features = ["console_appender", "file_appender", "threshold_filter"] }
 shellexpand = "2.1.2"
 infer = "0.9.0"
 
