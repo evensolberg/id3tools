@@ -548,18 +548,21 @@ fn find_first_image(
 }
 
 /// Create the complete path name from the folder and the file name
-fn create_complete_path(folder: &Path, pn: &String) -> String {
+fn create_complete_path(folder: &Path, filename: &String) -> String {
     folder
-        .join(Path::new(&pn))
+        .join(Path::new(&filename))
         .to_str()
         .unwrap_or_default()
         .to_owned()
 }
 
 /// Create the complete path name from the folder and the file name with -resized appended.
-fn create_complete_resized_path(folder: &Path, pr: &String) -> Result<String, Box<dyn Error>> {
+fn create_complete_resized_path(
+    folder: &Path,
+    filename: &String,
+) -> Result<String, Box<dyn Error>> {
     Ok(folder
-        .join(resized_filename(pr)?)
+        .join(resized_filename(filename)?)
         .to_str()
         .unwrap_or_default()
         .to_owned())
@@ -578,8 +581,27 @@ mod tests {
     use assay::assay;
     use std::fs;
 
+    #[assay]
+    /// Tests the `create_complete_path` function
+    fn test_create_complete_path() {
+        assert_eq!(
+            create_complete_path(Path::new("/my/path"), &"my_file.txt".to_string()),
+            "/my/path/my_file.txt".to_string()
+        );
+    }
+
+    #[assay]
+    /// Tests the `create_complete_resized_path` function
+    fn test_create_complete_resized_path() {
+        assert_eq!(
+            create_complete_resized_path(Path::new("/my/path"), &"my_file.txt".to_string())
+                .unwrap(),
+            "/my/path/my_file-resize.txt".to_string()
+        );
+    }
+
     #[assay(include = ["../testdata/DSOTM_Back.jpeg", "../testdata/DSOTM_Cover.jpeg", "../testdata/id3tag-config.toml", "../testdata/sample.flac"])]
-    /// Tests the find_cover function.
+    /// Tests the `find_cover` function.
     fn test_find_cover() {
         let music_file = "../testdata/sample.flac";
         let fc_filename = "../testdata/DSOTM_Cover.jpeg";
@@ -620,7 +642,7 @@ mod tests {
     }
 
     #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the read_cover function works as expected.
+    /// Tests that the `read_cover` function works as expected.
     fn test_read_cover() {
         let cover_file = "../testdata/DSOTM_Cover.jpeg";
 
@@ -634,7 +656,7 @@ mod tests {
     }
 
     #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the create_cover function works as expected.
+    /// Tests that the `create_cover` function works as expected.
     fn test_create_cover() {
         let src_filename = "../testdata/DSOTM_Cover.jpeg";
         let dst_filename = resized_filename(src_filename).unwrap();
@@ -662,7 +684,7 @@ mod tests {
     }
 
     #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the needs_resizing function works as expected.
+    /// Tests that the `needs_resizing` function works as expected.
     fn test_needs_resizing() {
         let fname = "../testdata/DSOTM_Cover.jpeg";
 
@@ -676,7 +698,7 @@ mod tests {
     }
 
     #[assay]
-    /// Tests the gather_cover_paths function
+    /// Tests the `gather_cover_paths` function
     fn test_gather_cover_paths() {
         let mut cfg = DefaultValues::new();
         cfg.picture_front = Some("front.jpg".to_string());
@@ -779,7 +801,7 @@ mod tests {
     }
 
     #[assay(include = ["../testdata/sample.flac", "../testdata/DSOTM_Cover.jpeg"])]
-    /// tests the find_first_image function
+    /// tests the `find_first_image` function
     fn test_find_first_image() {
         // test the failure scenarios first
         let mut music_file = "";

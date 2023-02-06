@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - Filetypes optimization
 - Fixed a bunch of lints
 - Cleaned up some lints
+- Change numerous functions
 
 ### Testing
 
