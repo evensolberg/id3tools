@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 
 - Added a bunch of tests
 - Add tests for functions
+- Add various tests in the images crate
 
 ### Refact
 
