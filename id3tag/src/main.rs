@@ -39,7 +39,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Configure logging
     let logging_config_filename = get_logging_config_filename(&cli_args, &config);
-    common::build_log(&logging_config_filename)?;
+    common::build_logger(&logging_config_filename)?;
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
@@ -50,12 +50,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // create a list of the files to gather
-    for file in cli_args.values_of("files").unwrap() {
+    for file in cli_args.values_of("files").unwrap_or_default() {
         log::debug!("file: {:?}", file);
     }
 
     if cli_args.is_present("tags") {
-        for value in cli_args.values_of("tags").unwrap() {
+        for value in cli_args.values_of("tags").unwrap_or_default() {
             log::debug!("tag = {:?}", value);
         }
     }
@@ -63,7 +63,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
-    for filename in cli_args.values_of("files").unwrap() {
+    for filename in cli_args.values_of("files").unwrap_or_default() {
         filenames.push(filename);
         file_count += 1;
     }

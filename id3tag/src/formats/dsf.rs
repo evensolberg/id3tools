@@ -141,8 +141,7 @@ fn rename_file(
                     }
                     _ => {
                         return Err(format!(
-                            "Unknown tag {} encountered when unwrapping disc/track information.",
-                            tag_name
+                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
                         )
                         .into())
                     }
@@ -163,8 +162,7 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }

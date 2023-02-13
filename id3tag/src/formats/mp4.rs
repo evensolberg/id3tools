@@ -142,16 +142,12 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
             );
         }
     }

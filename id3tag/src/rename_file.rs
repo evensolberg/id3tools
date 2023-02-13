@@ -172,9 +172,17 @@ pub fn resized_filename(src_fn: &str) -> Result<String, Box<dyn Error>> {
         .parent()
         .unwrap_or_else(|| Path::new("."))
         .to_str()
-        .unwrap();
-    let path_name = Path::new(src_fn).file_stem().unwrap().to_str().unwrap();
-    let path_ext = Path::new(src_fn).extension().unwrap().to_str().unwrap();
+        .unwrap_or_default();
+    let path_name = Path::new(src_fn)
+        .file_stem()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
+    let path_ext = Path::new(src_fn)
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
 
     let new_name = if path_dir.is_empty() {
         format!("{path_name}-resize.{path_ext}")

@@ -11,20 +11,17 @@ use infer::MatcherType;
 use crate::file_types::FileTypes;
 
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
+///
+/// # Errors
+///
+/// - If we can't infer the file type from path, we give an error
 pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
     // Read the file and check the mime type
-    let file_type = if let Some(file_type) = infer::get_from_path(filename)? {
-        file_type
-    } else {
+    let Some(file_type) = infer::get_from_path(filename)? else {
         return Err("File type not supported".into());
     };
-    log::debug!("File type: {:?}", file_type);
 
-    let mime_fmt = file_type.mime_type();
-    log::debug!("MIME type: {}", mime_fmt);
-
-    // Return safely
-    Ok(mime_fmt.to_string())
+    Ok(file_type.mime_type().to_string())
 }
 
 /// Get the extension part of the filename and return it as a string
@@ -39,14 +36,16 @@ pub fn get_extension(filename: &str) -> String {
         .to_string()
 }
 
-// Get the file type from the Extension
+/// Get the file type from the Extension
+///
+/// # Errors
+///
+/// - `infer::get_from_path()` fails
 pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     // return the file type
     let file_type = infer::get_from_path(filename)?;
     log::debug!("File type = {:?}", file_type);
-    let file_type = if let Some(file_type) = file_type {
-        file_type
-    } else {
+    let Some(file_type) = file_type else {
         return Err("File type not supported".into());
     };
 
@@ -84,6 +83,10 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
 /// Checks that the new filename pattern results in a unique file.
 /// Not perfect since the track title can occur multiple times on the same album.
 /// TODO: Make this better. Include a check for the disc number and track title combo, for example.
+///
+/// # Errors
+///
+/// - Return an error if the pattern provided is unlikely to return unique file names
 pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
     if !pattern.contains("%tn")
         && !pattern.contains("%tt")
@@ -177,6 +180,10 @@ pub fn need_split(value: &str) -> bool {
 }
 
 /// Splits a value (typically track or disc number) into two values at a "/" or "of".
+///
+/// # Errors
+///
+/// - Returns an error if the split pattern can't be found.
 pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
     let split_str: Vec<&str>;
     if value.contains("of") {
@@ -187,15 +194,16 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
         return Err("Split pattern not found.".into());
     }
 
-    log::debug!("split_str = {:?}", split_str);
-    let num = split_str[0].trim().parse::<u16>().unwrap_or(1);
+    let count = split_str[0].trim().parse::<u16>().unwrap_or(1);
     let total = split_str[1].trim().parse::<u16>().unwrap_or(1);
 
-    // return the values
-    Ok((num, total))
+    // return the values (i.e., 1 of 2)
+    Ok((count, total))
 }
 
 /// Counts the number of files in with the same extension in the same directory as the file specified.
+/// TODO: Look into canonicalizing the path so we can be sure to get the parent.
+///
 /// The count is returned as a formatted `String`.
 ///
 /// # Arguments
@@ -204,21 +212,18 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
 /// # Returns
 /// `Result<String, Box<dyn Error>>` - a formatted string with the number of files found, or an error if something went wrong.
 ///
+/// # Errors
+/// - Returns an error if unable to get the directory name from the fielname.
+///
 /// # Panics
 /// None.
 pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let ext = get_extension(filename);
-    log::debug!("ext = {}", ext);
 
     // Get just the directory part, excluding the filename
     let mut dir = Path::new(&filename)
         .parent()
         .unwrap_or_else(|| Path::new("."));
-    log::debug!(
-        "dir = {}, dir length = {}",
-        dir.display(),
-        dir.as_os_str().len()
-    );
 
     if dir.as_os_str().is_empty() {
         dir = Path::new(&".");
@@ -290,10 +295,10 @@ where
     let bytes: Vec<_> = s.bytes().rev().collect();
     let chunks: Vec<_> = bytes
         .chunks(3)
-        .map(|chunk| std::str::from_utf8(chunk).unwrap())
+        .map(|chunk| std::str::from_utf8(chunk).unwrap_or_default())
         .collect();
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
-    String::from_utf8(result).unwrap()
+    String::from_utf8(result).unwrap_or_default()
 }
 
 /// Gets the complete directory path to the file, sans the filename.
@@ -305,7 +310,7 @@ where
 /// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
 ///
 /// # Example
-/// get_full_path_directory("/some/path/myfile.txt") returns "/some/path/"
+/// `get_full_path_directory("/some/path/myfile.txt")` returns "/some/path/"
 pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
     let mut music_file_path = std::fs::canonicalize(filename)?;
     music_file_path = music_file_path

@@ -14,7 +14,7 @@ pub use crate::file_types::FileTypes;
 pub use crate::main_cli::build_cli;
 
 // Builds the log config
-pub use crate::log::build_log;
+pub use crate::log::build_logger;
 
 // Misc utility functions
 pub use crate::shared::count_files;

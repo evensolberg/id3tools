@@ -48,8 +48,7 @@ pub fn process(
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(false) {
                         return Err(format!(
-                            "Unable to set front cover for {}. Error: {}",
-                            filename, err
+                            "Unable to set front cover for {filename}. Error: {err}"
                         )
                         .into());
                     }
@@ -63,8 +62,7 @@ pub fn process(
                 Err(err) => {
                     if config.stop_on_error.unwrap_or(false) {
                         return Err(format!(
-                            "Unable to set back cover for {}. Error: {}",
-                            filename, err
+                            "Unable to set back cover for {filename}. Error: {err}"
                         )
                         .into());
                     }
@@ -82,15 +80,12 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set disc number to {}. Error: {}",
-                                value, err
+                                "Unable to set disc number to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set disc number to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -105,16 +100,12 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set total discs to {}. Error: {}",
-                                value, err
+                                "Unable to set total discs to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
-                        );
+                            "Unable to set total discs to {value}. Setting to 1 and continuing. Error: {err}"                        );
                         1
                     }
                 };
@@ -128,15 +119,12 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set track number to {}. Error: {}",
-                                value, err
+                                "Unable to set track number to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set track number to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -151,15 +139,12 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set total tracks to {}. Error: {}",
-                                value, err
+                                "Unable to set total tracks to {value}. Error: {err}",
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set total tracks to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -174,11 +159,11 @@ pub fn process(
 
     // Write tags to file
     if config.dry_run.unwrap_or(true) {
-        log::debug!("Not writing {}", filename);
+        log::debug!("Not writing {filename}");
         processed_ok = true;
     } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
         processed_ok = true;
-        log::info!("{}  ✓", filename);
+        log::info!("{filename}  ✓");
     }
 
     // Rename file
@@ -202,7 +187,7 @@ fn add_picture(
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
-    log::debug!("Reading image file {}", filename);
+    log::debug!("Reading image file {filename}");
 
     let description = if picture_type == PictureType::CoverFront {
         "Front Cover".to_string()
@@ -214,12 +199,12 @@ fn add_picture(
     let filename_str = rename_file::filename_resized(filename)?;
     let filename = filename_str.as_str();
     let mime_type = common::get_mime_type(filename)?;
-    log::debug!("Image format: {}", mime_type);
+    log::debug!("Image format: {mime_type}");
 
-    log::debug!("Reading image file {}", filename);
+    log::debug!("Reading image file {filename}");
     let image_data = images::read_cover(filename, 0)?;
 
-    log::debug!("Setting picture to {}", filename);
+    log::debug!("Setting picture to {filename}");
     tags.add_frame(frame::Picture {
         mime_type,
         picture_type,
@@ -243,7 +228,7 @@ fn set_comment(tags: &mut id3::Tag, value: &str) {
         );
     }
     tags.remove("COMM");
-    log::debug!("Setting comment to: {}", value);
+    log::debug!("Setting comment to: {value}");
     tags.add_frame(ExtendedText {
         description: "Comment".to_string(),
         value: value.to_string(),
@@ -279,7 +264,7 @@ fn rename_file(
                 if separates.len() > 1 {
                     total = format!("{:0>2}", separates[1]);
                 }
-                log::debug!("{} count = {}, total = {}", tag_name, count, total);
+                log::debug!("{tag_name} count = {count}, total = {total}");
                 match tag_name.as_str() {
                     "TPOS" => {
                         replace_map.insert("%dn".to_string(), count.clone());
@@ -297,15 +282,14 @@ fn rename_file(
                     }
                     _ => {
                         return Err(format!(
-                            "Unknown tag {} encountered when unwrapping disc/track information.",
-                            tag_name
+                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
                         )
                         .into())
                     }
                 }
             } else {
                 let value = vval.to_string();
-                log::debug!("key = {}, tag_name = {}, value = {}", key, tag_name, value);
+                log::debug!("key = {key}, tag_name = {tag_name}, value = {value}");
                 replace_map.insert(key, value);
             }
         }
@@ -319,16 +303,12 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
             );
         }
     }

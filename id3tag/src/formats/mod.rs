@@ -482,13 +482,18 @@ fn find_picture(
             Path::new(m_component_name)
                 .join(p_filename)
                 .to_str()
-                .unwrap()
+                .unwrap_or_default()
                 .to_string(),
         ));
     } else if Path::new(p_filename).exists() {
         // Picture file exists in the invocation path
         log::debug!("p_filename = {}", p_filename);
-        return Ok(Some(Path::new(p_filename).to_str().unwrap().to_string()));
+        return Ok(Some(
+            Path::new(p_filename)
+                .to_str()
+                .unwrap_or_default()
+                .to_string(),
+        ));
     } else if config.stop_on_error.unwrap_or(false) {
         // No picture found - act accordingly
         return Err(format!("Picture file {p_filename} does not exist.").into());

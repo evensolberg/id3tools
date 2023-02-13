@@ -47,8 +47,7 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
-                                "Unable to set {} to {}. Error message: {}",
-                                key, value, err
+                                "Unable to set {key} to {value}. Error message: {err}"
                             )
                             .into());
                         }

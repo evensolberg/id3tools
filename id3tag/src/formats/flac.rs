@@ -105,8 +105,7 @@ pub fn process(
                     Err(err) => {
                         if config.stop_on_error.unwrap_or(true) {
                             return Err(format!(
-                                "Unable to set {:?} to {}. Error message: {}",
-                                cover_type, value, err
+                                "Unable to set {cover_type:?} to {value}. Error message: {err}"
                             )
                             .into());
                         }
@@ -203,8 +202,7 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
