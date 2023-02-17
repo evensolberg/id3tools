@@ -309,6 +309,10 @@ where
 /// # Returns
 /// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
 ///
+/// # Errors
+///
+/// `canonicalize` has a problem.
+///
 /// # Example
 /// `get_full_path_directory("/some/path/myfile.txt")` returns "/some/path/"
 pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {

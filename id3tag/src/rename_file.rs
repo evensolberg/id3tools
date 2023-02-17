@@ -54,19 +54,13 @@ pub fn rename_file(
         let mut fixed_value = value.clone();
         fixed_value = fixed_value.trim().to_string();
 
-        // for tag in &pad_tags {
-        //     if key == tag {
-        //         fixed_value = format!("{:0>2}", value.trim());
-        //     }
-        // }
-
         if pad_tags.contains(&key.as_str()) {
             fixed_value = format!("{:0>2}", value.trim());
         }
 
         // Do the actual filename replacement
         if fixed_value.is_empty() {
-            log::warn!("Tag '{}' is empty.", key);
+            log::warn!("Tag '{key}' is empty.");
             fixed_value = "unknown".to_string();
         }
         new_filename = new_filename.replace(key, &fixed_value);
@@ -88,24 +82,18 @@ pub fn rename_file(
     // Create the new filename
     let mut new_path =
         parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
-    log::debug!("new_path = {:?}", new_path);
 
     // Return if the new filename is the same as the old
     let np = new_path.to_string_lossy().to_string();
     if np == *filename {
-        log::debug!("New filename == old filename. Returning.");
         return Ok(np);
     }
 
     // Check if a file with the new filename already exists - make the filename unique if it does.
     if Path::new(&new_path).exists() {
-        // Set a unique value based on the current time.
         let unique_val = common::get_unique_value();
 
-        log::warn!(
-            "{} already exists. Appending unique identifier.",
-            new_filename
-        );
+        log::warn!("{new_filename} already exists. Appending unique identifier.");
         new_filename = format!("{new_filename} ({unique_val:0>4})");
         new_path =
             parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
@@ -113,27 +101,23 @@ pub fn rename_file(
 
     // Perform the actual rename and check the outcome
     if config.dry_run.unwrap_or(true) {
-        log::debug!("dr: {} --> {}", filename, new_path.display());
+        log::debug!("dr: {filename} --> {}", new_path.display());
     } else {
         // Get parent dir
         let rn_res = std::fs::rename(filename, &new_path);
         match rn_res {
-            Ok(_) => log::debug!("{} --> {}", filename, new_path.to_string_lossy()),
+            Ok(_) => log::debug!("{filename} --> {}", new_path.to_string_lossy()),
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!(
-                        "Unable to rename {} to {}. Error message: {}",
-                        filename,
-                        new_path.to_string_lossy(),
-                        err
+                        "Unable to rename {filename} to {}. Error message: {err}",
+                        new_path.to_string_lossy()
                     )
                     .into());
                 }
                 log::warn!(
-                    "Unable to rename {} to {}. Error message: {}",
-                    filename,
-                    new_path.to_string_lossy(),
-                    err
+                    "Unable to rename {filename} to {}. Error message: {err}",
+                    new_path.to_string_lossy()
                 );
             }
         }
@@ -167,7 +151,6 @@ pub fn resized_filename(src_fn: &str) -> Result<String, Box<dyn Error>> {
         return Err("No filename provided. Unable to continue.".into());
     }
 
-    log::debug!("src_fn: {}", src_fn);
     let path_dir = Path::new(src_fn)
         .parent()
         .unwrap_or_else(|| Path::new("."))
@@ -189,9 +172,7 @@ pub fn resized_filename(src_fn: &str) -> Result<String, Box<dyn Error>> {
     } else {
         format!("{path_dir}/{path_name}-resize.{path_ext}")
     };
-    log::debug!("new_name: {}", new_name);
 
-    // return the new name
     Ok(new_name)
 }
 

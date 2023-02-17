@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - Remove test output file
 - Update Justfile
 - Justfile update
+- Update CHANGELOG
 
 ### Refactor
 
@@ -51,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - Fixed a bunch of lints
 - Cleaned up some lints
 - Change numerous functions
+- Simplify complex functions
 
 ### Testing
 

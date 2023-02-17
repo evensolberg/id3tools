@@ -23,20 +23,11 @@ pub fn process(
     // Reat the tag - bomb out if it doesn't work.
     let mut tag = Tag::read_from_path(filename)?;
 
-    log::trace!("Tag = {:?}", tag);
-    for frame in tag.frames() {
-        log::debug!("{} = {}", frame.id(), frame.content());
-    }
-
     // Print new tags
     for (key, value) in new_tags {
         // Output information about tags getting changed
-        if config.detail_off.unwrap_or(false) {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
-        } else if config.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
-        } else {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+        if config.dry_run.unwrap_or(false) {
+            log::info!("{filename} :: New {key} = {value}");
         }
 
         // Process the tags into the file. Arguaby we could skip this if it's a
@@ -157,9 +148,8 @@ pub fn process(
         }
     }
 
-    // Write tags to file
+    // Write tags to file - unless we're on a dry run.
     if config.dry_run.unwrap_or(true) {
-        log::debug!("Not writing {filename}");
         processed_ok = true;
     } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
         processed_ok = true;

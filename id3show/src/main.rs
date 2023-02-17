@@ -32,7 +32,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
-    for filename in cli_args.values_of("files").unwrap() {
+    for filename in cli_args.values_of("files").unwrap_or_default() {
         filenames.push(filename);
         file_count += 1;
     }

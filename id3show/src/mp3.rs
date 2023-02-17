@@ -8,8 +8,6 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     // Reat the tag - bomb out if it doesn't work.
     let tag = Tag::read_from_path(filename)?;
 
-    log::debug!("Tag = {:?}", tag);
-    log::debug!("Frames:");
     for item in tag.frames() {
         match item.content() {
             Content::Text(t) => {

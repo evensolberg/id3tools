@@ -8,8 +8,12 @@ use std::path::{Path, PathBuf};
 
 // Homegrown stuff
 use crate::default_values::DefaultValues;
-use crate::rename_file::resized_filename;
 use common::directory;
+
+mod ops;
+mod paths;
+use ops::{aspect_ratio_is_ok, cover_needs_resizing};
+use paths::{complete_path, complete_resized_path};
 
 /// The types of covers we deal with - `Front`, `Back`, `FrontCandidate` and `BackCandidate`
 #[derive(PartialEq, Default, Copy, Clone)]
@@ -80,62 +84,41 @@ fn get_cover_filename(
 
     // Check that we've been given either a front or back cover
     if cover_type != CoverType::Front && cover_type != CoverType::Back {
-        log::debug!("cover_type = {cover_type}");
+        log::error!("Incorrect cover type supplied. Should be CoverType::Front or CoverType::Back. cover_type = {cover_type}");
         return Err("Incorrect cover type supplied. Should be CoverType::Front or CoverType::Back. Exiting the function.".into());
     }
 
     // Look for the cover file next to the music file and in the candidate paths provided.
     // If found, we need to do a bunch of processing.
     if let Some(cover_found_path) = find_cover(cover_type, music_file, cfg)? {
-        log::debug!("{cover_type} cover found: {cover_found_path:?}");
-
-        // Get the cover name from the config
         let cover_file_name = cover_filename_from_config(cover_type, cfg);
-        log::debug!("cover_file_name = {cover_file_name}");
-
-        // Get the path to the music file, so we can save the cover file next to it if needed.
         let music_file_path = directory(music_file)?;
-        log::debug!("music_file_path = {music_file_path:?}");
 
         // TODO: Refactor this into a couple of functions
         // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
         if cover_file_name == cover_found_path {
-            log::debug!("Cover path parameter equals found path.");
-            // Create the picture file.
             cover_path_returned = Some(cover_found_path.clone());
             if cover_needs_resizing(&cover_found_path, max_size)? {
                 let cp_resize = crate::rename_file::resized_filename(&cover_found_path)?;
                 cover_path_returned = Some(cp_resize.clone());
-                let res = create_cover(&cover_found_path, &cp_resize, max_size, dry_run)?;
-                log::debug!(
-                    "Resized {cover_type} {cp_resize} cover size: {} bytes.",
-                    res.len()
-                );
+                let _res = create_cover(&cover_found_path, &cp_resize, max_size, dry_run)?;
             }
         // If the cover found is different from the --picture-XXXXX parameter, we need to create the cover.
         } else {
-            log::debug!(
-                "{cover_type} cover path parameter differs from found path. Creating cover: {cover_file_name}.",
-            );
-            // Create the picture file.
             cover_path_returned = Some(cover_found_path.clone());
-            let cover_output_filename = create_complete_path(&music_file_path, &cover_file_name);
-            log::debug!("cover_output_filename = {cover_output_filename}");
+            let cover_output_filename = complete_path(&music_file_path, &cover_file_name);
 
             if dry_run {
                 log::debug!("Not creating the resized cover since we're in dry-run mode.");
             } else {
-                let res =
+                let _res =
                     create_cover(&cover_found_path, &cover_output_filename, max_size, dry_run)
                         .unwrap_or_default();
-                log::debug!("Resized {cover_type} cover size: {} bytes.", res.len());
             }
         }
         // return the resulting path
     }
 
-    // Cover not found.
-    log::debug!("cover_path_returned = {cover_path_returned:?}");
     Ok(cover_path_returned)
 }
 
@@ -245,32 +228,6 @@ fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> 
     None
 }
 
-/// Check if the image ratio is within acceptable limits
-fn aspect_ratio_is_ok(x: u32, y: u32) -> bool {
-    let min_ratio = 1.0 / 2.0; // 1:2 ratio
-    let max_ratio = 2.0 / 1.0; // 2:1 ratio
-
-    let ratio = f64::from(x) / f64::from(y);
-    (min_ratio..=max_ratio).contains(&ratio)
-}
-
-/// Check if the cover needs resizing and if the X:Y ratio is acceptable (i.e. not too wide or tall).
-fn cover_needs_resizing(filename: &str, max_size: u32) -> Result<bool, Box<dyn Error>> {
-    let img = image::open(filename)?;
-
-    // If image ratio is "reasonable", see if it needs resizing and return accordingly.
-    // Otherwise return error.
-    if aspect_ratio_is_ok(img.width(), img.height()) {
-        if img.width() > max_size || img.height() > max_size {
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    } else {
-        Err("Image is not in the expected ratio.".into())
-    }
-}
-
 /// Reads a source image file, resizes it, and writes it to a destination file.
 /// If the destination file already exists, it is overwritten.
 /// If the source file is an image, but the image is not in the expected ratio, an error is returned.
@@ -367,7 +324,6 @@ fn gather_cover_paths(
         || vec![".".to_string(), "..".to_string()],
         std::clone::Clone::clone,
     );
-    log::debug!("formats::images::gather_cover_paths::psf = {psf:?}");
 
     // Depending on the cover type, collect the folder+filename combos, including the "-resized" versions.
     for f in psf {
@@ -375,16 +331,16 @@ fn gather_cover_paths(
         match cover_type {
             CoverType::Front => {
                 if let Some(pn) = &cfg.picture_front {
-                    res_vec.push(create_complete_path(folder, pn));
-                    res_vec.push(create_complete_resized_path(folder, pn)?);
+                    res_vec.push(complete_path(folder, pn));
+                    res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
                     return Err("No front cover submitted.".into());
                 }
             }
             CoverType::Back => {
                 if let Some(pn) = &cfg.picture_back {
-                    res_vec.push(create_complete_path(folder, pn));
-                    res_vec.push(create_complete_resized_path(folder, pn)?);
+                    res_vec.push(complete_path(folder, pn));
+                    res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
                     return Err("No back cover submitted.".into());
                 }
@@ -392,8 +348,8 @@ fn gather_cover_paths(
             CoverType::FrontCandidate => {
                 if let Some(pcs) = &cfg.picture_front_candidates {
                     for c in pcs {
-                        res_vec.push(create_complete_path(folder, c));
-                        res_vec.push(create_complete_resized_path(folder, c)?);
+                        res_vec.push(complete_path(folder, c));
+                        res_vec.push(complete_resized_path(folder, c)?);
                     }
                 } else {
                     return Err("No front cover candidates identified.".into());
@@ -402,8 +358,8 @@ fn gather_cover_paths(
             CoverType::BackCandidate => {
                 if let Some(pcs) = &cfg.picture_back_candidates {
                     for c in pcs {
-                        res_vec.push(create_complete_path(folder, c));
-                        res_vec.push(create_complete_resized_path(folder, c)?);
+                        res_vec.push(complete_path(folder, c));
+                        res_vec.push(complete_resized_path(folder, c)?);
                     }
                 } else {
                     return Err("No back cover candidates identified.".into());
@@ -413,10 +369,7 @@ fn gather_cover_paths(
     } // for f in psf
 
     res_vec.sort();
-    log::debug!(
-        "formats::images::gather_cover_paths::res_vec = {:?}",
-        res_vec
-    );
+
     Ok(res_vec)
 }
 
@@ -465,24 +418,6 @@ fn find_first_image(
     Ok(None)
 }
 
-/// Create the complete path name from the folder and the file name
-fn create_complete_path(folder: &Path, filename: &String) -> String {
-    folder
-        .join(Path::new(&filename))
-        .to_str()
-        .unwrap_or_default()
-        .to_owned()
-}
-
-/// Create the complete path name from the folder and the file name with -resized appended.
-fn create_complete_resized_path(folder: &Path, filename: &str) -> Result<String, Box<dyn Error>> {
-    Ok(folder
-        .join(resized_filename(filename)?)
-        .to_str()
-        .unwrap_or_default()
-        .to_owned())
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 // Tests
 // --------------------------------------------------------------------------------------------------------------------
@@ -495,24 +430,6 @@ mod tests {
     use super::*;
     use assay::assay;
     use std::fs;
-
-    #[assay]
-    /// Tests the `create_complete_path` function
-    fn test_create_complete_path() {
-        assert_eq!(
-            create_complete_path(Path::new("/my/path"), &"my_file.txt".to_string()),
-            "/my/path/my_file.txt".to_string()
-        );
-    }
-
-    #[assay]
-    /// Tests the `create_complete_resized_path` function
-    fn test_create_complete_resized_path() {
-        assert_eq!(
-            create_complete_resized_path(Path::new("/my/path"), "my_file.txt").unwrap(),
-            "/my/path/my_file-resize.txt".to_string()
-        );
-    }
 
     #[assay(include = ["../testdata/DSOTM_Back.jpeg", "../testdata/DSOTM_Cover.jpeg", "../testdata/id3tag-config.toml", "../testdata/sample.flac"])]
     /// Tests the `find_cover` function.
