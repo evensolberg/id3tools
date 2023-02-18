@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactor
+
+- Update parse_options
+
 ## [0.13.0] - 2023-02-18
 
 ### Bug Fixes

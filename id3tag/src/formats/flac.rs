@@ -11,6 +11,38 @@ use std::error::Error;
 
 use crate::formats::images;
 
+/// Splits the incoming value into two the (disc/track) number and count.
+/// Inserts the split values into their respective spots in the `HashSet`.
+///
+/// # Arguments
+///
+/// - `$cfg:ident` - the name of the `DefaultValues` config being used.
+/// - `$tag:ident` - the name of the `HashSet` being used.
+/// - `$nt:ident` - the name of the field holding the total number of discs/tracks (number_total)
+/// - `$nn:ident` - the name of the field holding the number of the current disc/track
+/// - `$nm:literal` - used to indicate whether we're dealing with a "DISC" or "TRACK". Used when inserting into the `HashSet`.
+/// - `$value:ident` - the name of the variable containing the value to be split
+///
+/// # Examples
+///
+/// `split!(config, new_tags, track_number_total, track_number, "TRACK", value);`
+///
+macro_rules! split {
+    ($cfg:ident, $tag:ident, $nt:ident, $nn:ident, $nm:literal, $value:ident) => {
+        let split = common::split_val($value.trim())?;
+        if split.0 != 0 {
+            $cfg.$nn = Some(split.0);
+            let name = format!("{}NUMBER", $nm);
+            $tag.insert(name, split.0.to_string());
+        }
+        if split.1 != 0 {
+            $cfg.$nt = Some(split.1);
+            let name = format!("{}TOTAL", $nm);
+            $tag.insert(name, split.1.to_string());
+        }
+    };
+}
+
 /// Performs the actual processing of FLAC files.
 ///
 /// **Parameters:**
@@ -41,39 +73,28 @@ pub fn process(
         log::trace!("{:?}", block);
     }
 
-    let mut config = config.clone();
+    let mut cfg = config.clone();
 
     // Read old tags
     if let Some(id3) = tags.vorbis_comments() {
-        log::debug!("vendor_string = {}", &id3.vendor_string);
         for (key, values) in &id3.comments {
             for value in values {
                 log::debug!("Old {} = {}", key, value.trim());
 
                 // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
                 if key == "TRACKNUMBER" && common::need_split(value) {
-                    let track_split = common::split_val(value.trim())?;
-                    log::debug!("track_split = {:?}", track_split);
-                    if track_split.0 != 0 {
-                        config.track_number = Some(track_split.0);
-                        new_tags.insert("TRACKNUMBER".to_string(), track_split.0.to_string());
-                    }
-                    if track_split.1 != 0 {
-                        config.track_number_total = Some(track_split.1);
-                        new_tags.insert("TRACKTOTAL".to_string(), track_split.1.to_string());
-                    }
-                } // TRACKNUMBERid3t --help
+                    split!(
+                        cfg,
+                        new_tags,
+                        track_number_total,
+                        track_number,
+                        "TRACK",
+                        value
+                    );
+                }
+
                 if key == "DISCNUMBER" && common::need_split(value) {
-                    let disc_split = common::split_val(value.trim())?;
-                    log::debug!("disc_split = {:?}", disc_split);
-                    if disc_split.0 != 0 {
-                        config.disc_number = Some(disc_split.0);
-                        new_tags.insert("DISCNUMBER".to_string(), disc_split.0.to_string());
-                    }
-                    if disc_split.1 != 0 {
-                        config.disc_number_total = Some(disc_split.1);
-                        new_tags.insert("DISCTOTAL".to_string(), disc_split.1.to_string());
-                    }
+                    split!(cfg, new_tags, disc_number_total, disc_number, "DISC", value);
                 } // DISCNUMBER
             } // for value in values
         } // for (key, value)
@@ -81,9 +102,9 @@ pub fn process(
 
     // Set new tags
     for (key, value) in new_tags {
-        if !(config.detail_off.unwrap_or(false)) {
+        if !(cfg.detail_off.unwrap_or(false)) {
             log::debug!("{} :: New {} = {}", &filename, key, value);
-        } else if config.dry_run.unwrap_or(false) {
+        } else if cfg.dry_run.unwrap_or(false) {
             log::info!("{} :: New {} = {}", &filename, key, value.trim());
         } else {
             log::debug!("{} :: New {} = {}", &filename, key, value);
@@ -98,22 +119,19 @@ pub fn process(
                 } else {
                     CoverBack
                 };
-                log::debug!("Setting {:?}.", cover_type);
+                log::debug!("Setting {cover_type:?}.");
 
                 match add_picture(&mut tags, value.trim(), cover_type) {
                     Ok(_) => log::trace!("Picture set."),
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(true) {
+                        if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set {cover_type:?} to {value}. Error message: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set {:?} to {}. Continuing. Error message: {}",
-                            cover_type,
-                            value,
-                            err
+                            "Unable to set {cover_type:?} to {value}. Continuing. Error message: {err}"
                         );
                     }
                 } // match
@@ -124,22 +142,22 @@ pub fn process(
     }
 
     // Try to save
-    if config.dry_run.unwrap_or(true) {
+    if cfg.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
         processed_ok = true;
     } else if tags.save().is_ok() {
         processed_ok = true;
         log::info!("{}   ✓", filename);
     } else {
-        if config.stop_on_error.unwrap_or(true) {
+        if cfg.stop_on_error.unwrap_or(true) {
             return Err(format!("Unable to save {filename}").into());
         }
         log::warn!("Unable to save {}", filename);
     }
 
     // Rename file
-    if config.rename_file.is_some() {
-        rename_file(filename, &config, &tags)?;
+    if cfg.rename_file.is_some() {
+        rename_file(filename, &cfg, &tags)?;
     }
 
     // Return safely
@@ -152,19 +170,15 @@ fn add_picture(
     filename: &str,
     cover_type: metaflac::block::PictureType,
 ) -> Result<(), Box<dyn Error>> {
-    log::debug!("Removing existing picture.");
     tags.remove_picture_type(cover_type);
 
     // Read the file and check the mime type
     let filename_str = rename_file::filename_resized(filename)?;
     let filename = filename_str.as_str();
     let mime_fmt = common::get_mime_type(filename)?;
-    log::debug!("MIME type: {}", mime_fmt);
 
-    log::debug!("Reading image file {}", filename);
     let image_data = images::read_cover(filename, 0)?;
 
-    log::debug!("Attempting to set picture.");
     tags.add_picture(mime_fmt, cover_type, image_data);
 
     // Return safely
@@ -189,11 +203,11 @@ fn rename_file(
     for (key, vorbis_key) in tags_names {
         if let Some(mut vval) = tags.get_vorbis(&vorbis_key) {
             let value = vval.next().unwrap_or_default().to_string();
-            log::debug!("key = {}, value = {}", key, value);
+            log::debug!("key = {key}, value = {value}");
             replace_map.insert(key, value);
         }
     }
-    log::debug!("replace_map = {:?}", replace_map);
+    log::debug!("replace_map = {replace_map:?}");
 
     // Try to rename, and process the result
     let rename_result = rename_file::rename_file(filename, &replace_map, config);
@@ -207,10 +221,7 @@ fn rename_file(
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
             );
         }
     }

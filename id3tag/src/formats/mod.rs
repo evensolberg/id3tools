@@ -20,28 +20,39 @@ mod mp3;
 mod mp4;
 mod tags;
 
-/// Used to insert tags into the new tags list
-macro_rules! insert_tag {
-    ($args:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident) => {
-        if $args.is_present($arg) {
-            $nt.insert($t.$name, $args.value_of($arg).unwrap_or("").to_string());
-        } else if $args.is_present("config-file") {
+/// Insert tags into the new tags list. Replaces mucho repeated code.
+///
+/// # Arguments
+///
+/// - `$cli:ident` - The name of the variable that holds the `clap::ArgMatches`
+/// - `$cfg:ident` - The name of the variable that contains the `DefaultValues`
+/// - `$nt:ident` - The name of the variable that contains the new tags `HashSet`
+/// - `$t:ident` - The name of the variable that contains the existing tags `HashSet`
+/// - `$arg:expr` - The CLI parameter we're matching on
+/// - `$name:ident` - The name of the variable in the `DefaultValues`
+/// - `true|false` - Indicates whether to use the `clone()` version of the macro or not. The `clone()` version is used if the $name is used later in the function.
+///
+/// # Examples
+///
+/// `tag!(am, dv, nt, ot, "album-title", album_title, false);`
+/// `tag!(am, dv, nt, ot, "disc-number", disc_number, true);`
+macro_rules! tag {
+    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, false) => {
+        if $cli.is_present($arg) {
+            $nt.insert($t.$name, $cli.value_of($arg).unwrap_or("").to_string());
+        } else if $cli.is_present("config-file") {
             if let Some(val) = &$cfg.$name {
                 $nt.insert($t.$name, val.to_string());
             }
         }
     };
-}
-
-/// Used to insert tags into the new tags list but with a clone, since the tag may be used later
-macro_rules! insert_tag_clone {
-    ($args:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident) => {
-        if $args.is_present($arg) {
+    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, true) => {
+        if $cli.is_present($arg) {
             $nt.insert(
                 $t.$name.clone(),
-                $args.value_of($arg).unwrap_or("").to_string(),
+                $cli.value_of($arg).unwrap_or("").to_string(),
             );
-        } else if $args.is_present("config-file") {
+        } else if $cli.is_present("config-file") {
             if let Some(val) = &$cfg.$name {
                 $nt.insert($t.$name.clone(), val.to_string());
             }
@@ -130,31 +141,28 @@ pub fn process_file(
 fn parse_options(
     filename: &str,
     file_type: common::FileTypes,
-    defs: &DefaultValues,
-    args: &clap::ArgMatches,
+    dv: &DefaultValues,
+    am: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut nt = HashMap::new();
 
     // Set tag names based on file type -- see tag_names function below
-    let tags = tags::get_tag_names(file_type);
+    let ot = tags::get_tag_names(file_type);
 
     // TODO: Refactor to check for -c and use, and then for parameter and overwrite.
     // TODO: Look into creating a macro for a bunch of the stuff below
 
     // ALBUM & TRACK ARTIST //
 
-    if args.is_present("track-album-artist") {
-        let taa = args
-            .value_of("track-album-artist")
-            .unwrap_or("")
-            .to_string();
-        nt.insert(tags.track_artist.clone(), taa.clone());
-        nt.insert(tags.album_artist.clone(), taa);
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defs.track_album_artist {
+    if am.is_present("track-album-artist") {
+        let taa = am.value_of("track-album-artist").unwrap_or("").to_string();
+        nt.insert(ot.track_artist.clone(), taa.clone());
+        nt.insert(ot.album_artist.clone(), taa);
+    } else if am.is_present("config-file") {
+        if let Some(val) = &dv.track_album_artist {
             let taa = val.to_string();
-            nt.insert(tags.track_artist.clone(), taa.clone());
-            nt.insert(tags.album_artist.clone(), taa);
+            nt.insert(ot.track_artist.clone(), taa.clone());
+            nt.insert(ot.album_artist.clone(), taa);
         }
     }
 
@@ -162,73 +170,89 @@ fn parse_options(
     // but the compiler doesn't know that. So we have to do a bunch of cloning above to ensure the
     // code below still compiles as expected.
 
-    insert_tag!(args, defs, nt, tags, "album-artist", album_artist);
-    insert_tag!(args, defs, nt, tags, "track-artist", track_artist);
-    insert_tag!(args, defs, nt, tags, "album-artist-sort", album_artist_sort);
-    insert_tag!(args, defs, nt, tags, "album-title", album_title);
-    insert_tag!(args, defs, nt, tags, "album-title-sort", album_title_sort);
-    insert_tag_clone!(args, defs, nt, tags, "disc-number", disc_number);
-    insert_tag_clone!(args, defs, nt, tags, "disc-total", disc_number_total);
-    insert_tag!(args, defs, nt, tags, "track-artist-sort", track_artist_sort);
-    insert_tag!(args, defs, nt, tags, "track-title", track_title);
-    insert_tag!(args, defs, nt, tags, "track-title-sort", track_title_sort);
-    insert_tag!(args, defs, nt, tags, "track-number", track_number);
-    insert_tag_clone!(args, defs, nt, tags, "track-total", track_number_total);
-    insert_tag_clone!(args, defs, nt, tags, "track-genre", track_genre);
-    insert_tag!(args, defs, nt, tags, "track-composer", track_composer);
-    insert_tag!(
-        args,
-        defs,
+    tag!(am, dv, nt, ot, "album-artist", album_artist, false);
+    tag!(am, dv, nt, ot, "track-artist", track_artist, false);
+    tag!(
+        am,
+        dv,
         nt,
-        tags,
-        "track-composer-sort",
-        track_composer_sort
+        ot,
+        "album-artist-sort",
+        album_artist_sort,
+        false
     );
-    insert_tag!(args, defs, nt, tags, "track-date", track_date);
-    insert_tag!(args, defs, nt, tags, "track-comments", track_comments);
+    tag!(am, dv, nt, ot, "album-title", album_title, false);
+    tag!(am, dv, nt, ot, "album-title-sort", album_title_sort, false);
+    tag!(am, dv, nt, ot, "disc-number", disc_number, true);
+    tag!(am, dv, nt, ot, "disc-total", disc_number_total, true);
+    tag!(
+        am,
+        dv,
+        nt,
+        ot,
+        "track-artist-sort",
+        track_artist_sort,
+        false
+    );
+    tag!(am, dv, nt, ot, "track-title", track_title, false);
+    tag!(am, dv, nt, ot, "track-title-sort", track_title_sort, false);
+    tag!(am, dv, nt, ot, "track-number", track_number, false);
+    tag!(am, dv, nt, ot, "track-total", track_number_total, true);
+    tag!(am, dv, nt, ot, "track-genre", track_genre, true);
+    tag!(am, dv, nt, ot, "track-composer", track_composer, false);
+    tag!(
+        am,
+        dv,
+        nt,
+        ot,
+        "track-composer-sort",
+        track_composer_sort,
+        false
+    );
+    tag!(am, dv, nt, ot, "track-date", track_date, false);
+    tag!(am, dv, nt, ot, "track-comments", track_comments, false);
 
     // Count the number of discs instead of taking a value
-    if args.is_present("disc-number-count")
-        || (args.is_present("config-file") && defs.disc_count.unwrap_or(false))
+    if am.is_present("disc-number-count")
+        || (am.is_present("config-file") && dv.disc_count.unwrap_or(false))
     {
         let disc_num = get_disc_number(filename)?;
         let disc_count = get_disc_count(filename)?;
-        nt.insert(tags.disc_number.clone(), format!("{disc_num:0>2}"));
-        nt.insert(tags.disc_number_total.clone(), format!("{disc_count:0>2}"));
+        nt.insert(ot.disc_number.clone(), format!("{disc_num:0>2}"));
+        nt.insert(ot.disc_number_total.clone(), format!("{disc_count:0>2}"));
     }
 
     // Count the number of tracks instead of taking a value
-    if args.is_present("track-count")
-        || (args.is_present("config-file") && defs.track_count.unwrap_or(false))
+    if am.is_present("track-count")
+        || (am.is_present("config-file") && dv.track_count.unwrap_or(false))
     {
         let file_count = common::count_files(filename)?;
-        nt.insert(tags.track_number_total, file_count);
+        nt.insert(ot.track_number_total, file_count);
     }
 
     // Insert genre by number instead of name
-    if args.is_present("track-genre-number") {
+    if am.is_present("track-genre-number") {
         nt.insert(
-            tags.track_genre.clone(),
+            ot.track_genre.clone(),
             get_genre_name(
-                args.value_of("track-genre-number")
-                    .unwrap_or("")
-                    .to_string()
+                am.value_of("track-genre-number")
+                    .unwrap_or_default()
                     .parse::<u16>()
                     .unwrap_or_default(),
             )?,
         );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defs.track_genre_number {
-            nt.insert(tags.track_genre.clone(), get_genre_name(*val)?);
+    } else if am.is_present("config-file") {
+        if let Some(val) = &dv.track_genre_number {
+            nt.insert(ot.track_genre.clone(), get_genre_name(*val)?);
         }
     }
 
-    if let Some(p) = &defs.picture_front {
-        nt.insert(tags.picture_front, p.clone());
+    if let Some(p) = &dv.picture_front {
+        nt.insert(ot.picture_front, p.clone());
     }
 
-    if let Some(p) = &defs.picture_back {
-        nt.insert(tags.picture_back, p.clone());
+    if let Some(p) = &dv.picture_back {
+        nt.insert(ot.picture_back, p.clone());
     }
 
     Ok(nt)
@@ -493,6 +517,8 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 
 /// Counts the number of discs by looking for the number of `disk`, `CD` etc subdirectories
 fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
+    let disc_candidates = vec!["CD", "DISC", "DISK", "PART"];
+
     // Get the full path so we can figure out the grandparent below
     let full_path = fs::canonicalize(filename)?;
     let grandparent_dir = full_path
@@ -506,18 +532,14 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         let path = entry?.path();
         if path.is_dir() {
             let component_name = path
-                .components()
-                .last()
-                .unwrap_or(Component::CurDir)
-                .as_os_str()
-                .to_str()
-                .unwrap_or("None")
+                .file_name()
+                .unwrap_or(Component::CurDir.as_os_str())
+                .to_string_lossy()
                 .to_ascii_uppercase();
 
-            if component_name.starts_with("CD")
-                || component_name.starts_with("DISC")
-                || component_name.starts_with("DISK")
-                || component_name.starts_with("PART")
+            if disc_candidates
+                .iter()
+                .any(|&s| component_name.to_uppercase().starts_with(s))
             {
                 disc_count += 1;
             }
