@@ -1,3 +1,5 @@
+//! Image processing operations
+
 /// Check if the cover needs resizing and if the X:Y ratio is acceptable (i.e. not too wide or tall).
 pub fn cover_needs_resizing(
     filename: &str,
@@ -20,8 +22,8 @@ pub fn cover_needs_resizing(
 
 /// Check if the image ratio is within acceptable limits
 pub fn aspect_ratio_is_ok(x: u32, y: u32) -> bool {
-    let min_ratio = 1.0 / 2.0; // 1:2 ratio
-    let max_ratio = 2.0 / 1.0; // 2:1 ratio
+    let min_ratio = 1.0 / 1.5; // 1:2 ratio
+    let max_ratio = 1.5 / 1.0; // 2:1 ratio
 
     let ratio = f64::from(x) / f64::from(y);
     (min_ratio..=max_ratio).contains(&ratio)
@@ -41,5 +43,16 @@ mod tests {
 
         let res = cover_needs_resizing("../testdata/DSOTM_Back.jpeg", 1500).unwrap_or_default();
         assert_eq!(res, false);
+    }
+
+    #[assay]
+    ///
+    fn test_aspect_ratio_is_ok() {
+        assert_eq!(aspect_ratio_is_ok(100, 100), true);
+        assert_eq!(aspect_ratio_is_ok(500, 500), true);
+        assert_eq!(aspect_ratio_is_ok(100, 150), true);
+        assert_eq!(aspect_ratio_is_ok(150, 100), true);
+        assert_eq!(aspect_ratio_is_ok(100, 151), false);
+        assert_eq!(aspect_ratio_is_ok(151, 100), false);
     }
 }
