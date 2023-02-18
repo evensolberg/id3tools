@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- CHANGELOG update
+
+### Refactor
+
+- Simplify FLAC processing code
+
+## [0.13.1] - 2023-02-18
+
+### Refactor
+
+- Update parse_options
+
+## [0.13.0] - 2023-02-18
+
 ### Bug Fixes
 
 - Trackinfo not set correctly for FLAC
@@ -37,6 +53,8 @@ All notable changes to this project will be documented in this file.
 - Remove test output file
 - Update Justfile
 - Justfile update
+- Bump tokio from 1.18.2 to 1.24.1
+- Bump tokio from 1.24.1 to 1.25.0
 - Update CHANGELOG
 
 ### Refactor
