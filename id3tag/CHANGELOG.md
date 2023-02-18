@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ### Refactor
 
+- Simplify FLAC processing code
+
+## [0.13.1] - 2023-02-18
+
+### Refactor
+
 - Update parse_options
 
 ## [0.13.0] - 2023-02-18
