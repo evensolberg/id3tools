@@ -47,15 +47,8 @@ pub fn gather_cover_paths(
 ) -> Result<Vec<String>, Box<dyn Error>> {
     let mut res_vec: Vec<String> = Vec::new();
 
-    // Gather the folders - we'll use these in all cases.
-    let psf = cfg.picture_search_folders.as_ref();
-    let psf = psf.map_or_else(
-        || vec![".".to_string(), "..".to_string()],
-        std::clone::Clone::clone,
-    );
-
     // Depending on the cover type, collect the folder+filename combos, including the "-resized" versions.
-    for f in psf {
+    for f in cfg.search_folders() {
         let folder = Path::new(&f);
         match cover_type {
             CoverType::Front => {
@@ -75,23 +68,17 @@ pub fn gather_cover_paths(
                 }
             }
             CoverType::FrontCandidate => {
-                if let Some(pcs) = &cfg.picture_front_candidates {
-                    for c in pcs {
-                        res_vec.push(complete_path(folder, c));
-                        res_vec.push(complete_resized_path(folder, c)?);
-                    }
-                } else {
-                    return Err("No front cover candidates identified.".into());
+                let pcs = cfg.picture_front_candidates();
+                for c in pcs {
+                    res_vec.push(complete_path(folder, &c));
+                    res_vec.push(complete_resized_path(folder, &c)?);
                 }
             }
             CoverType::BackCandidate => {
-                if let Some(pcs) = &cfg.picture_back_candidates {
-                    for c in pcs {
-                        res_vec.push(complete_path(folder, c));
-                        res_vec.push(complete_resized_path(folder, c)?);
-                    }
-                } else {
-                    return Err("No back cover candidates identified.".into());
+                let pcs = cfg.picture_back_candidates();
+                for c in pcs {
+                    res_vec.push(complete_path(folder, &c));
+                    res_vec.push(complete_resized_path(folder, &c)?);
                 }
             } // CoverType::BackCandidate
         } // match cover_type
@@ -116,7 +103,11 @@ pub fn gather_cover_paths(
 /// # Returns
 /// The path to the candidate image file, or None if no match is found.
 pub fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> Option<String> {
-    for folder_name in config.picture_search_folders.as_ref().unwrap() {
+    for folder_name in config
+        .picture_search_folders
+        .as_ref()
+        .unwrap_or(&Vec::new())
+    {
         let cover_path = if folder_name == "." {
             format!("{music_path}/{filename}")
         } else {

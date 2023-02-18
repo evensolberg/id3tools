@@ -87,7 +87,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
 /// # Errors
 ///
 /// - Return an error if the pattern provided is unlikely to return unique file names
-pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
+pub fn validate_file_rename_pattern(pattern: &str) -> Result<(), String> {
     if !pattern.contains("%tn")
         && !pattern.contains("%tt")
         && !pattern.contains("%track-number")
@@ -384,12 +384,12 @@ mod tests {
     #[test]
     ///
     fn test_file_rename_pattern_validate() {
-        assert!(file_rename_pattern_validate("%dn-%tn %tt").is_ok());
-        assert!(file_rename_pattern_validate("%track-number %track-title").is_ok());
-        assert!(file_rename_pattern_validate("%track-number %track-title-sort").is_ok());
-        assert!(file_rename_pattern_validate("%track-title-sort").is_ok());
+        assert!(validate_file_rename_pattern("%dn-%tn %tt").is_ok());
+        assert!(validate_file_rename_pattern("%track-number %track-title").is_ok());
+        assert!(validate_file_rename_pattern("%track-number %track-title-sort").is_ok());
+        assert!(validate_file_rename_pattern("%track-title-sort").is_ok());
 
-        assert!(file_rename_pattern_validate("%disc-number").is_err());
+        assert!(validate_file_rename_pattern("%disc-number").is_err());
     }
 
     #[test]

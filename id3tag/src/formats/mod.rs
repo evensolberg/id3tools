@@ -20,6 +20,35 @@ mod mp3;
 mod mp4;
 mod tags;
 
+/// Used to insert tags into the new tags list
+macro_rules! insert_tag {
+    ($args:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident) => {
+        if $args.is_present($arg) {
+            $nt.insert($t.$name, $args.value_of($arg).unwrap_or("").to_string());
+        } else if $args.is_present("config-file") {
+            if let Some(val) = &$cfg.$name {
+                $nt.insert($t.$name, val.to_string());
+            }
+        }
+    };
+}
+
+/// Used to insert tags into the new tags list but with a clone, since the tag may be used later
+macro_rules! insert_tag_clone {
+    ($args:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident) => {
+        if $args.is_present($arg) {
+            $nt.insert(
+                $t.$name.clone(),
+                $args.value_of($arg).unwrap_or("").to_string(),
+            );
+        } else if $args.is_present("config-file") {
+            if let Some(val) = &$cfg.$name {
+                $nt.insert($t.$name.clone(), val.to_string());
+            }
+        }
+    };
+}
+
 /// Performs the actual file processing
 ///
 /// Parameters:
@@ -37,14 +66,22 @@ mod tags;
 pub fn process_file(
     file_type: FileTypes,
     filename: &str,
-    config: &DefaultValues,
+    cfg: &DefaultValues,
     cli_args: &clap::ArgMatches,
 ) -> Result<bool, Box<dyn Error>> {
     // Check if we need to create one or more cover images.
-    let (front_cover_path, back_cover_path) = images::process_images(filename, config)?;
-    log::debug!("front_cover_path / back_cover_path: {front_cover_path:?} / {back_cover_path:?}");
+    let mut config = cfg.clone();
+    let (front_cover_path, back_cover_path) = images::process_images(filename, &config)?;
 
-    let new_tags_result = parse_options(filename, file_type, config, cli_args);
+    if front_cover_path.is_some() {
+        config.picture_front = front_cover_path;
+    }
+
+    if back_cover_path.is_some() {
+        config.picture_back = back_cover_path;
+    }
+
+    let new_tags_result = parse_options(filename, file_type, &config, cli_args);
 
     let mut new_tags;
     let mut processed = false;
@@ -54,11 +91,11 @@ pub fn process_file(
         Ok(res) => {
             new_tags = res;
             let proc_res = match file_type {
-                FileTypes::Ape => ape::process(filename, &new_tags, config),
-                FileTypes::Dsf => dsf::process(filename, &new_tags, config),
-                FileTypes::Flac => flac::process(filename, &mut new_tags, config),
-                FileTypes::MP3 => mp3::process(filename, &new_tags, config),
-                FileTypes::MP4 => mp4::process(filename, &new_tags, config),
+                FileTypes::Ape => ape::process(filename, &new_tags, &config),
+                FileTypes::Dsf => dsf::process(filename, &new_tags, &config),
+                FileTypes::Flac => flac::process(filename, &mut new_tags, &config),
+                FileTypes::MP3 => mp3::process(filename, &new_tags, &config),
+                FileTypes::MP4 => mp4::process(filename, &new_tags, &config),
                 FileTypes::Unknown => {
                     return Err(format!("{filename} is unknown file type.").into())
                 }
@@ -88,15 +125,15 @@ pub fn process_file(
 
 /// Collect the various options/tags submitted into a `HashMap` for later use.
 /// Also checks the default values loaded from a config file.
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::cognitive_complexity)]
 // TODO: This function is too long. Split it up.
 fn parse_options(
     filename: &str,
     file_type: common::FileTypes,
-    defaults: &DefaultValues,
+    defs: &DefaultValues,
     args: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
-    let mut new_tags = HashMap::new();
+    let mut nt = HashMap::new();
 
     // Set tag names based on file type -- see tag_names function below
     let tags = tags::get_tag_names(file_type);
@@ -111,13 +148,13 @@ fn parse_options(
             .value_of("track-album-artist")
             .unwrap_or("")
             .to_string();
-        new_tags.insert(tags.track_artist.clone(), taa.clone());
-        new_tags.insert(tags.album_artist.clone(), taa);
+        nt.insert(tags.track_artist.clone(), taa.clone());
+        nt.insert(tags.album_artist.clone(), taa);
     } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_album_artist {
+        if let Some(val) = &defs.track_album_artist {
             let taa = val.to_string();
-            new_tags.insert(tags.track_artist.clone(), taa.clone());
-            new_tags.insert(tags.album_artist.clone(), taa);
+            nt.insert(tags.track_artist.clone(), taa.clone());
+            nt.insert(tags.album_artist.clone(), taa);
         }
     }
 
@@ -125,174 +162,52 @@ fn parse_options(
     // but the compiler doesn't know that. So we have to do a bunch of cloning above to ensure the
     // code below still compiles as expected.
 
-    if args.is_present("album-artist") {
-        new_tags.insert(
-            tags.album_artist.clone(),
-            args.value_of("album-artist").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.album_artist {
-            new_tags.insert(tags.album_artist, val.to_string());
-        }
-    }
+    insert_tag!(args, defs, nt, tags, "album-artist", album_artist);
+    insert_tag!(args, defs, nt, tags, "track-artist", track_artist);
+    insert_tag!(args, defs, nt, tags, "album-artist-sort", album_artist_sort);
+    insert_tag!(args, defs, nt, tags, "album-title", album_title);
+    insert_tag!(args, defs, nt, tags, "album-title-sort", album_title_sort);
+    insert_tag_clone!(args, defs, nt, tags, "disc-number", disc_number);
+    insert_tag_clone!(args, defs, nt, tags, "disc-total", disc_number_total);
+    insert_tag!(args, defs, nt, tags, "track-artist-sort", track_artist_sort);
+    insert_tag!(args, defs, nt, tags, "track-title", track_title);
+    insert_tag!(args, defs, nt, tags, "track-title-sort", track_title_sort);
+    insert_tag!(args, defs, nt, tags, "track-number", track_number);
+    insert_tag_clone!(args, defs, nt, tags, "track-total", track_number_total);
+    insert_tag_clone!(args, defs, nt, tags, "track-genre", track_genre);
+    insert_tag!(args, defs, nt, tags, "track-composer", track_composer);
+    insert_tag!(
+        args,
+        defs,
+        nt,
+        tags,
+        "track-composer-sort",
+        track_composer_sort
+    );
+    insert_tag!(args, defs, nt, tags, "track-date", track_date);
+    insert_tag!(args, defs, nt, tags, "track-comments", track_comments);
 
-    if args.is_present("track-artist") {
-        new_tags.insert(
-            tags.track_artist.clone(),
-            args.value_of("track-artist").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_artist {
-            new_tags.insert(tags.track_artist.clone(), val.to_string());
-        }
-    }
-
-    // ALBUM DETAILS //
-
-    if args.is_present("album-artist-sort") {
-        new_tags.insert(
-            tags.album_artist_sort,
-            args.value_of("album-artist-sort").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.album_artist_sort {
-            new_tags.insert(tags.album_artist_sort, val.to_string());
-        }
-    }
-
-    if args.is_present("album-title") {
-        new_tags.insert(
-            tags.album_title,
-            args.value_of("album-title").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.album_title {
-            new_tags.insert(tags.album_title, val.to_string());
-        }
-    }
-
-    if args.is_present("album-title-sort") {
-        new_tags.insert(
-            tags.album_title_sort,
-            args.value_of("album-title-sort").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.album_title {
-            new_tags.insert(tags.album_title_sort, val.to_string());
-        }
-    }
-
-    if args.is_present("disc-number") {
-        new_tags.insert(
-            tags.disc_number.clone(),
-            args.value_of("disc-number").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.disc_number {
-            new_tags.insert(tags.disc_number.clone(), val.to_string());
-        }
-    }
-
-    if args.is_present("disc-total") {
-        new_tags.insert(
-            tags.disc_number_total.clone(),
-            args.value_of("disc-total").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.disc_total {
-            new_tags.insert(tags.disc_number_total.clone(), val.to_string());
-        }
-    }
-
+    // Count the number of discs instead of taking a value
     if args.is_present("disc-number-count")
-        || (args.is_present("config-file") && defaults.disc_count.unwrap_or(false))
+        || (args.is_present("config-file") && defs.disc_count.unwrap_or(false))
     {
         let disc_num = get_disc_number(filename)?;
         let disc_count = get_disc_count(filename)?;
-        new_tags.insert(tags.disc_number.clone(), format!("{disc_num:0>2}"));
-        new_tags.insert(tags.disc_number_total.clone(), format!("{disc_count:0>2}"));
+        nt.insert(tags.disc_number.clone(), format!("{disc_num:0>2}"));
+        nt.insert(tags.disc_number_total.clone(), format!("{disc_count:0>2}"));
     }
 
-    // TRACK //
-
-    if args.is_present("track-artist-sort") {
-        new_tags.insert(
-            tags.track_artist_sort,
-            args.value_of("track-artist-sort").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_artist_sort {
-            new_tags.insert(tags.track_artist_sort, val.to_string());
-        }
-    }
-
-    if args.is_present("track-title") {
-        new_tags.insert(
-            tags.track_title,
-            args.value_of("track-title").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_title {
-            new_tags.insert(tags.track_title, val.to_string());
-        }
-    }
-
-    if args.is_present("track-title-sort") {
-        new_tags.insert(
-            tags.track_title_sort,
-            args.value_of("track-title-sort").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_title_sort {
-            new_tags.insert(tags.track_title_sort, val.to_string());
-        }
-    }
-
-    if args.is_present("track-number") {
-        new_tags.insert(
-            tags.track_number,
-            args.value_of("track-number").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_number {
-            new_tags.insert(tags.track_number, val.to_string());
-        }
-    }
-
-    if args.is_present("track-total") {
-        new_tags.insert(
-            tags.track_number_total.clone(),
-            args.value_of("track-total").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") && !args.is_present("track-count") {
-        if let Some(val) = &defaults.track_total {
-            new_tags.insert(tags.track_number_total.clone(), val.to_string());
-        }
-    }
-
+    // Count the number of tracks instead of taking a value
     if args.is_present("track-count")
-        || (args.is_present("config-file") && defaults.track_count.unwrap_or(false))
+        || (args.is_present("config-file") && defs.track_count.unwrap_or(false))
     {
         let file_count = common::count_files(filename)?;
-        log::debug!("file_count = {}", file_count);
-        new_tags.insert(tags.track_number_total, file_count);
+        nt.insert(tags.track_number_total, file_count);
     }
 
-    if args.is_present("track-genre") {
-        new_tags.insert(
-            tags.track_genre.clone(),
-            args.value_of("track-genre").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_genre {
-            new_tags.insert(tags.track_genre.clone(), val.to_string());
-        }
-    }
-
-    // Will update and override previous entry if one is found
+    // Insert genre by number instead of name
     if args.is_present("track-genre-number") {
-        // Turn the numeric tag into a string
-        new_tags.insert(
+        nt.insert(
             tags.track_genre.clone(),
             get_genre_name(
                 args.value_of("track-genre-number")
@@ -303,166 +218,20 @@ fn parse_options(
             )?,
         );
     } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_genre_number {
-            new_tags.insert(tags.track_genre.clone(), get_genre_name(*val)?);
+        if let Some(val) = &defs.track_genre_number {
+            nt.insert(tags.track_genre.clone(), get_genre_name(*val)?);
         }
     }
 
-    if args.is_present("track-composer") {
-        new_tags.insert(
-            tags.track_composer,
-            args.value_of("track-composer").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_composer {
-            new_tags.insert(tags.track_composer, val.to_string());
-        }
+    if let Some(p) = &defs.picture_front {
+        nt.insert(tags.picture_front, p.clone());
     }
 
-    if args.is_present("track-composer-sort") {
-        new_tags.insert(
-            tags.track_composer_sort,
-            args.value_of("track-composer-sort")
-                .unwrap_or("")
-                .to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_composer_sort {
-            new_tags.insert(tags.track_composer_sort, val.to_string());
-        }
+    if let Some(p) = &defs.picture_back {
+        nt.insert(tags.picture_back, p.clone());
     }
 
-    if args.is_present("track-date") {
-        new_tags.insert(
-            tags.track_date,
-            args.value_of("track-date").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_date {
-            new_tags.insert(tags.track_date, val.to_string());
-        }
-    }
-
-    if args.is_present("track-comments") {
-        new_tags.insert(
-            tags.track_comments,
-            args.value_of("track-comments").unwrap_or("").to_string(),
-        );
-    } else if args.is_present("config-file") {
-        if let Some(val) = &defaults.track_comments {
-            new_tags.insert(tags.track_comments, val.to_string());
-        }
-    }
-
-    // PICTURE FILES //
-    // Check if picture files exist
-    // Check parameter first, then fall back to config file (if something is specified there)
-
-    // Front cover
-    if args.is_present("picture-front") {
-        let pf_arg = args.value_of("picture-front").unwrap_or("");
-        if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
-            new_tags.insert(tags.picture_front, picture);
-        } else if defaults.stop_on_error.unwrap_or(false) {
-            return Err(format!(
-                "{filename} - Argument picture-front file {} not found.",
-                &pf_arg
-            )
-            .into());
-        } else {
-            log::warn!(
-                "{filename} - Argument picture_front: file {} not found. Continuing.",
-                &pf_arg
-            );
-        }
-    } else if args.is_present("config-file") {
-        if let Some(pf_arg) = &defaults.picture_front {
-            if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
-                new_tags.insert(tags.picture_front, picture);
-            } else if defaults.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "{filename} - Config file picture_front: file {} not found.",
-                    &pf_arg
-                )
-                .into());
-            } else {
-                log::warn!(
-                    "{filename} - Config file picture_front: file {} not found. Continuing.",
-                    &pf_arg
-                );
-            }
-        } // if let Some(picture_front)
-    }
-
-    // Back cover
-    if args.is_present("picture-back") {
-        let pf_arg = args.value_of("picture-back").unwrap_or("");
-        if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
-            new_tags.insert(tags.picture_back, picture);
-        } else if defaults.stop_on_error.unwrap_or(false) {
-            return Err(format!(
-                "{filename} - Argument picture_back: file {} not found.",
-                &pf_arg
-            )
-            .into());
-        } else {
-            log::warn!(
-                "{filename} - Argument picture_back: file {} not found. Continuing.",
-                &pf_arg
-            );
-        }
-    } else if args.is_present("config-file") {
-        if let Some(pf_arg) = &defaults.picture_back {
-            if let Some(picture) = find_picture(filename, pf_arg, defaults)? {
-                new_tags.insert(tags.picture_back, picture);
-            } else if defaults.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "{filename} - Config file picture_back: file {} not found.",
-                    &pf_arg
-                )
-                .into());
-            } else {
-                log::warn!(
-                    "{filename} - Config file picture_back: file {} not found. Continuing.",
-                    &pf_arg
-                );
-            }
-        }
-    }
-
-    Ok(new_tags)
-}
-
-/// Looks for the picture file with the name supplied. Initially tries to find it in the path of the music file.
-/// If unsuccessful, tries to find it in the invocation directory. If still unsuccessful returns either None or
-/// an Error, depending on whether the `stop_on_error` flag has been set.
-fn find_picture(
-    music_filename: &str,
-    picture_filename: &str,
-    config: &DefaultValues,
-) -> Result<Option<String>, Box<dyn Error>> {
-    let music_dir = common::directory(&music_filename)?;
-
-    if Path::new(&music_dir).join(picture_filename).exists() {
-        return Ok(Some(
-            Path::new(&music_dir)
-                .join(picture_filename)
-                .to_str()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    } else if Path::new(picture_filename).exists() {
-        return Ok(Some(
-            Path::new(picture_filename)
-                .to_str()
-                .unwrap_or_default()
-                .to_string(),
-        ));
-    } else if config.stop_on_error.unwrap_or(false) {
-        return Err(format!("Picture file {picture_filename} does not exist.").into());
-    }
-
-    Ok(None)
+    Ok(nt)
 }
 
 /// Convert a numerical ID3 genre to a string
@@ -689,7 +458,7 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     {
         parent_dir = disc_candidates
             .iter()
-            .fold(parent_dir.to_uppercase().to_owned(), |dir, c| {
+            .fold(parent_dir.to_uppercase(), |dir, c| {
                 dir.replace(c, "").trim().to_owned()
             });
 

@@ -12,14 +12,8 @@ pub fn process(
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    log::debug!("Filename: {}", &filename);
-
     let mut processed_ok = false;
-
     let mut tags = ape::read_from_path(filename)?;
-    for item in tags.iter() {
-        log::debug!("Old {} = {:?}", item.key, item.value);
-    }
 
     // Set new tags
     for (key, value) in new_tags {
@@ -41,7 +35,6 @@ pub fn process(
                 let item = Item::from_text(key, value.trim());
                 match item {
                     Ok(item) => {
-                        log::debug!("Item created: {:?}", item);
                         tags.set_item(item);
                     }
                     Err(err) => {
@@ -59,9 +52,7 @@ pub fn process(
     }
 
     // Try to save
-    if config.dry_run.unwrap_or(true) {
-        log::debug!("Dry-run. Not saving.");
-    } else {
+    if !config.dry_run.unwrap_or(true) {
         let mut file = File::open(filename)?;
         let res = ape::write_to(&tags, &mut file);
         if res.is_ok() {

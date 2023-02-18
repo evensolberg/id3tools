@@ -2,7 +2,7 @@
 use crate::default_values::DefaultValues;
 use std::fmt::{Display, Formatter};
 
-#[derive(PartialEq, Default, Copy, Clone)]
+#[derive(Eq, PartialEq, Default, Copy, Clone)]
 /// The types of covers we deal with - `Front`, `Back`, `FrontCandidate` and `BackCandidate`
 pub enum CoverType {
     #[default]

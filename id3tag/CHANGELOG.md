@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.13.0] - 2023-02-18
 
 ### Bug Fixes
 
@@ -14,6 +14,11 @@ All notable changes to this project will be documented in this file.
 - Imaging cont
 - Image search and resize
 - Minor version bump
+- Imaging working - hopefully
+- Add CLI dependency
+- Gather_cover_paths function
+- Image search for cover
+- Improved function test slightly
 
 ### Miscellaneous Tasks
 
@@ -27,6 +32,12 @@ All notable changes to this project will be documented in this file.
 - Code cleanup
 - Changelog Update
 - Added notes to refactor some functions
+- CHANGELOG update
+- Update gitignore
+- Remove test output file
+- Update Justfile
+- Justfile update
+- Update CHANGELOG
 
 ### Refactor
 
@@ -36,10 +47,25 @@ All notable changes to this project will be documented in this file.
 - Function rename for clarity
 - Improved test, refactored image module
 - Cleaned up lints and added tests
+- Fixed a bunch of lints
+- Filetypes optimization
+- Fixed a bunch of lints
+- Cleaned up some lints
+- Change numerous functions
+- Simplify complex functions
+- Change the images module
+- Move out more functions
 
 ### Testing
 
 - Added a bunch of tests
+- Add tests for functions
+- Add various tests in the images crate
+- Remove Assay
+
+### Refact
+
+- Refactor and clean functions
 
 ## [0.11.1] - 2022-03-20
 

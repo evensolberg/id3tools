@@ -59,7 +59,7 @@ pub fn process(
                         new_tags.insert("TRACKNUMBER".to_string(), track_split.0.to_string());
                     }
                     if track_split.1 != 0 {
-                        config.track_total = Some(track_split.1);
+                        config.track_number_total = Some(track_split.1);
                         new_tags.insert("TRACKTOTAL".to_string(), track_split.1.to_string());
                     }
                 } // TRACKNUMBERid3t --help
@@ -71,7 +71,7 @@ pub fn process(
                         new_tags.insert("DISCNUMBER".to_string(), disc_split.0.to_string());
                     }
                     if disc_split.1 != 0 {
-                        config.disc_total = Some(disc_split.1);
+                        config.disc_number_total = Some(disc_split.1);
                         new_tags.insert("DISCTOTAL".to_string(), disc_split.1.to_string());
                     }
                 } // DISCNUMBER

@@ -1,7 +1,17 @@
 //! Image processing module. Contains functions for reading, resizing and writing cover images.
+//!
+//! The methodology for finding a cover image, is as follows:
+//!
+//! 1. Gather the search paths
+//! 2. Check the search folders for the cover requested.
+//! 3. If not found, check the candidates
+//! 4. If anything is found, look for a "-resized" version of the file found.
+//! 5. If not found, exit
+//! 6. Check if the file identified needs to be resized, and if so, save it with "-resized" appended to the filename
+//! 7. Load the file as the cover
 
-use image;
 use image::imageops::FilterType;
+use image::{self, RgbImage};
 use std::error::Error;
 use std::path::Path;
 
@@ -37,8 +47,9 @@ pub fn process_images(
     let back_cover_path = get_cover_filename(CoverType::Back, music_file, cfg)?;
 
     // return safely
+    log::debug!("front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}");
     Ok((front_cover_path, back_cover_path))
-} // fn process_images()
+}
 
 /// Find the cover image for the given type.
 ///
@@ -75,8 +86,8 @@ fn get_cover_filename(
 
         // TODO: Refactor this into a couple of functions
         // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
+        cover_path_returned = Some(cover_found_path.clone());
         if cover_file_name == cover_found_path {
-            cover_path_returned = Some(cover_found_path.clone());
             if cover_needs_resizing(&cover_found_path, max_size)? {
                 let cp_resize = crate::rename_file::resized_filename(&cover_found_path)?;
                 cover_path_returned = Some(cp_resize.clone());
@@ -84,7 +95,6 @@ fn get_cover_filename(
             }
         // If the cover found is different from the --picture-XXXXX parameter, we need to create the cover.
         } else {
-            cover_path_returned = Some(cover_found_path.clone());
             let cover_output_filename = complete_path(&music_file_path, &cover_file_name);
 
             if dry_run {
@@ -191,7 +201,10 @@ pub fn create_cover(
         img_resized.save(Path::new(&destination))?;
     }
 
-    let return_vec = img_resized.as_rgb8().unwrap().to_vec();
+    let return_vec = img_resized
+        .as_rgb8()
+        .unwrap_or(&RgbImage::new(1, 1))
+        .to_vec();
     Ok(return_vec)
 }
 
@@ -210,9 +223,12 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
 
         // Return safely with the saved image data as a vector for later use.
-        img_resized.as_rgb8().unwrap().to_vec()
+        img_resized
+            .as_rgb8()
+            .unwrap_or(&RgbImage::new(1, 1))
+            .to_vec()
     } else {
-        img.as_rgb8().unwrap().to_vec()
+        img.as_rgb8().unwrap_or(&RgbImage::new(1, 1)).to_vec()
     };
 
     Ok(return_vec)

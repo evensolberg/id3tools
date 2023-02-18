@@ -405,7 +405,7 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
                 .multiple_occurrences(false)
                 .require_equals(false)
                 .required(false)
-                .validator(crate::shared::file_rename_pattern_validate)
+                .validator(crate::shared::validate_file_rename_pattern)
                 .hide(false).help_heading(operations_name)
                 .display_order(1)
         )

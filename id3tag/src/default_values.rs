@@ -49,7 +49,7 @@ pub struct DefaultValues {
     pub disc_count: Option<bool>,
 
     /// The total number of discs that comprise the album, usually 1.
-    pub disc_total: Option<u16>,
+    pub disc_number_total: Option<u16>,
 
     /// Default value for the track's artist.
     pub track_artist: Option<String>,
@@ -70,7 +70,7 @@ pub struct DefaultValues {
     pub track_number: Option<u16>,
 
     /// Default value for the total number of tracks.
-    pub track_total: Option<u16>,
+    pub track_number_total: Option<u16>,
 
     /// Count the number of tracks
     pub track_count: Option<bool>,
@@ -196,7 +196,7 @@ impl DefaultValues {
         log::debug!("Config: {:?}", config);
 
         Ok(config)
-    } // pub fn load_config
+    }
 
     // Housekeeping functions to check which flags have been set, either on the CLI or in the config file.
 
@@ -205,13 +205,15 @@ impl DefaultValues {
     /// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
     fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
         // Check if anything came from the config file and validate it
-        if let Some(rnp) = &self.rename_file {
-            common::file_rename_pattern_validate(rnp)?;
+        if let Some(pattern) = &self.rename_file {
+            common::validate_file_rename_pattern(pattern)?;
         }
 
         // Even if we have something from the config file, CLI takes presedence
         if args.is_present("rename-file") {
-            self.rename_file = Some(args.value_of("rename-file").unwrap_or_default().to_string());
+            let pattern = args.value_of("rename-file").unwrap_or_default();
+            common::validate_file_rename_pattern(pattern)?;
+            self.rename_file = Some(pattern.to_string());
         };
 
         // Return safely
@@ -313,7 +315,7 @@ impl DefaultValues {
         }
     }
 
-    /// Add the front cover candidates from the CLI to the config.
+    /// Add the front cover candidates from the CLI to the config. If the list is empty, add "front.jpg", "cover.jpg", and "folder.jpg".
     fn check_for_picture_front_candidates(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
         if let Some(candidates) = args.values_of("picture-front-candidate") {
@@ -324,7 +326,7 @@ impl DefaultValues {
         self.picture_front_candidates = Some(candidate_list);
     }
 
-    /// Add the back cover candidates from the CLI to the config.
+    /// Add the back cover candidates from the CLI to the config. If the list is empty, add "back.jpg".
     fn check_for_picture_back_candidates(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
         if let Some(candidates) = args.values_of("picture-back-candidate") {
@@ -333,6 +335,58 @@ impl DefaultValues {
             }
         }
         self.picture_back_candidates = Some(candidate_list);
+    }
+
+    // Misc convenience functions
+
+    /// Gathers the list of folder candidates into a vector. Uses "." and ".." if nothing is found.
+    /// While this may seem redundant, it's safer since it always returns something.
+    ///
+    /// # Arguments
+    ///
+    /// None.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<String>` containing the picture folder candidates from the config, or "." & ".." if the original list is empty.
+    ///
+    /// # Errors
+    ///
+    /// None.
+    ///
+    /// # Panics
+    ///
+    /// None.
+    ///
+    /// # Examples
+    ///
+    /// See tests.
+    ///
+    pub fn search_folders(&self) -> Vec<String> {
+        self.picture_search_folders
+            .as_ref()
+            .unwrap_or(&vec![".".to_string(), "..".to_string()])
+            .clone()
+    }
+
+    /// Get the list of front cover candidates
+    pub fn picture_front_candidates(&self) -> Vec<String> {
+        self.picture_front_candidates
+            .as_ref()
+            .unwrap_or(&vec![
+                "front.jpg".to_string(),
+                "cover.jpg".to_string(),
+                "folder.jpg".to_string(),
+            ])
+            .clone()
+    }
+
+    /// Get the list of back cover candidates
+    pub fn picture_back_candidates(&self) -> Vec<String> {
+        self.picture_back_candidates
+            .as_ref()
+            .unwrap_or(&vec!["back.jpg".to_string()])
+            .clone()
     }
 } // impl DefaultValues
 
@@ -400,7 +454,7 @@ mod tests {
 
         assert_eq!(dfvu.disc_number.unwrap(), 1);
         assert_eq!(dfvu.disc_count.unwrap(), true);
-        assert_eq!(dfvu.disc_total.unwrap(), 2);
+        assert_eq!(dfvu.disc_number_total.unwrap(), 2);
 
         assert_eq!(
             dfvu.track_artist.unwrap(),
@@ -420,7 +474,7 @@ mod tests {
         );
         assert_eq!(dfvu.track_number.unwrap(), 2);
         assert_eq!(dfvu.track_count.unwrap(), true);
-        assert_eq!(dfvu.track_total.unwrap(), 5);
+        assert_eq!(dfvu.track_number_total.unwrap(), 5);
 
         assert_eq!(dfvu.track_genre.unwrap(), "Classical".to_string());
         assert_eq!(dfvu.track_genre_number.unwrap(), 33);
@@ -453,5 +507,31 @@ mod tests {
         // Loading a non-existent config file should give an error.
         let dfv2 = DefaultValues::load_config("missing-file.toml");
         assert!(dfv2.is_err());
+    }
+
+    #[test]
+    ///
+    fn test_search_folders() {
+        let mut cfg = DefaultValues::new();
+
+        // Default is none.
+        assert_eq!(
+            cfg.search_folders(),
+            vec![".".to_string(), "..".to_string()]
+        );
+
+        cfg.picture_search_folders = Some(vec![
+            "Artwork".to_string(),
+            "Scans".to_string(),
+            "Covers".to_string(),
+        ]);
+        assert_eq!(
+            cfg.search_folders(),
+            vec![
+                "Artwork".to_string(),
+                "Scans".to_string(),
+                "Covers".to_string()
+            ]
+        );
     }
 }

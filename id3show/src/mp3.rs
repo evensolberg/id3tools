@@ -133,7 +133,7 @@ fn show_chapter(c: &frame::Chapter) {
     log::info!("    Frame Count: {}", c.frames.len());
 }
 
-/// Show the 'frame::MpegLocationLookupTable` fields
+/// Show the `frame::MpegLocationLookupTable` fields
 fn show_mpeg_location_lookup_table(mllt: &frame::MpegLocationLookupTable) {
     log::info!("  MPEG Location Lookup Table:");
     log::info!(
