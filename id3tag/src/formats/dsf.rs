@@ -218,9 +218,8 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     /// Test the to_number function.
     fn test_to_number() {
         for n in 0..=100 {
@@ -237,7 +236,7 @@ mod tests {
         assert_eq!(to_number("-1", "some value", false).unwrap(), 1);
     }
 
-    #[assay(include = ["../testdata/sample.dsf"])]
+    #[test]
     /// Test the rename_file function.
     fn test_rename_file() {
         let _filename = "../testdata/sample.dsf";

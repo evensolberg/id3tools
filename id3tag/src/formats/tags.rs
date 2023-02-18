@@ -228,9 +228,8 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     /// Test that the right tag names are being returned.
     fn test_get_tag_names() {
         let ape_tag = get_tag_names(FileTypes::Ape);
@@ -339,7 +338,7 @@ mod tests {
         assert_eq!(unk_tag.picture_back, String::new());
     }
 
-    #[assay]
+    #[test]
     /// Ensure that the substitution values are being used properly.
     /// Note that values for description and front/back pictures aren't used. Obviously.
     fn test_option_to_tag() {

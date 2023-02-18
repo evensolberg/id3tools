@@ -770,9 +770,8 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     /// Tests that the genre number gets returned correctly.
     fn test_get_genre_name() {
         assert_eq!(get_genre_name(0).unwrap(), "Blues".to_string());
@@ -781,13 +780,13 @@ mod tests {
         assert!(get_genre_name(200).is_err());
     }
 
-    #[assay(include = ["../testdata/sample.flac", "../testdata/sample.mp3"])]
+    #[test]
     fn test_get_disc_number() {
         assert_eq!(get_disc_number("../testdata/sample.flac").unwrap(), 1);
         assert_eq!(get_disc_number("../testdata/sample.mp3").unwrap(), 1);
     }
 
-    #[assay(include = ["../testdata/sample.flac", "../testdata/sample.mp3"])]
+    #[test]
     fn test_get_disc_count() {
         assert_eq!(get_disc_count("../testdata/sample.flac").unwrap(), 1);
         assert_eq!(get_disc_count("../testdata/sample.mp3").unwrap(), 1);

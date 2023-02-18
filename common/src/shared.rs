@@ -334,9 +334,8 @@ pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["../testdata/sample.mp3", "../testdata/sample.flac", "../testdata/sample.ape", "../testdata/sample.dsf", "../testdata/DSOTM_Cover.jpeg", "../testdata/sample.mp4", "../testdata/sample.m4a"])]
+    #[test]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
         assert!(get_mime_type("../testdata/sample.mp3").is_ok());
@@ -373,7 +372,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     /// Tests the `get_extension` function to ensure it returns the correct extension.
     fn test_get_extension() {
         assert_eq!(get_extension("somefile.png"), "png".to_string());
@@ -382,7 +381,7 @@ mod tests {
         assert_eq!(get_extension("noextension."), String::new());
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_file_rename_pattern_validate() {
         assert!(file_rename_pattern_validate("%dn-%tn %tt").is_ok());
@@ -393,7 +392,7 @@ mod tests {
         assert!(file_rename_pattern_validate("%disc-number").is_err());
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_roman_to_decimal() {
         assert_eq!(roman_to_decimal("I"), 1);
@@ -431,7 +430,7 @@ mod tests {
         assert_ne!(roman_to_decimal("IM"), 999);
     }
 
-    #[assay]
+    #[test]
     /// Tests whether the need_split function does what it says on the tin
     fn test_need_split() {
         assert_eq!(need_split("1 of 2"), true);
@@ -445,7 +444,7 @@ mod tests {
         assert_eq!(need_split("DISC 03"), false);
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_split_val() {
         assert!(split_val("1 of 2").is_ok());
@@ -498,7 +497,7 @@ mod tests {
         );
         assert_eq!(
             count_files("../testdata/DSOTM_Cover.jpeg").unwrap(),
-            "02".to_string()
+            "03".to_string()
         );
 
         assert_eq!(
@@ -508,12 +507,12 @@ mod tests {
     }
 
     /// Test the unique value generator
-    #[assay]
+    #[test]
     fn test_get_unique_value() {
         assert!(get_unique_value() < 10_000_000);
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_thousand_separated() {
         assert_eq!(thousand_separated(10), "10".to_string());

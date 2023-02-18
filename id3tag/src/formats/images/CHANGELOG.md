@@ -53,8 +53,6 @@ All notable changes to this project will be documented in this file.
 - Cleaned up some lints
 - Change numerous functions
 - Simplify complex functions
-- Change the images module
-- Move out more functions
 
 ### Testing
 

@@ -9,11 +9,12 @@ use std::path::Path;
 mod covertype;
 mod ops;
 mod paths;
+mod tests;
 
 use crate::default_values::DefaultValues;
 use common::directory;
 use covertype::{cover_filename_from_config, CoverType};
-use ops::{aspect_ratio_is_ok, cover_needs_resizing};
+use ops::{aspect_ratio_ok, cover_needs_resizing};
 use paths::{complete_path, find_first_image, find_in_folders, gather_cover_paths};
 
 /// Catch the image-related CLI parameters and process the image(s).
@@ -100,15 +101,12 @@ fn get_cover_filename(
     Ok(cover_path_returned)
 }
 
-/// Search for the cover file in the locations provided.
+/// Search for the cover file in the locations provided - alongside the music file or in the search folders.
 fn find_cover(
     cover_type: CoverType,
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    // Get the front or back cover file name.
-    log::debug!("find_cover: config = {:?}", cfg);
-
     // Get the file name from the CLI, based on the type we're looking for.
     // If we're looking for a candidate, the corresponding name will be used for output.
     let cover_file_name = cover_filename_from_config(cover_type, cfg);
@@ -179,7 +177,7 @@ pub fn create_cover(
 ) -> Result<Vec<u8>, Box<dyn Error>> {
     let img = image::open(source)?;
 
-    if !aspect_ratio_is_ok(img.width(), img.height()) {
+    if !aspect_ratio_ok(img.width(), img.height()) {
         return Err("Image is not in the expected ratio.".into());
     }
 
@@ -205,7 +203,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
 
     let return_vec: Vec<u8> = if (img.width() > max_size || img.height() > max_size) && max_size > 0
     {
-        if !aspect_ratio_is_ok(img.width(), img.height()) {
+        if !aspect_ratio_ok(img.width(), img.height()) {
             return Err("Image is outside the expected ratio.".into());
         }
 
@@ -218,115 +216,4 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     };
 
     Ok(return_vec)
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-// Tests
-// --------------------------------------------------------------------------------------------------------------------
-
-#[cfg(test)]
-///
-mod tests {
-    use crate::rename_file::resized_filename;
-
-    use super::*;
-    use assay::assay;
-    use std::fs;
-
-    #[assay(include = ["../testdata/DSOTM_Back.jpeg", "../testdata/DSOTM_Cover.jpeg", "../testdata/id3tag-config.toml", "../testdata/sample.flac"])]
-    /// Tests the `find_cover` function.
-    fn test_find_cover() {
-        let music_file = "../testdata/sample.flac";
-        let fc_filename = "../testdata/DSOTM_Cover.jpeg";
-        // let bc_filename = "../testdata/DSOTM_Back.jpeg";
-
-        // Create a config.
-        let mut dv = DefaultValues::load_config("../testdata/id3tag-config.toml")?;
-        dv.dry_run = Some(false);
-
-        // Create a cover file in the current directory (alongside the music file) with the expected name and then look for that file.
-        let _ = create_cover(fc_filename, "../testdata/cover-resized.jpg", 500, false);
-
-        let cover_file = find_cover(CoverType::Front, music_file, &dv)?;
-        println!("cover_file = {cover_file:?}");
-        assert!(cover_file.is_some());
-        // assert_eq!(cover_file.unwrap(), "../testdata/cover-resized.jpg");
-        fs::remove_file(Path::new("../testdata/cover-resized.jpg")).unwrap();
-
-        // Create a cover file in the parent directory (of the music file) with the expected name and then look for that file.
-        // Note that the cover file name hasn't changed - it's just in a different directory. We should still be able to find it.
-        let _ = create_cover(fc_filename, "../cover-resized.jpg", 500, false);
-        let cover_file = find_cover(CoverType::Front, music_file, &dv)?;
-
-        assert!(cover_file.is_some());
-        // assert_eq!(cover_file.unwrap(), "../testdata/../cover-resized.jpg");
-        fs::remove_file(Path::new("../cover-resized.jpg")).unwrap();
-
-        // Create a back cover in the Artwork directory with the expected name and then look for that file.
-        // let _ = create_cover(
-        //     bc_filename,
-        //     "../testdata/Artwork/back-resized.jpg",
-        //     500,
-        //     false,
-        // );
-        // let cover_file = find_cover(CoverType::Back, music_file, &dv);
-        // assert!(cover_file.is_some());
-        // assert_eq!(cover_file.unwrap(), "../testdata/Artwork/back-resized.jpg");
-    }
-
-    #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the `read_cover` function works as expected.
-    fn test_read_cover() {
-        let cover_file = "../testdata/DSOTM_Cover.jpeg";
-
-        // Read the file without resizing.
-        let max_size = 0;
-        let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
-        println!("Image size: {}", return_vec.len());
-        assert!(!return_vec.is_empty());
-        assert!(!return_vec.is_empty());
-        assert_eq!(return_vec.len(), 3_630_000);
-    }
-
-    #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the `create_cover` function works as expected.
-    fn test_create_cover() {
-        let src_filename = "../testdata/DSOTM_Cover.jpeg";
-        let dst_filename = resized_filename(src_filename).unwrap();
-        let max_size = 500;
-        let dry_run = false;
-
-        let res = create_cover(src_filename, &dst_filename, max_size, dry_run);
-        assert!(res.is_ok());
-        let return_vec = res.unwrap();
-        println!("Image size: {}", return_vec.len());
-        assert!(!return_vec.is_empty());
-        assert!(!return_vec.is_empty());
-        assert_eq!(return_vec.len(), 750_000);
-
-        // Check that the file was created.
-        let res = std::fs::metadata(&dst_filename);
-        assert!(res.is_ok());
-        let md = res.unwrap();
-        assert!(md.is_file());
-        // assert_eq!(md.len(), 15_627);
-
-        // Delete the created file.
-        let res = std::fs::remove_file(dst_filename);
-        assert!(res.is_ok());
-    }
-
-    #[assay(include = ["../testdata/DSOTM_Cover.jpeg"])]
-    /// Tests that the `needs_resizing` function works as expected.
-    fn test_needs_resizing() {
-        let fname = "../testdata/DSOTM_Cover.jpeg";
-
-        let res = cover_needs_resizing(fname, 500);
-        assert!(res.is_ok());
-        assert_eq!(res.unwrap(), true);
-
-        let res = cover_needs_resizing(fname, 1100);
-        assert!(res.is_ok());
-        assert_eq!(res.unwrap(), false);
-    }
 }

@@ -9,7 +9,7 @@ pub fn cover_needs_resizing(
 
     // If image ratio is "reasonable", see if it needs resizing and return accordingly.
     // Otherwise return error.
-    if aspect_ratio_is_ok(img.width(), img.height()) {
+    if aspect_ratio_ok(img.width(), img.height()) {
         if img.width() > max_size || img.height() > max_size {
             Ok(true)
         } else {
@@ -21,7 +21,7 @@ pub fn cover_needs_resizing(
 }
 
 /// Check if the image ratio is within acceptable limits
-pub fn aspect_ratio_is_ok(x: u32, y: u32) -> bool {
+pub fn aspect_ratio_ok(x: u32, y: u32) -> bool {
     let min_ratio = 1.0 / 1.5; // 1:2 ratio
     let max_ratio = 1.5 / 1.0; // 2:1 ratio
 
@@ -33,9 +33,8 @@ pub fn aspect_ratio_is_ok(x: u32, y: u32) -> bool {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include=["../testdata/DSOTM_Back.jpeg"])]
+    #[test]
     ///
     fn test_cover_needs_resizing() {
         let res = cover_needs_resizing("../testdata/DSOTM_Back.jpeg", 500).unwrap_or_default();
@@ -45,14 +44,14 @@ mod tests {
         assert_eq!(res, false);
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_aspect_ratio_is_ok() {
-        assert_eq!(aspect_ratio_is_ok(100, 100), true);
-        assert_eq!(aspect_ratio_is_ok(500, 500), true);
-        assert_eq!(aspect_ratio_is_ok(100, 150), true);
-        assert_eq!(aspect_ratio_is_ok(150, 100), true);
-        assert_eq!(aspect_ratio_is_ok(100, 151), false);
-        assert_eq!(aspect_ratio_is_ok(151, 100), false);
+        assert_eq!(aspect_ratio_ok(100, 100), true);
+        assert_eq!(aspect_ratio_ok(500, 500), true);
+        assert_eq!(aspect_ratio_ok(100, 150), true);
+        assert_eq!(aspect_ratio_ok(150, 100), true);
+        assert_eq!(aspect_ratio_ok(100, 151), false);
+        assert_eq!(aspect_ratio_ok(151, 100), false);
     }
 }

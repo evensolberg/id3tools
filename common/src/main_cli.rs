@@ -435,9 +435,8 @@ fn genre_number_validator(input: &str) -> Result<(), String> {
 /// Test the CLI functions.
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     /// Test that the genre number validator returns OK if genre number is 0..=191, otherwise error.
     fn test_genre_numbervalidator() {
         // Check the valid range.

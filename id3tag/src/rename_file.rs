@@ -194,9 +194,8 @@ pub fn filename_resized(filename: &str) -> Result<String, Box<dyn Error>> {
 //
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["../testdata/sample.flac"])]
+    #[test]
     fn test_rename_file() {
         let mut config = DefaultValues::new();
         config.rename_file = Some("%aa - %at".to_string());
@@ -212,25 +211,28 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_filename_resize() {
-        assert_eq!(resized_filename("music/test.jpg")?, "music/test-resize.jpg");
         assert_eq!(
-            resized_filename("cover-small.jpg")?,
+            resized_filename("music/test.jpg").unwrap(),
+            "music/test-resize.jpg"
+        );
+        assert_eq!(
+            resized_filename("cover-small.jpg").unwrap(),
             "cover-small-resize.jpg"
         );
         assert_eq!(
-            resized_filename("/somewhere/there/is/music/test.file.jpg")?,
+            resized_filename("/somewhere/there/is/music/test.file.jpg").unwrap(),
             "/somewhere/there/is/music/test.file-resize.jpg"
         );
         assert_eq!(
-            resized_filename("/somewhere/there/is/music/cover-small.jpg")?,
+            resized_filename("/somewhere/there/is/music/cover-small.jpg").unwrap(),
             "/somewhere/there/is/music/cover-small-resize.jpg"
         );
     }
 
-    #[assay(include = ["../testdata/DSOTM_Cover.jpeg", "../testdata/DSOTM_Back.jpeg"])]
+    #[test]
     fn test_filename_resized() {
         // Create a resized version of the back cover of the DSOTM album.
         let _ = crate::formats::images::create_cover(

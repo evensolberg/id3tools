@@ -33,9 +33,8 @@ impl fmt::Display for FileTypes {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     ///
     fn test_fmt() {
         assert_eq!(format!("{}", FileTypes::Ape), "APE");

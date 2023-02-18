@@ -96,9 +96,8 @@ fn rename_file(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["../testdata/sample.ape"])]
+    #[test]
     fn test_rename_file() {
         let blank_defaults = DefaultValues::new();
         let blank_ape = ape::Tag::default();
@@ -107,7 +106,7 @@ mod tests {
         assert!(rename_file("../testdata/sample.ape", &blank_defaults, &blank_ape).is_ok());
     }
 
-    #[assay(include = ["../testdata/sample.ape"])]
+    #[test]
     fn test_process_ape() {
         let mut new_values = HashMap::<String, String>::new();
         new_values.insert("ALBUMARTIST".to_string(), "New Album Artist".to_string());

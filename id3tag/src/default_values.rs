@@ -344,9 +344,8 @@ impl DefaultValues {
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     ///
     fn test_new_default_values() {
         // Create a blank config
@@ -367,7 +366,7 @@ mod tests {
         assert_eq!(dfv.disc_count.unwrap(), true);
     }
 
-    #[assay(include = ["../testdata/id3tag-config.toml"])]
+    #[test]
     fn test_load_config() {
         // Try to load a config file
         let dfv = DefaultValues::load_config("../testdata/id3tag-config.toml");

@@ -170,9 +170,8 @@ pub fn find_first_image(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
+    #[test]
     /// Tests the `create_complete_path` function
     fn test_complete_path() {
         assert_eq!(
@@ -181,7 +180,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     /// Tests the `create_complete_resized_path` function
     fn test_create_complete_resized_path() {
         assert_eq!(
@@ -190,7 +189,7 @@ mod tests {
         );
     }
 
-    #[assay]
+    #[test]
     /// Tests the `gather_cover_paths` function
     fn test_gather_cover_paths() {
         let mut cfg = DefaultValues::new();
@@ -293,7 +292,7 @@ mod tests {
         assert_eq!(res.as_ref().unwrap().len(), 30);
     }
 
-    #[assay(include = ["../testdata/sample.flac", "../testdata/DSOTM_Cover.jpeg"])]
+    #[test]
     /// tests the `find_first_image` function
     fn test_find_first_image() {
         // test the failure scenarios first
