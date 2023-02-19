@@ -48,12 +48,10 @@ pub fn cover_filename_from_config(cover_type: CoverType, cfg: &DefaultValues) ->
         CoverType::Front | CoverType::FrontCandidate => cfg
             .picture_front
             .as_ref()
-            .unwrap_or(&"front-cover.jpg".to_string())
+            .unwrap_or(&"".to_string())
             .clone(),
-        CoverType::Back | CoverType::BackCandidate => cfg
-            .picture_back
-            .as_ref()
-            .unwrap_or(&"back-cover.jpg".to_string())
-            .clone(),
+        CoverType::Back | CoverType::BackCandidate => {
+            cfg.picture_back.as_ref().unwrap_or(&"".to_string()).clone()
+        }
     }
 }

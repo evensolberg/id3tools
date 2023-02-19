@@ -14,8 +14,8 @@ use std::error::Error;
 #[allow(clippy::too_many_lines)]
 pub fn process(
     filename: &str,
-    new_tags: &HashMap<String, String>,
-    config: &DefaultValues,
+    nt: &HashMap<String, String>,
+    cfg: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
     let mut processed_ok = false;
@@ -24,9 +24,9 @@ pub fn process(
     let mut tag = Tag::read_from_path(filename)?;
 
     // Print new tags
-    for (key, value) in new_tags {
+    for (key, value) in nt {
         // Output information about tags getting changed
-        if config.dry_run.unwrap_or(false) {
+        if cfg.dry_run.unwrap_or(false) {
             log::info!("{filename} :: New {key} = {value}");
         }
 
@@ -34,30 +34,30 @@ pub fn process(
         // dry run, but it's good to do it anyway to ensure that it works.
         match key.as_ref() {
             // Front picture
-            "APIC-F" => match add_picture(&mut tag, value.trim(), PictureType::CoverFront) {
+            "APIC-F" => match set_picture(&mut tag, value.trim(), PictureType::CoverFront) {
                 Ok(_) => (),
                 Err(err) => {
-                    if config.stop_on_error.unwrap_or(false) {
+                    if cfg.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set front cover for {filename}. Error: {err}"
                         )
                         .into());
                     }
-                    log::error!("Unable to set front cover for {}. Error: {}", filename, err);
+                    log::error!("Unable to set front cover for {filename}. Error: {err}");
                 }
             },
 
             // Back picture
-            "APIC-B" => match add_picture(&mut tag, value.trim(), PictureType::CoverBack) {
+            "APIC-B" => match set_picture(&mut tag, value.trim(), PictureType::CoverBack) {
                 Ok(_) => (),
                 Err(err) => {
-                    if config.stop_on_error.unwrap_or(false) {
+                    if cfg.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set back cover for {filename}. Error: {err}"
                         )
                         .into());
                     }
-                    log::error!("Unable to set back cover for {}. Error: {}", filename, err);
+                    log::error!("Unable to set back cover for {filename}. Error: {err}");
                 }
             },
 
@@ -69,7 +69,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set disc number to {value}. Error: {err}"
                             )
@@ -89,7 +89,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total discs to {value}. Error: {err}"
                             )
@@ -108,7 +108,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set track number to {value}. Error: {err}"
                             )
@@ -128,7 +128,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total tracks to {value}. Error: {err}",
                             )
@@ -149,7 +149,7 @@ pub fn process(
     }
 
     // Write tags to file - unless we're on a dry run.
-    if config.dry_run.unwrap_or(true) {
+    if cfg.dry_run.unwrap_or(true) {
         processed_ok = true;
     } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
         processed_ok = true;
@@ -157,8 +157,8 @@ pub fn process(
     }
 
     // Rename file
-    if config.rename_file.is_some() {
-        if rename_file(filename, config, &tag).is_ok() {
+    if cfg.rename_file.is_some() {
+        if rename_file(filename, cfg, &tag).is_ok() {
             processed_ok = true;
         } else {
             processed_ok = false;
@@ -170,14 +170,13 @@ pub fn process(
 }
 
 /// Adds front or back covers
-fn add_picture(
+fn set_picture(
     tags: &mut Tag,
     filename: &str,
     picture_type: PictureType,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
-    log::debug!("Reading image file {filename}");
 
     let description = if picture_type == PictureType::CoverFront {
         "Front Cover".to_string()
@@ -186,12 +185,10 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
-    let filename_str = rename_file::filename_resized(filename)?;
-    let filename = filename_str.as_str();
+    log::debug!("Reading image file {filename}");
     let mime_type = common::get_mime_type(filename)?;
     log::debug!("Image format: {mime_type}");
 
-    log::debug!("Reading image file {filename}");
     let image_data = images::read_cover(filename, 0)?;
 
     log::debug!("Setting picture to {filename}");
@@ -220,22 +217,18 @@ fn set_comment(tags: &mut id3::Tag, value: &str) {
     tags.remove("COMM");
     log::debug!("Setting comment to: {value}");
     tags.add_frame(ExtendedText {
-        description: "Comment".to_string(),
-        value: value.to_string(),
+        description: String::from("Comment"),
+        value: String::from(value),
     });
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tag: &id3::Tag,
-) -> Result<(), Box<dyn Error>> {
+fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<(), Box<dyn Error>> {
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
     let mut pattern = String::new();
-    if let Some(p) = &config.rename_file {
+    if let Some(p) = &cfg.rename_file {
         pattern = p.clone();
     }
 
@@ -287,11 +280,11 @@ fn rename_file(
 
     log::debug!("replace_map = {:?}", replace_map);
 
-    let rename_result = rename_file::rename_file(filename, &replace_map, config);
+    let rename_result = rename_file::rename_file(filename, &replace_map, cfg);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
+            if cfg.stop_on_error.unwrap_or(true) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )

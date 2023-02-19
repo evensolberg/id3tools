@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.13.2] - 2023-02-18
 
 ### Miscellaneous Tasks
 
 - CHANGELOG update
+- Lockfile rebuild and Changelog Update
 
 ### Refactor
 

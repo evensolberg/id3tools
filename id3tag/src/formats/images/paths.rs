@@ -48,11 +48,15 @@ pub fn gather_cover_paths(
     let mut res_vec: Vec<String> = Vec::new();
 
     // Depending on the cover type, collect the folder+filename combos, including the "-resized" versions.
-    for f in cfg.search_folders() {
+    let search_folders = cfg.search_folders();
+    log::debug!("search_folders = {search_folders:?}");
+
+    for f in search_folders {
         let folder = Path::new(&f);
         match cover_type {
             CoverType::Front => {
                 if let Some(pn) = &cfg.picture_front {
+                    log::debug!("CoverType::Front pn = {pn}");
                     res_vec.push(complete_path(folder, pn));
                     res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
@@ -61,6 +65,7 @@ pub fn gather_cover_paths(
             }
             CoverType::Back => {
                 if let Some(pn) = &cfg.picture_back {
+                    log::debug!("CoverType::Back pn = {pn}");
                     res_vec.push(complete_path(folder, pn));
                     res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
@@ -70,6 +75,7 @@ pub fn gather_cover_paths(
             CoverType::FrontCandidate => {
                 let pcs = cfg.picture_front_candidates();
                 for c in pcs {
+                    log::debug!("CoverType::FrontCandidate c = {c}");
                     res_vec.push(complete_path(folder, &c));
                     res_vec.push(complete_resized_path(folder, &c)?);
                 }
@@ -77,6 +83,7 @@ pub fn gather_cover_paths(
             CoverType::BackCandidate => {
                 let pcs = cfg.picture_back_candidates();
                 for c in pcs {
+                    log::debug!("CoverType::BackCandidate c = {c}");
                     res_vec.push(complete_path(folder, &c));
                     res_vec.push(complete_resized_path(folder, &c)?);
                 }
@@ -85,40 +92,9 @@ pub fn gather_cover_paths(
     } // for f in psf
 
     res_vec.sort();
+    log::debug!("res_vec = {res_vec:?}");
 
     Ok(res_vec)
-}
-
-/// Iterates through a list of search folder candidates as specified by the config, and returns the first match.
-/// If no match is found, returns None.
-/// If the candidate is a relative path, it is resolved relative to the music file's directory.
-/// If the candidate is an absolute path, it is used as is.
-///
-/// # Arguments
-///
-/// * `filename` - The candidate image file name.
-/// * `music_path` - The path to the music file, eg. "./music/". or "/home/user/music/".
-/// * `config` - The config object.
-///
-/// # Returns
-/// The path to the candidate image file, or None if no match is found.
-pub fn find_in_folders(filename: &str, music_path: &str, config: &DefaultValues) -> Option<String> {
-    for folder_name in config
-        .picture_search_folders
-        .as_ref()
-        .unwrap_or(&Vec::new())
-    {
-        let cover_path = if folder_name == "." {
-            format!("{music_path}/{filename}")
-        } else {
-            format!("{music_path}/{folder_name}/{filename}")
-        };
-
-        if std::path::Path::new(&cover_path).exists() {
-            return Some(cover_path);
-        }
-    }
-    None
 }
 
 /// Finds the first image from a list relative to a music file.

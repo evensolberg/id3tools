@@ -127,7 +127,7 @@ impl DefaultValues {
     pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = Self::new();
 
-        let psf_list: Vec<String> = vec![".".to_string(), "..".to_string()];
+        let psf_list: Vec<String> = vec![String::from("."), String::from("..")];
         config.picture_search_folders = Some(psf_list);
 
         // Read the config file
@@ -363,10 +363,19 @@ impl DefaultValues {
     /// See tests.
     ///
     pub fn search_folders(&self) -> Vec<String> {
-        self.picture_search_folders
-            .as_ref()
-            .unwrap_or(&vec![".".to_string(), "..".to_string()])
-            .clone()
+        if let Some(f) = &self.picture_search_folders {
+            if f.len() > 0 {
+                return self
+                    .picture_search_folders
+                    .as_ref()
+                    .unwrap_or(&vec![".".to_string(), "..".to_string()])
+                    .clone();
+            } else {
+                return vec![".".to_string(), "..".to_string()];
+            }
+        } else {
+            return vec![".".to_string(), "..".to_string()];
+        }
     }
 
     /// Get the list of front cover candidates

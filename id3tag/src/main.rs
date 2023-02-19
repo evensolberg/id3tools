@@ -35,7 +35,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
-    log::debug!("config = {:?}", config);
+    log::trace!("config = {:?}", config);
 
     // Configure logging
     let logging_config_filename = get_logging_config_filename(&cli_args, &config);
@@ -51,7 +51,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // create a list of the files to gather
     for file in cli_args.values_of("files").unwrap_or_default() {
-        log::debug!("file: {:?}", file);
+        log::trace!("file: {:?}", file);
     }
 
     if cli_args.is_present("tags") {
@@ -81,7 +81,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             .collect()
     };
 
-    log::debug!("res_vec = {:?}", res_vec);
+    log::trace!("res_vec = {:?}", res_vec);
 
     // Print summary information
     if config.print_summary.unwrap_or(false) {

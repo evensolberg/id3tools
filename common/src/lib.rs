@@ -24,6 +24,7 @@ pub use crate::shared::get_file_type;
 pub use crate::shared::get_mime_type;
 pub use crate::shared::get_unique_value;
 pub use crate::shared::need_split;
+pub use crate::shared::path_to_string;
 pub use crate::shared::roman_to_decimal;
 pub use crate::shared::split_val;
 pub use crate::shared::thousand_separated;

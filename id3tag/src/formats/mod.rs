@@ -83,6 +83,7 @@ pub fn process_file(
     // Check if we need to create one or more cover images.
     let mut config = cfg.clone();
     let (front_cover_path, back_cover_path) = images::process_images(filename, &config)?;
+    log::debug!("front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}, ");
 
     if front_cover_path.is_some() {
         config.picture_front = front_cover_path;
@@ -216,8 +217,8 @@ fn parse_options(
     if am.is_present("disc-number-count")
         || (am.is_present("config-file") && dv.disc_count.unwrap_or(false))
     {
-        let disc_num = get_disc_number(filename)?;
-        let disc_count = get_disc_count(filename)?;
+        let disc_num = disc_number(filename)?;
+        let disc_count = disc_count(filename)?;
         nt.insert(ot.disc_number.clone(), format!("{disc_num:0>2}"));
         nt.insert(ot.disc_number_total.clone(), format!("{disc_count:0>2}"));
     }
@@ -234,7 +235,7 @@ fn parse_options(
     if am.is_present("track-genre-number") {
         nt.insert(
             ot.track_genre.clone(),
-            get_genre_name(
+            genre_name(
                 am.value_of("track-genre-number")
                     .unwrap_or_default()
                     .parse::<u16>()
@@ -243,7 +244,7 @@ fn parse_options(
         );
     } else if am.is_present("config-file") {
         if let Some(val) = &dv.track_genre_number {
-            nt.insert(ot.track_genre.clone(), get_genre_name(*val)?);
+            nt.insert(ot.track_genre.clone(), genre_name(*val)?);
         }
     }
 
@@ -261,7 +262,7 @@ fn parse_options(
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
 #[allow(clippy::too_many_lines)] // Not much we can do about this one.
-fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
+fn genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
     if tagnumber > 191 {
         return Err("Incorrect value supplied. Must be 0-191.".into());
     }
@@ -467,14 +468,14 @@ fn get_genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 /// Figures out the disc number based on the directory above it.
 /// It it is named 'CD xx' or 'disc xx' (case insensitive), we get the number and use it.
 // TODO: There may be a better way to do this by tokenizing the filename.
-fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
+fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     let mut parent_dir = common::directory(filename)?
         .to_str()
         .unwrap_or_default()
         .to_owned();
 
     let mut dn = 1; // Disc number
-    let disc_candidates = vec!["CD", "DISC", "DISK", "PART"];
+    let disc_candidates = disc_candidates();
 
     if disc_candidates
         .iter()
@@ -516,8 +517,9 @@ fn get_disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 }
 
 /// Counts the number of discs by looking for the number of `disk`, `CD` etc subdirectories
-fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
-    let disc_candidates = vec!["CD", "DISC", "DISK", "PART"];
+fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
+    let disc_candidates = disc_candidates();
+    log::trace!("disc_candidates = {disc_candidates:?}");
 
     // Get the full path so we can figure out the grandparent below
     let full_path = fs::canonicalize(filename)?;
@@ -536,6 +538,7 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
                 .unwrap_or(Component::CurDir.as_os_str())
                 .to_string_lossy()
                 .to_ascii_uppercase();
+            log::trace!("component_name = {component_name}");
 
             if disc_candidates
                 .iter()
@@ -546,12 +549,44 @@ fn get_disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
     }
 
+    log::trace!("disc_count = {disc_count}");
+
     // Obviously, we have at least 1 disc. Return accordingly.
     if disc_count == 0 {
         return Ok(1);
     }
 
     Ok(disc_count)
+}
+
+/// Returns a vector containing the candidates for a disc subdirectory.
+/// This is a convenience function so that there's only one place to edit this list.
+///
+/// # Arguments
+///
+/// None.
+///
+/// # Returns
+///
+/// `Vec<&'static str>` - a static vector containing a list of candidates.
+///
+/// # Errors
+///
+/// None.
+///
+/// # Panics
+///
+/// None.
+///
+/// # Examples
+///
+/// ```
+/// let dc = disc_candidates();
+/// assert_eq!(dc[0], "CD");
+/// ```
+///
+fn disc_candidates() -> Vec<&'static str> {
+    vec!["CD", "DISC", "DISK", "PART"]
 }
 
 /* ====================
@@ -565,21 +600,28 @@ mod tests {
     #[test]
     /// Tests that the genre number gets returned correctly.
     fn test_get_genre_name() {
-        assert_eq!(get_genre_name(0).unwrap(), "Blues".to_string());
-        assert_eq!(get_genre_name(9).unwrap(), "Metal".to_string());
-        assert_eq!(get_genre_name(32).unwrap(), "Classical".to_string());
-        assert!(get_genre_name(200).is_err());
+        assert_eq!(genre_name(0).unwrap(), "Blues".to_string());
+        assert_eq!(genre_name(9).unwrap(), "Metal".to_string());
+        assert_eq!(genre_name(32).unwrap(), "Classical".to_string());
+        assert!(genre_name(200).is_err());
     }
 
     #[test]
     fn test_get_disc_number() {
-        assert_eq!(get_disc_number("../testdata/sample.flac").unwrap(), 1);
-        assert_eq!(get_disc_number("../testdata/sample.mp3").unwrap(), 1);
+        assert_eq!(disc_number("../testdata/sample.flac").unwrap(), 1);
+        assert_eq!(disc_number("../testdata/sample.mp3").unwrap(), 1);
     }
 
     #[test]
     fn test_get_disc_count() {
-        assert_eq!(get_disc_count("../testdata/sample.flac").unwrap(), 1);
-        assert_eq!(get_disc_count("../testdata/sample.mp3").unwrap(), 1);
+        assert_eq!(disc_count("../testdata/sample.flac").unwrap(), 1);
+        assert_eq!(disc_count("../testdata/sample.mp3").unwrap(), 1);
+    }
+
+    #[test]
+    /// Tests the disc_candidates() function.
+    fn test_disc_candidates() {
+        let dc = disc_candidates();
+        assert_eq!(dc[0], "CD");
     }
 }

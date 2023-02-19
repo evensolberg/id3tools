@@ -22,10 +22,10 @@ mod paths;
 mod tests;
 
 use crate::default_values::DefaultValues;
-use common::directory;
+use common::{directory, path_to_string};
 use covertype::{cover_filename_from_config, CoverType};
 use ops::{aspect_ratio_ok, cover_needs_resizing};
-use paths::{complete_path, find_first_image, find_in_folders, gather_cover_paths};
+use paths::{complete_path, find_first_image, gather_cover_paths};
 
 /// Catch the image-related CLI parameters and process the image(s).
 ///
@@ -43,11 +43,20 @@ pub fn process_images(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
-    let front_cover_path = get_cover_filename(CoverType::Front, music_file, cfg)?;
-    let back_cover_path = get_cover_filename(CoverType::Back, music_file, cfg)?;
+    let front_cover_path = if cfg.picture_front.is_some() {
+        get_cover_filename(CoverType::Front, music_file, cfg)?
+    } else {
+        None
+    };
+
+    let back_cover_path = if cfg.picture_back.is_some() {
+        get_cover_filename(CoverType::Back, music_file, cfg)?
+    } else {
+        None
+    };
 
     // return safely
-    log::debug!("front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}");
+    log::debug!("process_images::front_cover_path = {front_cover_path:?}, process_images::back_cover_path = {back_cover_path:?}");
     Ok((front_cover_path, back_cover_path))
 }
 
@@ -78,36 +87,59 @@ fn get_cover_filename(
         return Err("Incorrect cover type supplied. Should be CoverType::Front or CoverType::Back. Exiting the function.".into());
     }
 
+    log::debug! {"get_cover_filename::cover_type = {cover_type}"};
+
     // Look for the cover file next to the music file and in the candidate paths provided.
     // If found, we need to do a bunch of processing.
     if let Some(cover_found_path) = find_cover(cover_type, music_file, cfg)? {
+        log::debug!("get_cover_filename::cover_found_path = {cover_found_path}");
         let cover_file_name = cover_filename_from_config(cover_type, cfg);
+        log::debug!("get_cover_filename::cover_file_name = {cover_file_name}");
         let music_file_path = directory(music_file)?;
+        log::debug!("get_cover_filename::music_file_path = {music_file_path:?}");
 
         // TODO: Refactor this into a couple of functions
         // If the cover found is the same as the --picture-XXXXX parameter, we need to check the size of the cover
         cover_path_returned = Some(cover_found_path.clone());
-        if cover_file_name == cover_found_path {
+        log::debug!("get_cover_filename::cover_path_returned = {cover_path_returned:?}");
+
+        let cfp = Path::new(&cover_found_path)
+            .file_name()
+            .unwrap_or_default()
+            .to_str()
+            .to_owned()
+            .unwrap_or_default()
+            .to_string();
+
+        if cover_file_name == cfp {
+            log::debug!("get_cover_filename:: cover_file_name == cfp");
             if cover_needs_resizing(&cover_found_path, max_size)? {
-                let cp_resize = crate::rename_file::resized_filename(&cover_found_path)?;
-                cover_path_returned = Some(cp_resize.clone());
-                let _res = create_cover(&cover_found_path, &cp_resize, max_size, dry_run)?;
+                log::debug!("get_cover_filename:: cover needs resizing");
+                let cp_resize = crate::rename_file::resized_filename(&cfp)?;
+                log::debug!("get_cover_filename::cp_resize = {cp_resize}");
+                let cover_resize_path = format!("{}/{cp_resize}", path_to_string(music_file_path));
+                log::debug!("get_cover_filename::cover_resize_path = {cover_resize_path}");
+                let _res = create_cover(&cover_found_path, &cover_resize_path, max_size, dry_run)?;
+                cover_path_returned = Some(cp_resize);
             }
         // If the cover found is different from the --picture-XXXXX parameter, we need to create the cover.
         } else {
+            log::debug!("get_cover_filename:: cover_file_name != cover_found_path");
+            log::debug!("cover_file_name = {cover_file_name}, cfp = {cfp}");
             let cover_output_filename = complete_path(&music_file_path, &cover_file_name);
+            log::debug!("get_cover_filename::cover_output_filename = {cover_output_filename}");
 
             if dry_run {
-                log::debug!("Not creating the resized cover since we're in dry-run mode.");
+                log::debug!("get_cover_filename::Not creating the resized cover since we're in dry-run mode.");
             } else {
-                let _res =
-                    create_cover(&cover_found_path, &cover_output_filename, max_size, dry_run)
-                        .unwrap_or_default();
+                let _res = create_cover(&cfp, &cover_output_filename, max_size, dry_run)
+                    .unwrap_or_default();
             }
         }
         // return the resulting path
     }
 
+    log::debug!("get_cover_filename::cover_path_returned = {cover_path_returned:?}");
     Ok(cover_path_returned)
 }
 
@@ -119,41 +151,40 @@ fn find_cover(
 ) -> Result<Option<String>, Box<dyn Error>> {
     // Get the file name from the CLI, based on the type we're looking for.
     // If we're looking for a candidate, the corresponding name will be used for output.
-    let cover_file_name = cover_filename_from_config(cover_type, cfg);
-    let music_path = directory(music_file)?
-        .to_str()
-        .unwrap_or_default()
-        .to_string();
+    let cover_filename = cover_filename_from_config(cover_type, cfg);
+    log::debug!("find_cover::cover_filename = {cover_filename}");
+
+    let music_path = path_to_string(directory(music_file)?);
+    log::debug!("find_cover::music_path = {music_path}");
 
     // Look for the cover file in the music file's directory and in the config's picture_search_folders.
-    let cover_path = if cover_file_name.is_empty() {
-        None
-    } else {
-        find_in_folders(&cover_file_name, &music_path, cfg)
-    };
+    let candidate_images = gather_cover_paths(cover_type, cfg)?;
+    log::debug!("find_cover::candidate_images = {candidate_images:?}");
+
+    let cover_path = find_first_image(music_file, &candidate_images)?;
+    log::debug!("find_cover::cover_path = {cover_path:?}");
 
     if cover_path.is_some() {
-        return Ok(cover_path);
+        return Ok(Some(path_to_string(cover_path.unwrap_or_default())));
     }
 
     // If we get here, we didn't find the cover. Let's see if we can create it from candidates
+    log::debug!("find_cover::Didn't find a cover file directly. Have to generate from candidates.");
     let candidate_images = if cover_type == CoverType::Front {
         gather_cover_paths(CoverType::FrontCandidate, cfg)?
     } else {
         gather_cover_paths(CoverType::BackCandidate, cfg)?
     };
+    log::debug!("find_cover::candidate_images = {candidate_images:?}");
 
     if candidate_images.is_empty() {
         return Ok(None);
     }
 
     let image_path = find_first_image(music_file, &candidate_images)?;
+    log::debug! {"find_cover::image_path = {image_path:?}"};
     if image_path.is_some() {
-        let cp = image_path
-            .unwrap_or_default()
-            .to_str()
-            .unwrap_or_default()
-            .to_string();
+        let cp = path_to_string(image_path.unwrap_or_default());
         return Ok(Some(cp));
     }
 
@@ -180,12 +211,12 @@ fn find_cover(
 /// * `Err(Box<dyn Error>)` - If something goes wrong, an error is returned.
 ///
 pub fn create_cover(
-    source: &str,
-    destination: &str,
+    src: &str,
+    dst: &str,
     max_size: u32,
     dry_run: bool,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
-    let img = image::open(source)?;
+    let img = image::open(src)?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {
         return Err("Image is not in the expected ratio.".into());
@@ -196,9 +227,9 @@ pub fn create_cover(
 
     // Save the new image file
     if dry_run {
-        log::debug!("Dry run. Not saving image to file {destination}.");
+        log::debug!("Dry run. Not saving image to file {dst}.");
     } else {
-        img_resized.save(Path::new(&destination))?;
+        img_resized.save(Path::new(&dst))?;
     }
 
     let return_vec = img_resized

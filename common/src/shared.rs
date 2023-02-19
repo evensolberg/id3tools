@@ -279,8 +279,8 @@ pub fn get_unique_value() -> u128 {
 /// Examples:
 ///
 /// ```
-/// assert_eq!(thousand_separated(10000), "10,000".to_string());
-/// assert_eq!(thousand_separated(10000000), "10,000,000".to_string());
+/// assert_eq!(thousand_separated(10000), String::from("10,000"));
+/// assert_eq!(thousand_separated(10000000), String::from("10,000,000"));
 /// ```
 ///
 /// # Panics
@@ -324,6 +324,11 @@ pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
     log::debug!("music_file_path = {:?}", music_file_path);
 
     Ok(music_file_path)
+}
+
+/// Converts a `Path` to a `String`
+pub fn path_to_string(p: std::path::PathBuf) -> String {
+    p.into_os_string().into_string().unwrap_or_default()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
