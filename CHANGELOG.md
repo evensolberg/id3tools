@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Remove unused debugs
+
+## [0.14.2] - 2023-02-20
+
 ### Refactor
 
 - Imaging and tagging rewrite
