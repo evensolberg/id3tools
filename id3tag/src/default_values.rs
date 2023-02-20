@@ -364,18 +364,15 @@ impl DefaultValues {
     ///
     pub fn search_folders(&self) -> Vec<String> {
         if let Some(f) = &self.picture_search_folders {
-            if f.len() > 0 {
+            if !f.is_empty() {
                 return self
                     .picture_search_folders
                     .as_ref()
                     .unwrap_or(&vec![".".to_string(), "..".to_string()])
                     .clone();
-            } else {
-                return vec![".".to_string(), "..".to_string()];
             }
-        } else {
-            return vec![".".to_string(), "..".to_string()];
         }
+        vec![".".to_string(), "..".to_string()]
     }
 
     /// Get the list of front cover candidates

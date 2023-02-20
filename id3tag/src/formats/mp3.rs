@@ -1,4 +1,5 @@
 //! Contains the functionality to process MP3 files.
+use crate::formats::images::read_cover;
 use crate::formats::tags::option_to_tag;
 use crate::{default_values::DefaultValues, rename_file};
 use common::FileTypes;
@@ -6,7 +7,6 @@ use id3::frame::{self, ExtendedText};
 use id3::TagLike;
 use id3::{frame::PictureType, Tag, Version};
 
-use crate::formats::images;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -19,6 +19,7 @@ pub fn process(
 ) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
     let mut processed_ok = false;
+    let max_size = cfg.picture_max_size.unwrap_or(500);
 
     // Reat the tag - bomb out if it doesn't work.
     let mut tag = Tag::read_from_path(filename)?;
@@ -34,21 +35,24 @@ pub fn process(
         // dry run, but it's good to do it anyway to ensure that it works.
         match key.as_ref() {
             // Front picture
-            "APIC-F" => match set_picture(&mut tag, value.trim(), PictureType::CoverFront) {
-                Ok(_) => (),
-                Err(err) => {
-                    if cfg.stop_on_error.unwrap_or(false) {
-                        return Err(format!(
-                            "Unable to set front cover for {filename}. Error: {err}"
-                        )
-                        .into());
+            "APIC-F" => {
+                match set_picture(&mut tag, value.trim(), PictureType::CoverFront, max_size) {
+                    Ok(_) => (),
+                    Err(err) => {
+                        if cfg.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set front cover for {filename}. Error: {err}"
+                            )
+                            .into());
+                        }
+                        log::error!("Unable to set front cover for {filename}. Error: {err}");
                     }
-                    log::error!("Unable to set front cover for {filename}. Error: {err}");
                 }
-            },
+            }
 
             // Back picture
-            "APIC-B" => match set_picture(&mut tag, value.trim(), PictureType::CoverBack) {
+            "APIC-B" => match set_picture(&mut tag, value.trim(), PictureType::CoverBack, max_size)
+            {
                 Ok(_) => (),
                 Err(err) => {
                     if cfg.stop_on_error.unwrap_or(false) {
@@ -172,8 +176,9 @@ pub fn process(
 /// Adds front or back covers
 fn set_picture(
     tags: &mut Tag,
-    filename: &str,
+    img_file: &str,
     picture_type: PictureType,
+    max_size: u32,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
@@ -185,18 +190,17 @@ fn set_picture(
     };
 
     // Read the file and check the mime type
-    log::debug!("Reading image file {filename}");
-    let mime_type = common::get_mime_type(filename)?;
+    log::debug!("Reading image file {img_file}");
+    let img = read_cover(img_file, max_size)?;
+    let mime_type = String::from("image/jpeg");
     log::debug!("Image format: {mime_type}");
 
-    let image_data = images::read_cover(filename, 0)?;
-
-    log::debug!("Setting picture to {filename}");
+    log::debug!("Setting picture to {img_file}");
     tags.add_frame(frame::Picture {
         mime_type,
         picture_type,
         description,
-        data: image_data,
+        data: img.into_inner(),
     });
 
     // Return safely

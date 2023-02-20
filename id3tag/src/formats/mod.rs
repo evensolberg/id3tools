@@ -82,7 +82,7 @@ pub fn process_file(
 ) -> Result<bool, Box<dyn Error>> {
     // Check if we need to create one or more cover images.
     let mut config = cfg.clone();
-    let (front_cover_path, back_cover_path) = images::process_images(filename, &config)?;
+    let (front_cover_path, back_cover_path) = images::get_cover_filenames(filename, &config)?;
     log::debug!("front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}, ");
 
     if front_cover_path.is_some() {

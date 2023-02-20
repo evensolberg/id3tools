@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Image assignment fixed - hopefully
+
+## [0.13.2] - 2023-02-18
+
+### Miscellaneous Tasks
+
+- CHANGELOG update
+- Lockfile rebuild and Changelog Update
+
 ### Refactor
 
 - Simplify FLAC processing code
@@ -49,6 +60,8 @@ All notable changes to this project will be documented in this file.
 - Remove test output file
 - Update Justfile
 - Justfile update
+- Bump tokio from 1.18.2 to 1.24.1
+- Bump tokio from 1.24.1 to 1.25.0
 - Update CHANGELOG
 
 ### Refactor

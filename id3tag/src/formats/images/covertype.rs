@@ -45,13 +45,11 @@ impl Display for CoverType {
 /// None.
 pub fn cover_filename_from_config(cover_type: CoverType, cfg: &DefaultValues) -> String {
     match cover_type {
-        CoverType::Front | CoverType::FrontCandidate => cfg
-            .picture_front
-            .as_ref()
-            .unwrap_or(&"".to_string())
-            .clone(),
+        CoverType::Front | CoverType::FrontCandidate => {
+            cfg.picture_front.as_ref().unwrap_or(&String::new()).clone()
+        }
         CoverType::Back | CoverType::BackCandidate => {
-            cfg.picture_back.as_ref().unwrap_or(&"".to_string()).clone()
+            cfg.picture_back.as_ref().unwrap_or(&String::new()).clone()
         }
     }
 }

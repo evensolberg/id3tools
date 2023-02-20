@@ -61,34 +61,6 @@ fn test_read_cover() {
 }
 
 #[test]
-/// Tests that the `create_cover` function works as expected.
-fn test_create_cover() {
-    let src_filename = "../testdata/DSOTM_Cover.jpeg";
-    let dst_filename = crate::rename_file::resized_filename(src_filename).unwrap();
-    let max_size = 500;
-    let dry_run = false;
-
-    let res = create_cover(src_filename, &dst_filename, max_size, dry_run);
-    assert!(res.is_ok());
-    let return_vec = res.unwrap();
-    println!("Image size: {}", return_vec.len());
-    assert!(!return_vec.is_empty());
-    assert!(!return_vec.is_empty());
-    assert_eq!(return_vec.len(), 750_000);
-
-    // Check that the file was created.
-    let res = std::fs::metadata(&dst_filename);
-    assert!(res.is_ok());
-    let md = res.unwrap();
-    assert!(md.is_file());
-    // assert_eq!(md.len(), 15_627);
-
-    // Delete the created file.
-    let res = std::fs::remove_file(dst_filename);
-    assert!(res.is_ok());
-}
-
-#[test]
 /// Tests that the `needs_resizing` function works as expected.
 fn test_needs_resizing() {
     let fname = "../testdata/DSOTM_Cover.jpeg";

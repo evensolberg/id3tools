@@ -327,6 +327,7 @@ pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
 }
 
 /// Converts a `Path` to a `String`
+#[must_use]
 pub fn path_to_string(p: std::path::PathBuf) -> String {
     p.into_os_string().into_string().unwrap_or_default()
 }

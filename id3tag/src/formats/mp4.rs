@@ -102,20 +102,8 @@ pub fn process(
 
 /// Sets the front or back cover
 fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
-    log::debug!("Checking image file type.");
-    let fmt = match common::get_extension(filename).as_ref() {
-        "jpg" | "jpeg" => ImgFmt::Jpeg,
-        "png" => ImgFmt::Png,
-        "bmp" => ImgFmt::Bmp,
-        _ => return Err("Unsupported image file format. Must be one of BMP, JPEG or PNG.".into()),
-    };
-
-    log::debug!("Reading image file {}", filename);
-    let filename_str = rename_file::filename_resized(filename)?;
-    let filename = filename_str.as_str();
-    let data = images::read_cover(filename, 0)?;
-
-    log::debug!("Setting picture to {}", filename);
+    let fmt = ImgFmt::Jpeg;
+    let data = images::read_cover(filename, 0)?.into_inner();
     tags.set_artwork(mp4ameta::Img { fmt, data });
 
     // Return safely

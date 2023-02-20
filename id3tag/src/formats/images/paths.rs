@@ -15,15 +15,6 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
         .to_owned()
 }
 
-/// Create the complete path name from the folder and the file name with -resized appended.
-pub fn complete_resized_path(folder: &Path, filename: &str) -> Result<String, Box<dyn Error>> {
-    Ok(folder
-        .join(crate::rename_file::resized_filename(filename)?)
-        .to_str()
-        .unwrap_or_default()
-        .to_owned())
-}
-
 /// Gathers the cover paths into a single vector that can be used to look for the cover(s) we want.
 /// Based on the input, the function will create the vector for:
 ///   - Front cover
@@ -41,24 +32,23 @@ pub fn complete_resized_path(folder: &Path, filename: &str) -> Result<String, Bo
 ///
 /// Returns:
 /// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
-pub fn gather_cover_paths(
+pub fn gather_cover_candidates(
     cover_type: CoverType,
     cfg: &DefaultValues,
 ) -> Result<Vec<String>, Box<dyn Error>> {
     let mut res_vec: Vec<String> = Vec::new();
 
-    // Depending on the cover type, collect the folder+filename combos, including the "-resized" versions.
-    let search_folders = cfg.search_folders();
-    log::debug!("search_folders = {search_folders:?}");
+    // Depending on the cover type, collect the folder+filename combos
+    let sf = cfg.search_folders();
+    log::debug!("gather_cover_candidates::sf = {sf:?}");
 
-    for f in search_folders {
+    for f in sf {
         let folder = Path::new(&f);
         match cover_type {
             CoverType::Front => {
                 if let Some(pn) = &cfg.picture_front {
                     log::debug!("CoverType::Front pn = {pn}");
                     res_vec.push(complete_path(folder, pn));
-                    res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
                     return Err("No front cover submitted.".into());
                 }
@@ -67,7 +57,6 @@ pub fn gather_cover_paths(
                 if let Some(pn) = &cfg.picture_back {
                     log::debug!("CoverType::Back pn = {pn}");
                     res_vec.push(complete_path(folder, pn));
-                    res_vec.push(complete_resized_path(folder, pn)?);
                 } else {
                     return Err("No back cover submitted.".into());
                 }
@@ -77,7 +66,6 @@ pub fn gather_cover_paths(
                 for c in pcs {
                     log::debug!("CoverType::FrontCandidate c = {c}");
                     res_vec.push(complete_path(folder, &c));
-                    res_vec.push(complete_resized_path(folder, &c)?);
                 }
             }
             CoverType::BackCandidate => {
@@ -85,14 +73,13 @@ pub fn gather_cover_paths(
                 for c in pcs {
                     log::debug!("CoverType::BackCandidate c = {c}");
                     res_vec.push(complete_path(folder, &c));
-                    res_vec.push(complete_resized_path(folder, &c)?);
                 }
             } // CoverType::BackCandidate
         } // match cover_type
-    } // for f in psf
+    } // for f in sf
 
     res_vec.sort();
-    log::debug!("res_vec = {res_vec:?}");
+    log::debug!("gather_cover_candidates::res_vec = {res_vec:?}");
 
     Ok(res_vec)
 }
@@ -105,12 +92,12 @@ pub fn gather_cover_paths(
 /// `music_file: &str` - the name (and full path) of the music file being used as the basis for the search.
 /// `image_vec: &Vec<String>` - a vector of string values containing the candidate filenames to be searched.
 pub fn find_first_image(
-    music_file: &str,
+    m_file: &str,
     image_vec: &Vec<String>,
 ) -> Result<Option<PathBuf>, Box<dyn Error>> {
-    let mf = Path::new(music_file);
+    let mf = Path::new(m_file);
     if !mf.exists() {
-        return Err(format!("music file {music_file} does not appear to exist.").into());
+        return Err(format!("Music file {m_file} does not appear to exist.").into());
     }
 
     let music_path = mf.canonicalize()?;
@@ -181,7 +168,7 @@ mod tests {
         ]);
 
         // Test CoverType::Front
-        let res = gather_cover_paths(CoverType::Front, &cfg);
+        let res = gather_cover_candidates(CoverType::Front, &cfg);
         println!(
             "CoverType::Front res ={:?} ({})",
             res,
@@ -210,7 +197,7 @@ mod tests {
         assert_eq!(res.as_ref().unwrap()[9], "Scans/front.jpg".to_string());
 
         // Test CoverType::Back
-        let res = gather_cover_paths(CoverType::Back, &cfg);
+        let res = gather_cover_candidates(CoverType::Back, &cfg);
         println!(
             "CoverType::Back res = {:?} ({})",
             res,
@@ -239,7 +226,7 @@ mod tests {
         assert_eq!(res.as_ref().unwrap()[9], "Scans/back.jpg".to_string());
 
         // Test CoverType::FrontCandidate
-        let res = gather_cover_paths(CoverType::FrontCandidate, &cfg);
+        let res = gather_cover_candidates(CoverType::FrontCandidate, &cfg);
         println!(
             "CoverType::FrontCandidate res = {:?} ({})",
             res,
@@ -249,7 +236,7 @@ mod tests {
         assert_eq!(res.as_ref().unwrap().len(), 30);
 
         // Test CoverType::BackCandidate
-        let res = gather_cover_paths(CoverType::BackCandidate, &cfg);
+        let res = gather_cover_candidates(CoverType::BackCandidate, &cfg);
         println!(
             "CoverType::BackCandidate res = {:?} ({})",
             res,

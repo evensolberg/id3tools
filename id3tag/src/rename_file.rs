@@ -128,64 +128,6 @@ pub fn rename_file(
     Ok(result)
 }
 
-/// Returns the filename provided with `-resize` appended to the file name stem.
-/// For example `somefile.jpg` would return `somefile-resize.jpg`.
-///
-/// # Parameters
-///
-/// - `filename: &str` -- the name of the file to be renamed
-///
-/// # Returns
-///
-/// - The new file name if successful
-/// - An error message if unsuccessful.
-///
-/// # Examples
-///
-/// ```
-/// assert_eq!(filename_resize("music/test.jpg")?, "music/test-resize.jpg");
-/// ```
-///
-pub fn resized_filename(src_fn: &str) -> Result<String, Box<dyn Error>> {
-    if src_fn.is_empty() {
-        return Err("No filename provided. Unable to continue.".into());
-    }
-
-    let path_dir = Path::new(src_fn)
-        .parent()
-        .unwrap_or_else(|| Path::new("."))
-        .to_str()
-        .unwrap_or_default();
-    let path_name = Path::new(src_fn)
-        .file_stem()
-        .unwrap_or_default()
-        .to_str()
-        .unwrap_or_default();
-    let path_ext = Path::new(src_fn)
-        .extension()
-        .unwrap_or_default()
-        .to_str()
-        .unwrap_or_default();
-
-    let new_name = if path_dir.is_empty() {
-        format!("{path_name}-resize.{path_ext}")
-    } else {
-        format!("{path_dir}/{path_name}-resize.{path_ext}")
-    };
-
-    Ok(new_name)
-}
-
-/// Checks if the -resize version of the file exists and returns it if it does. Otherwise, returns the original file name.
-pub fn filename_resized(filename: &str) -> Result<String, Box<dyn Error>> {
-    let new_name = resized_filename(filename)?;
-    if Path::new(&new_name).exists() {
-        Ok(new_name)
-    } else {
-        Ok(filename.to_string())
-    }
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 // Tests
 // --------------------------------------------------------------------------------------------------------------------
@@ -208,50 +150,6 @@ mod tests {
         assert_eq!(
             rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
             "../testdata/AlbumArtist - AlbumTitle.flac"
-        );
-    }
-
-    #[test]
-    ///
-    fn test_filename_resize() {
-        assert_eq!(
-            resized_filename("music/test.jpg").unwrap(),
-            "music/test-resize.jpg"
-        );
-        assert_eq!(
-            resized_filename("cover-small.jpg").unwrap(),
-            "cover-small-resize.jpg"
-        );
-        assert_eq!(
-            resized_filename("/somewhere/there/is/music/test.file.jpg").unwrap(),
-            "/somewhere/there/is/music/test.file-resize.jpg"
-        );
-        assert_eq!(
-            resized_filename("/somewhere/there/is/music/cover-small.jpg").unwrap(),
-            "/somewhere/there/is/music/cover-small-resize.jpg"
-        );
-    }
-
-    #[test]
-    fn test_filename_resized() {
-        // Create a resized version of the back cover of the DSOTM album.
-        let _ = crate::formats::images::create_cover(
-            "../testdata/DSOTM_Back.jpeg",
-            "../testdata/DSOTM_Back-resize.jpeg",
-            500,
-            false,
-        );
-
-        // The resized doesn't exist, so the original should be returned.
-        assert_eq!(
-            filename_resized("../testdata/DSOTM_Cover.jpeg").unwrap(),
-            "../testdata/DSOTM_Cover.jpeg"
-        );
-
-        // The resized does exist, so the resized should be returned.
-        assert_eq!(
-            filename_resized("../testdata/DSOTM_Back.jpeg").unwrap(),
-            "../testdata/DSOTM_Back-resize.jpeg"
         );
     }
 }
