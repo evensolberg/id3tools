@@ -120,6 +120,7 @@ This file describes the configuration parameters found in the config file. You c
 |`picture_front_candidate`|Any file name.||An array of names of files to look for. These are candidates for the front cover.
 |`picture_back_candidate`|Any file name.||An array of names of files to look for. These are candidates for the back cover.
 |`picture_search_folders`|Any folder name.|`.` & `..`|An array of folders in which to look for cover candidates. `.` and `..` are added automatically.
+|`picture_max_size`|Any positive number.|500|The maximum size (horizontally & vertically) of the cover. If the cover found is bigger, it will be resized to this size.
 |`rename_file`|||Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in the Options table above.
 
 Note that any flags or options provided via the command line will override the default from the config file.
