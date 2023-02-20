@@ -200,7 +200,7 @@ fn set_picture(
         mime_type,
         picture_type,
         description,
-        data: img.into_inner(),
+        data: img,
     });
 
     // Return safely

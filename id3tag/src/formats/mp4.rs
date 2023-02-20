@@ -103,7 +103,7 @@ pub fn process(
 /// Sets the front or back cover
 fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
     let fmt = ImgFmt::Jpeg;
-    let data = images::read_cover(filename, 0)?.into_inner();
+    let data = images::read_cover(filename, 0)?;
     tags.set_artwork(mp4ameta::Img { fmt, data });
 
     // Return safely

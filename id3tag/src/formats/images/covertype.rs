@@ -1,5 +1,4 @@
 //! Define the `CoverType` enum and associated function(s)
-use crate::default_values::DefaultValues;
 use std::fmt::{Display, Formatter};
 
 #[derive(Eq, PartialEq, Default, Copy, Clone)]
@@ -8,8 +7,6 @@ pub enum CoverType {
     #[default]
     Front,
     Back,
-    FrontCandidate,
-    BackCandidate,
 }
 
 /// Implements the `Display` trait for the `CoverType` enum
@@ -19,37 +16,6 @@ impl Display for CoverType {
         match self {
             Self::Front => write!(f, "front"),
             Self::Back => write!(f, "back"),
-            Self::FrontCandidate => write!(f, "front candidate"),
-            Self::BackCandidate => write!(f, "back candidate"),
-        }
-    }
-}
-
-/// Returns the cover name from the config, depending on the type we ask for
-///
-/// # Arguments
-///
-/// `cover_type: CoverType` - the type of cover we're looking for, i.e., `FrontCover` or `BackCover`
-/// `cfg: &DefaultValues` - the program configuration as collected from the CLI and config file.
-///
-/// # Returns
-///
-/// A `String` containing the name of the cover file as specified by the config.
-///
-/// # Errors
-///
-///  None.
-///
-/// # Panics
-///
-/// None.
-pub fn cover_filename_from_config(cover_type: CoverType, cfg: &DefaultValues) -> String {
-    match cover_type {
-        CoverType::Front | CoverType::FrontCandidate => {
-            cfg.picture_front.as_ref().unwrap_or(&String::new()).clone()
-        }
-        CoverType::Back | CoverType::BackCandidate => {
-            cfg.picture_back.as_ref().unwrap_or(&String::new()).clone()
         }
     }
 }

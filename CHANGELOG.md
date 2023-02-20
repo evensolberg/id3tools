@@ -2,11 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.14.1] - 2023-02-20
 
 ### Bug Fixes
 
 - Image assignment fixed - hopefully
+
+### Refactor
+
+- Don't save resized images
+- Simplify cover search
 
 ## [0.13.2] - 2023-02-18
 

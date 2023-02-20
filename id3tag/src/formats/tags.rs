@@ -220,6 +220,15 @@ pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
     tm.insert("%track-date".to_string(), tag_names.track_date.clone());
     tm.insert("%td".to_string(), tag_names.track_date);
 
+    tm.insert(
+        "%picture-front".to_string(),
+        tag_names.picture_front.clone(),
+    );
+    tm.insert("%pf".to_string(), tag_names.picture_front);
+
+    tm.insert("%picture-back".to_string(), tag_names.picture_back.clone());
+    tm.insert("%pb".to_string(), tag_names.picture_back);
+
     // return it
     tm
 }

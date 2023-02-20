@@ -9,6 +9,7 @@ use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
 use std::error::Error;
+
 /// Splits the incoming value into two the (disc/track) number and count.
 /// Inserts the split values into their respective spots in the `HashSet`.
 ///
@@ -66,13 +67,10 @@ pub fn process(
     let mut cfg = config.clone();
     let max_size = cfg.picture_max_size.unwrap_or(500);
 
-    // Read old tags
+    // If existing TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
     if let Some(id3) = tags.vorbis_comments() {
         for (k, values) in &id3.comments {
             for v in values {
-                log::debug!("Old {} = {}", k, v.trim());
-
-                // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
                 if k == "TRACKNUMBER" && common::need_split(v) {
                     split!(cfg, nt, track_number_total, track_number, "TRACK", v);
                 }
@@ -87,11 +85,11 @@ pub fn process(
     // Set new tags
     for (k, v) in nt {
         if !(cfg.detail_off.unwrap_or(false)) {
-            log::debug!("{} :: New {} = {}", &m_file, k, v);
+            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
         } else if cfg.dry_run.unwrap_or(false) {
             log::info!("{} :: New {} = {}", &m_file, k, v.trim());
         } else {
-            log::debug!("{} :: New {} = {}", &m_file, k, v);
+            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
         }
 
         // Process the tags
@@ -105,7 +103,7 @@ pub fn process(
                 };
 
                 match set_picture(&mut tags, v.trim(), cover_type, max_size) {
-                    Ok(_) => log::trace!("Picture set."),
+                    Ok(_) => log::debug!("process::Picture set."),
                     Err(err) => {
                         if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(
@@ -156,8 +154,9 @@ fn set_picture(
 ) -> Result<(), Box<dyn Error>> {
     tags.remove_picture_type(cover_type);
     let img = read_cover(img_file, max_size)?;
+    log::debug!("set_picture::Image {img_file} read. Length = {}", img.len());
 
-    tags.add_picture("image/jpeg", cover_type, img.into_inner());
+    tags.add_picture("image/jpeg", cover_type, img);
 
     // Return safely
     Ok(())

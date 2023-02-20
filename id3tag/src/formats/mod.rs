@@ -18,47 +18,11 @@ mod flac;
 pub mod images;
 mod mp3;
 mod mp4;
+mod tag_macros;
 mod tags;
 
-/// Insert tags into the new tags list. Replaces mucho repeated code.
-///
-/// # Arguments
-///
-/// - `$cli:ident` - The name of the variable that holds the `clap::ArgMatches`
-/// - `$cfg:ident` - The name of the variable that contains the `DefaultValues`
-/// - `$nt:ident` - The name of the variable that contains the new tags `HashSet`
-/// - `$t:ident` - The name of the variable that contains the existing tags `HashSet`
-/// - `$arg:expr` - The CLI parameter we're matching on
-/// - `$name:ident` - The name of the variable in the `DefaultValues`
-/// - `true|false` - Indicates whether to use the `clone()` version of the macro or not. The `clone()` version is used if the $name is used later in the function.
-///
-/// # Examples
-///
-/// `tag!(am, dv, nt, ot, "album-title", album_title, false);`
-/// `tag!(am, dv, nt, ot, "disc-number", disc_number, true);`
-macro_rules! tag {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, false) => {
-        if $cli.is_present($arg) {
-            $nt.insert($t.$name, $cli.value_of($arg).unwrap_or("").to_string());
-        } else if $cli.is_present("config-file") {
-            if let Some(val) = &$cfg.$name {
-                $nt.insert($t.$name, val.to_string());
-            }
-        }
-    };
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, true) => {
-        if $cli.is_present($arg) {
-            $nt.insert(
-                $t.$name.clone(),
-                $cli.value_of($arg).unwrap_or("").to_string(),
-            );
-        } else if $cli.is_present("config-file") {
-            if let Some(val) = &$cfg.$name {
-                $nt.insert($t.$name.clone(), val.to_string());
-            }
-        }
-    };
-}
+// Import the macros
+use crate::{disc_number_count, pic, tag, track_album_artist, track_genre_num, track_number_count};
 
 /// Performs the actual file processing
 ///
@@ -81,9 +45,10 @@ pub fn process_file(
     cli_args: &clap::ArgMatches,
 ) -> Result<bool, Box<dyn Error>> {
     // Check if we need to create one or more cover images.
+    log::debug!("process_file::filename = {filename}");
     let mut config = cfg.clone();
     let (front_cover_path, back_cover_path) = images::get_cover_filenames(filename, &config)?;
-    log::debug!("front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}, ");
+    log::debug!("process_file::front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}, ");
 
     if front_cover_path.is_some() {
         config.picture_front = front_cover_path;
@@ -143,38 +108,21 @@ fn parse_options(
     filename: &str,
     file_type: common::FileTypes,
     dv: &DefaultValues,
-    am: &clap::ArgMatches,
+    cli: &clap::ArgMatches,
 ) -> Result<HashMap<String, String>, Box<dyn Error>> {
     let mut nt = HashMap::new();
-
-    // Set tag names based on file type -- see tag_names function below
     let ot = tags::get_tag_names(file_type);
 
-    // TODO: Refactor to check for -c and use, and then for parameter and overwrite.
-    // TODO: Look into creating a macro for a bunch of the stuff below
+    // Track and album artist at the same time.
+    track_album_artist!(cli, dv, nt, ot);
 
-    // ALBUM & TRACK ARTIST //
-
-    if am.is_present("track-album-artist") {
-        let taa = am.value_of("track-album-artist").unwrap_or("").to_string();
-        nt.insert(ot.track_artist.clone(), taa.clone());
-        nt.insert(ot.album_artist.clone(), taa);
-    } else if am.is_present("config-file") {
-        if let Some(val) = &dv.track_album_artist {
-            let taa = val.to_string();
-            nt.insert(ot.track_artist.clone(), taa.clone());
-            nt.insert(ot.album_artist.clone(), taa);
-        }
-    }
-
-    // We should never hit these two ("album-artist" and "track-artist") if we have the one above,
+    // We should never hit "album-artist" and "track-artist" if we have the one above,
     // but the compiler doesn't know that. So we have to do a bunch of cloning above to ensure the
     // code below still compiles as expected.
-
-    tag!(am, dv, nt, ot, "album-artist", album_artist, false);
-    tag!(am, dv, nt, ot, "track-artist", track_artist, false);
+    tag!(cli, dv, nt, ot, "album-artist", album_artist, false);
+    tag!(cli, dv, nt, ot, "track-artist", track_artist, false);
     tag!(
-        am,
+        cli,
         dv,
         nt,
         ot,
@@ -182,12 +130,12 @@ fn parse_options(
         album_artist_sort,
         false
     );
-    tag!(am, dv, nt, ot, "album-title", album_title, false);
-    tag!(am, dv, nt, ot, "album-title-sort", album_title_sort, false);
-    tag!(am, dv, nt, ot, "disc-number", disc_number, true);
-    tag!(am, dv, nt, ot, "disc-total", disc_number_total, true);
+    tag!(cli, dv, nt, ot, "album-title", album_title, false);
+    tag!(cli, dv, nt, ot, "album-title-sort", album_title_sort, false);
+    tag!(cli, dv, nt, ot, "disc-number", disc_number, true);
+    tag!(cli, dv, nt, ot, "disc-total", disc_number_total, true);
     tag!(
-        am,
+        cli,
         dv,
         nt,
         ot,
@@ -195,14 +143,14 @@ fn parse_options(
         track_artist_sort,
         false
     );
-    tag!(am, dv, nt, ot, "track-title", track_title, false);
-    tag!(am, dv, nt, ot, "track-title-sort", track_title_sort, false);
-    tag!(am, dv, nt, ot, "track-number", track_number, false);
-    tag!(am, dv, nt, ot, "track-total", track_number_total, true);
-    tag!(am, dv, nt, ot, "track-genre", track_genre, true);
-    tag!(am, dv, nt, ot, "track-composer", track_composer, false);
+    tag!(cli, dv, nt, ot, "track-title", track_title, false);
+    tag!(cli, dv, nt, ot, "track-title-sort", track_title_sort, false);
+    tag!(cli, dv, nt, ot, "track-number", track_number, false);
+    tag!(cli, dv, nt, ot, "track-total", track_number_total, true);
+    tag!(cli, dv, nt, ot, "track-genre", track_genre, true);
+    tag!(cli, dv, nt, ot, "track-composer", track_composer, false);
     tag!(
-        am,
+        cli,
         dv,
         nt,
         ot,
@@ -210,51 +158,15 @@ fn parse_options(
         track_composer_sort,
         false
     );
-    tag!(am, dv, nt, ot, "track-date", track_date, false);
-    tag!(am, dv, nt, ot, "track-comments", track_comments, false);
+    tag!(cli, dv, nt, ot, "track-date", track_date, false);
+    tag!(cli, dv, nt, ot, "track-comments", track_comments, false);
 
-    // Count the number of discs instead of taking a value
-    if am.is_present("disc-number-count")
-        || (am.is_present("config-file") && dv.disc_count.unwrap_or(false))
-    {
-        let disc_num = disc_number(filename)?;
-        let disc_count = disc_count(filename)?;
-        nt.insert(ot.disc_number.clone(), format!("{disc_num:0>2}"));
-        nt.insert(ot.disc_number_total.clone(), format!("{disc_count:0>2}"));
-    }
+    disc_number_count!(cli, dv, nt, ot, filename);
+    track_number_count!(cli, dv, nt, ot, filename);
+    track_genre_num!(cli, dv, nt, ot);
 
-    // Count the number of tracks instead of taking a value
-    if am.is_present("track-count")
-        || (am.is_present("config-file") && dv.track_count.unwrap_or(false))
-    {
-        let file_count = common::count_files(filename)?;
-        nt.insert(ot.track_number_total, file_count);
-    }
-
-    // Insert genre by number instead of name
-    if am.is_present("track-genre-number") {
-        nt.insert(
-            ot.track_genre.clone(),
-            genre_name(
-                am.value_of("track-genre-number")
-                    .unwrap_or_default()
-                    .parse::<u16>()
-                    .unwrap_or_default(),
-            )?,
-        );
-    } else if am.is_present("config-file") {
-        if let Some(val) = &dv.track_genre_number {
-            nt.insert(ot.track_genre.clone(), genre_name(*val)?);
-        }
-    }
-
-    if let Some(p) = &dv.picture_front {
-        nt.insert(ot.picture_front, p.clone());
-    }
-
-    if let Some(p) = &dv.picture_back {
-        nt.insert(ot.picture_back, p.clone());
-    }
+    pic!(cli, dv, nt, ot, front);
+    pic!(cli, dv, nt, ot, back);
 
     Ok(nt)
 }

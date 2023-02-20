@@ -3,6 +3,8 @@
 use std::error::Error;
 use std::path::{Path, PathBuf};
 
+use common::directory;
+
 use super::covertype::CoverType;
 use crate::default_values::DefaultValues;
 
@@ -32,10 +34,7 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
 ///
 /// Returns:
 /// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
-pub fn gather_cover_candidates(
-    cover_type: CoverType,
-    cfg: &DefaultValues,
-) -> Result<Vec<String>, Box<dyn Error>> {
+pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
     let mut res_vec: Vec<String> = Vec::new();
 
     // Depending on the cover type, collect the folder+filename combos
@@ -46,33 +45,19 @@ pub fn gather_cover_candidates(
         let folder = Path::new(&f);
         match cover_type {
             CoverType::Front => {
-                if let Some(pn) = &cfg.picture_front {
-                    log::debug!("CoverType::Front pn = {pn}");
-                    res_vec.push(complete_path(folder, pn));
-                } else {
-                    return Err("No front cover submitted.".into());
+                let pcs = cfg.picture_front_candidates();
+                for c in pcs {
+                    let cp = complete_path(folder, &c);
+                    log::debug!("CoverType::FrontCandidate cp = {cp}");
+                    res_vec.push(cp);
                 }
             }
             CoverType::Back => {
-                if let Some(pn) = &cfg.picture_back {
-                    log::debug!("CoverType::Back pn = {pn}");
-                    res_vec.push(complete_path(folder, pn));
-                } else {
-                    return Err("No back cover submitted.".into());
-                }
-            }
-            CoverType::FrontCandidate => {
-                let pcs = cfg.picture_front_candidates();
-                for c in pcs {
-                    log::debug!("CoverType::FrontCandidate c = {c}");
-                    res_vec.push(complete_path(folder, &c));
-                }
-            }
-            CoverType::BackCandidate => {
                 let pcs = cfg.picture_back_candidates();
                 for c in pcs {
-                    log::debug!("CoverType::BackCandidate c = {c}");
-                    res_vec.push(complete_path(folder, &c));
+                    let cp = complete_path(folder, &c);
+                    log::debug!("CoverType::BackCandidate cp = {cp}");
+                    res_vec.push(cp);
                 }
             } // CoverType::BackCandidate
         } // match cover_type
@@ -81,7 +66,7 @@ pub fn gather_cover_candidates(
     res_vec.sort();
     log::debug!("gather_cover_candidates::res_vec = {res_vec:?}");
 
-    Ok(res_vec)
+    itertools::Itertools::unique(res_vec.into_iter()).collect()
 }
 
 /// Finds the first image from a list relative to a music file.
@@ -101,12 +86,15 @@ pub fn find_first_image(
     }
 
     let music_path = mf.canonicalize()?;
-    let music_dir = music_path.parent().unwrap_or_else(|| Path::new("."));
+    log::debug!("find_first_image::music_path = {music_path:?}");
+    let music_dir = directory(&common::path_to_string(music_path))?;
+    log::debug!("find_first_image::music_dir = {music_dir:?}");
 
     for img_candidate in image_vec {
         let image_path = music_dir.join(Path::new(&img_candidate));
         if image_path.exists() {
             let image_path = image_path.canonicalize()?;
+            log::debug!("find_first_image:: Image found: {image_path:?}");
             return Ok(Some(image_path));
         }
     }
@@ -131,15 +119,6 @@ mod tests {
         assert_eq!(
             complete_path(Path::new("/my/path"), &"my_file.txt".to_string()),
             "/my/path/my_file.txt".to_string()
-        );
-    }
-
-    #[test]
-    /// Tests the `create_complete_resized_path` function
-    fn test_create_complete_resized_path() {
-        assert_eq!(
-            complete_resized_path(Path::new("/my/path"), "my_file.txt").unwrap(),
-            "/my/path/my_file-resize.txt".to_string()
         );
     }
 
@@ -169,81 +148,23 @@ mod tests {
 
         // Test CoverType::Front
         let res = gather_cover_candidates(CoverType::Front, &cfg);
-        println!(
-            "CoverType::Front res ={:?} ({})",
-            res,
-            res.as_ref().unwrap().len()
-        );
-        assert!(res.is_ok());
-        assert_eq!(res.as_ref().unwrap().len(), 10);
-        assert_eq!(res.as_ref().unwrap()[0], "../front-resize.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[1], "../front.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[2], "./front-resize.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[3], "./front.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[4],
-            "Artwork/front-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[5], "Artwork/front.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[6],
-            "Images/front-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[7], "Images/front.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[8],
-            "Scans/front-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[9], "Scans/front.jpg".to_string());
+        println!("CoverType::Front res ={:?} ({})", res, res.len());
+        assert_eq!(res.len(), 15);
+        assert_eq!(res[1], "../front.jpg".to_string());
+        assert_eq!(res[3], "./cover.jpg".to_string());
+        assert_eq!(res[5], "./front.png".to_string());
+        assert_eq!(res[7], "Artwork/front.jpg".to_string());
+        assert_eq!(res[9], "Images/cover.jpg".to_string());
 
         // Test CoverType::Back
         let res = gather_cover_candidates(CoverType::Back, &cfg);
-        println!(
-            "CoverType::Back res = {:?} ({})",
-            res,
-            res.as_ref().unwrap().len()
-        );
-        assert!(res.is_ok());
-        assert_eq!(res.as_ref().unwrap().len(), 10);
-        assert_eq!(res.as_ref().unwrap()[0], "../back-resize.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[1], "../back.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[2], "./back-resize.jpg".to_string());
-        assert_eq!(res.as_ref().unwrap()[3], "./back.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[4],
-            "Artwork/back-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[5], "Artwork/back.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[6],
-            "Images/back-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[7], "Images/back.jpg".to_string());
-        assert_eq!(
-            res.as_ref().unwrap()[8],
-            "Scans/back-resize.jpg".to_string()
-        );
-        assert_eq!(res.as_ref().unwrap()[9], "Scans/back.jpg".to_string());
-
-        // Test CoverType::FrontCandidate
-        let res = gather_cover_candidates(CoverType::FrontCandidate, &cfg);
-        println!(
-            "CoverType::FrontCandidate res = {:?} ({})",
-            res,
-            res.as_ref().unwrap().len()
-        );
-        assert!(res.is_ok());
-        assert_eq!(res.as_ref().unwrap().len(), 30);
-
-        // Test CoverType::BackCandidate
-        let res = gather_cover_candidates(CoverType::BackCandidate, &cfg);
-        println!(
-            "CoverType::BackCandidate res = {:?} ({})",
-            res,
-            res.as_ref().unwrap().len()
-        );
-        assert!(res.is_ok());
-        assert_eq!(res.as_ref().unwrap().len(), 30);
+        println!("CoverType::Back res = {:?} ({})", res, res.len());
+        assert_eq!(res.len(), 15);
+        assert_eq!(res[1], "../back.png".to_string());
+        assert_eq!(res[3], "./back.jpg".to_string());
+        assert_eq!(res[5], "./backcover.jpg".to_string());
+        assert_eq!(res[7], "Artwork/back.png".to_string());
+        assert_eq!(res[9], "Images/back.jpg".to_string());
     }
 
     #[test]

@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - Image assignment fixed - hopefully
 
+### Refactor
+
+- Don't save resized images
+- Simplify cover search
+
 ## [0.13.2] - 2023-02-18
 
 ### Miscellaneous Tasks

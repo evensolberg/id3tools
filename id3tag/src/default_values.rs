@@ -152,8 +152,6 @@ impl DefaultValues {
         config.check_for_single_thread(cli_args);
         config.add_picture_search_folders(cli_args);
         config.check_for_picture_max_size(cli_args);
-        config.check_for_picture_front(cli_args);
-        config.check_for_picture_back(cli_args);
         config.check_for_picture_front_candidates(cli_args);
         config.check_for_picture_back_candidates(cli_args);
         log::debug!("Working config: {:?}", &config);
@@ -293,28 +291,6 @@ impl DefaultValues {
         }
     }
 
-    /// Check if the picture-front via the CLI, and add it to the config.
-    fn check_for_picture_front(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("picture-front") {
-            self.picture_front = Some(
-                args.value_of("picture-front")
-                    .unwrap_or_default()
-                    .to_string(),
-            );
-        }
-    }
-
-    /// Check if the picture-back via the CLI, and add it to the config.
-    fn check_for_picture_back(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("picture-back") {
-            self.picture_back = Some(
-                args.value_of("picture-back")
-                    .unwrap_or_default()
-                    .to_string(),
-            );
-        }
-    }
-
     /// Add the front cover candidates from the CLI to the config. If the list is empty, add "front.jpg", "cover.jpg", and "folder.jpg".
     fn check_for_picture_front_candidates(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
@@ -323,7 +299,11 @@ impl DefaultValues {
                 candidate_list.push(candidate.to_string());
             }
         }
-        self.picture_front_candidates = Some(candidate_list);
+        if candidate_list.is_empty() {
+            self.picture_front_candidates = None;
+        } else {
+            self.picture_front_candidates = Some(candidate_list);
+        }
     }
 
     /// Add the back cover candidates from the CLI to the config. If the list is empty, add "back.jpg".
@@ -334,7 +314,11 @@ impl DefaultValues {
                 candidate_list.push(candidate.to_string());
             }
         }
-        self.picture_back_candidates = Some(candidate_list);
+        if candidate_list.is_empty() {
+            self.picture_back_candidates = None;
+        } else {
+            self.picture_back_candidates = Some(candidate_list);
+        }
     }
 
     // Misc convenience functions

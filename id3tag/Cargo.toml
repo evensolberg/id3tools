@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.13.2"
+version = "0.14.1"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -27,3 +27,4 @@ dsf = "0.2.2"
 # Our own package
 common = { path = "../common" }
 image = "0.24.5"
+itertools = "0.10.5"

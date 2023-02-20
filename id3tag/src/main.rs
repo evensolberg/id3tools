@@ -35,11 +35,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
-    log::trace!("config = {:?}", config);
 
     // Configure logging
     let logging_config_filename = get_logging_config_filename(&cli_args, &config);
     common::build_logger(&logging_config_filename)?;
+
+    log::debug!("config = {:?}", config);
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
@@ -131,11 +132,10 @@ fn main() {
 }
 
 /// Processes the file based on the filename
-fn process_file(
-    filename: &str,
-    cli_args: &clap::ArgMatches,
-    config: &default_values::DefaultValues,
-) -> bool {
+fn process_file(filename: &str, cli_args: &clap::ArgMatches, config: &DefaultValues) -> bool {
+    log::debug!("----------- NEW FILE ---------");
+    log::debug!("process_file::filename = {filename}");
+
     let file_type = common::get_file_type(filename).unwrap_or(common::FileTypes::Unknown);
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);

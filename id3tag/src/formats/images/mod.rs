@@ -22,7 +22,7 @@ mod tests;
 
 use crate::default_values::DefaultValues;
 use common::{directory, path_to_string};
-use covertype::{cover_filename_from_config, CoverType};
+use covertype::CoverType;
 use paths::{find_first_image, gather_cover_candidates};
 
 pub use ops::aspect_ratio_ok;
@@ -43,13 +43,16 @@ pub fn get_cover_filenames(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
-    let front_cover_path = if cfg.picture_front.is_some() {
+    let front_cover_path = if cfg.picture_front_candidates.is_some() {
+        log::debug!("get_cover_filenames:: Gathering front cover candidates.");
         find_cover(CoverType::Front, music_file, cfg)?
     } else {
         None
     };
 
-    let back_cover_path = if cfg.picture_back.is_some() {
+    let back_cover_path = if cfg.picture_back_candidates.is_some() {
+        log::debug!("get_cover_filenames:: Gathering back cover candidates.");
+
         find_cover(CoverType::Back, music_file, cfg)?
     } else {
         None
@@ -77,37 +80,22 @@ fn find_cover(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    let cover_filename = cover_filename_from_config(cover_type, cfg);
-    log::trace!("find_cover::cover_filename = {cover_filename}");
-
     let music_path = path_to_string(directory(music_file)?);
-    log::trace!("find_cover::music_path = {music_path}");
+    log::debug!("find_cover::music_path = {music_path}");
 
-    let candidate_images = gather_cover_candidates(cover_type, cfg)?;
-    log::trace!("find_cover::candidate_images = {candidate_images:?}");
+    let candidate_images = gather_cover_candidates(cover_type, cfg);
+    log::debug!("find_cover::candidate_images = {candidate_images:?}");
 
     let cover_path = find_first_image(music_file, &candidate_images)?;
-    log::trace!("find_cover::cover_path = {cover_path:?}");
+    log::debug!("find_cover::cover_path = {cover_path:?}");
 
     if cover_path.is_some() {
         return Ok(Some(path_to_string(cover_path.unwrap_or_default())));
     }
 
-    // If we get here, we didn't find the cover. Let's see if we can create it from candidates
-    log::trace!("find_cover::Didn't find a cover file directly. Have to generate from candidates.");
-    let candidate_images = if cover_type == CoverType::Front {
-        gather_cover_candidates(CoverType::FrontCandidate, cfg)?
-    } else {
-        gather_cover_candidates(CoverType::BackCandidate, cfg)?
-    };
-    log::trace!("find_cover::candidate_images = {candidate_images:?}");
-
-    if candidate_images.is_empty() {
-        return Ok(None);
-    }
-
     let image_path = find_first_image(music_file, &candidate_images)?;
-    log::trace!("find_cover::image_path = {image_path:?}");
+    log::debug!("find_cover::image_path = {image_path:?}");
+
     if image_path.is_some() {
         let cp = path_to_string(image_path.unwrap_or_default());
         return Ok(Some(cp));
@@ -120,7 +108,7 @@ fn find_cover(
 /// Reads the image file and resizes it if needed. Returns the resized image as a vector of bytes.
 /// Set `max_size` to 0 to disable resizing.
 /// Returns a vector of bytes with the image data.
-pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Cursor<Vec<u8>>, Box<dyn Error>> {
+pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
     let img = image::open(cover_file)?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {
@@ -129,6 +117,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Cursor<Vec<u8>>, Bo
 
     let mut eib = Cursor::new(Vec::new());
     if (img.width() > max_size || img.height() > max_size) && max_size > 0 {
+        log::debug!("Reiszing to {max_size} pixels.");
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
         img_resized
             .write_to(&mut eib, image::ImageOutputFormat::Jpeg(90))
@@ -138,5 +127,5 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Cursor<Vec<u8>>, Bo
             .unwrap_or_default();
     };
 
-    Ok(eib)
+    Ok(eib.into_inner())
 }
