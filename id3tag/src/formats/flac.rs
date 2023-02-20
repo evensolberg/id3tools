@@ -98,23 +98,23 @@ pub fn process(
         match k.as_ref() {
             // Pictures need special treatment
             "PICTUREFRONT" | "PICTUREBACK" => {
-                let ct = if k == "PICTUREFRONT" {
+                let cover_type = if k == "PICTUREFRONT" {
                     CoverFront
                 } else {
                     CoverBack
                 };
 
-                match add_picture(&mut tags, v.trim(), ct, max_size) {
+                match set_picture(&mut tags, v.trim(), cover_type, max_size) {
                     Ok(_) => log::trace!("Picture set."),
                     Err(err) => {
                         if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(
-                                "Unable to set {ct:?} to {v}. Error message: {err}"
+                                "Unable to set {cover_type:?} to {v}. Error message: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set {ct:?} to {v}. Continuing. Error message: {err}"
+                            "Unable to set {cover_type:?} to {v}. Continuing. Error message: {err}"
                         );
                     }
                 } // match
@@ -148,7 +148,7 @@ pub fn process(
 }
 
 /// Set the front or back cover (for now)
-fn add_picture(
+fn set_picture(
     tags: &mut metaflac::Tag,
     img_file: &str,
     cover_type: metaflac::block::PictureType,

@@ -44,13 +44,13 @@ pub fn get_cover_filenames(
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
     let front_cover_path = if cfg.picture_front.is_some() {
-        get_cover_filename(CoverType::Front, music_file, cfg)?
+        find_cover(CoverType::Front, music_file, cfg)?
     } else {
         None
     };
 
     let back_cover_path = if cfg.picture_back.is_some() {
-        get_cover_filename(CoverType::Back, music_file, cfg)?
+        find_cover(CoverType::Back, music_file, cfg)?
     } else {
         None
     };
@@ -60,7 +60,7 @@ pub fn get_cover_filenames(
     Ok((front_cover_path, back_cover_path))
 }
 
-/// Find the cover image for the given type.
+/// Search for the cover file in the locations provided - alongside the music file or in the search folders.
 ///
 /// # Arguments:
 ///
@@ -72,26 +72,6 @@ pub fn get_cover_filenames(
 ///
 /// `Result<String, Box<dyn Error>>` - returns a string with the path to the cover if found, or an empty string if not.
 /// Returns an error if something goes wrong
-fn get_cover_filename(
-    cover_type: CoverType,
-    music_file: &str,
-    cfg: &DefaultValues,
-) -> Result<Option<String>, Box<dyn Error>> {
-    // Check that we've been given either a front or back cover
-    if cover_type != CoverType::Front && cover_type != CoverType::Back {
-        return Err("Incorrect cover type supplied. Should be CoverType::Front or CoverType::Back. Exiting the function.".into());
-    }
-
-    log::debug! {"get_cover_filename::cover_type = {cover_type}"};
-
-    // Look for the cover file next to the music file and in the candidate paths provided.
-    let cover_path = find_cover(cover_type, music_file, cfg)?;
-
-    log::debug!("get_cover_filename::cover_path = {cover_path:?}");
-    Ok(cover_path)
-}
-
-/// Search for the cover file in the locations provided - alongside the music file or in the search folders.
 fn find_cover(
     cover_type: CoverType,
     music_file: &str,
