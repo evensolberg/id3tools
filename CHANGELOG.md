@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactor
+
+- Imaging and tagging rewrite
+
 ## [0.14.1] - 2023-02-20
 
 ### Bug Fixes

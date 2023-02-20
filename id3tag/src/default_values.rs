@@ -138,9 +138,7 @@ impl DefaultValues {
                     .unwrap_or("~/.config/id3tag/config.toml"),
             )
             .to_string();
-            log::debug!("Config filename: {}", config_filename);
             config = Self::load_config(&config_filename)?;
-            log::debug!("Loaded config: {:?}", &config);
         }
 
         // Collate config file flags and CLI flags and output the right config
