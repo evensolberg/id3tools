@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.14.3] - 2023-02-21
+
+### Bug Fixes
+
+- Disc number bug
 
 ### Chore
 
