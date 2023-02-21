@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Chore
+
+- Update Changelog
+
+### Documentation
+
+- README update
+
 ### Miscellaneous Tasks
 
 - Remove unused debugs

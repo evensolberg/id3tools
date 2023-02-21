@@ -380,24 +380,33 @@ fn genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 /// Figures out the disc number based on the directory above it.
 /// It it is named 'CD xx' or 'disc xx' (case insensitive), we get the number and use it.
 // TODO: There may be a better way to do this by tokenizing the filename.
+// TODO: Need to be able to handle cases like CD1of3 ("CD1 of 3" is fine)
 fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
     let mut parent_dir = common::directory(filename)?
+        .file_name()
+        .unwrap_or_default()
         .to_str()
         .unwrap_or_default()
-        .to_owned();
+        .to_string();
+
+    log::debug!("disc_number::parent_dir initial = {parent_dir}");
 
     let mut dn = 1; // Disc number
     let disc_candidates = disc_candidates();
+
+    log::debug!("disc_number::disc_candidates = {disc_candidates:?}");
 
     if disc_candidates
         .iter()
         .any(|&s| parent_dir.to_uppercase().starts_with(s))
     {
+        log::debug!("disc_number::parent_dir before = {parent_dir}");
         parent_dir = disc_candidates
             .iter()
             .fold(parent_dir.to_uppercase(), |dir, c| {
                 dir.replace(c, "").trim().to_owned()
             });
+        log::debug!("disc_number::parent_dir after = {parent_dir}");
 
         // Check for longer name - eg CD01 - Something
         if parent_dir.contains(' ') || parent_dir.contains('-') {
@@ -405,17 +414,23 @@ fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
             let dash = parent_dir.find('-').unwrap_or(256);
             let delimiter = if space < dash { ' ' } else { '-' };
 
+            log::debug!("disc_number::space = {space}, dash = {dash}, delimiter = {delimiter}");
+
             parent_dir = parent_dir
                 .split_once(delimiter)
                 .unwrap_or_default()
                 .0
                 .to_string();
+
+            log::debug!("disc_number::parent_dir final = {parent_dir}");
         }
 
         dn = parent_dir.parse().unwrap_or(0);
+        log::debug!("disc_number::dn = {dn}");
 
         // Check for roman numerals
         if dn == 0 {
+            log::debug!("disc_number::Checking for Roman numerals.");
             dn = common::roman_to_decimal(&parent_dir);
 
             // If roman --> decimal didn't work either, just go with 1.
@@ -425,6 +440,7 @@ fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
     }
 
+    log::debug!("disc_number::dn = {dn}");
     Ok(dn)
 }
 
@@ -450,7 +466,7 @@ fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
                 .unwrap_or(Component::CurDir.as_os_str())
                 .to_string_lossy()
                 .to_ascii_uppercase();
-            log::trace!("component_name = {component_name}");
+            log::debug!("component_name = {component_name}");
 
             if disc_candidates
                 .iter()
@@ -461,7 +477,7 @@ fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
         }
     }
 
-    log::trace!("disc_count = {disc_count}");
+    log::debug!("disc_count = {disc_count}");
 
     // Obviously, we have at least 1 disc. Return accordingly.
     if disc_count == 0 {
