@@ -1,0 +1,15 @@
+detail_off=false
+print_summary=true
+quiet=false
+stop_on_error=false
+single_thread=false
+log_config_file="~/.config/id3tag/id3tag-logs.yaml"
+
+track_count=true
+disc_count=true
+rename_file="%dn-%tn %tt"
+picture_front_candidates=["front.jpg", "folder.jpg", "cover.jpg"]
+picture_back_candidates=["back.jpg"]
+
+picture_search_folders=["Scans", "Artwork", "Covers"]
+picture_max_size=500

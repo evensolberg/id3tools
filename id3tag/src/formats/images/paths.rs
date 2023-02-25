@@ -99,7 +99,7 @@ pub fn find_first_image(
         }
     }
 
-    log::warn!("No images found among the candidates supplied.");
+    log::debug!("No images found among the candidates supplied.");
 
     // Nothing found - return safely
     Ok(None)

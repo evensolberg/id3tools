@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.14.3] - 2023-02-21
+## [unreleased]
 
 ### Bug Fixes
 
@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Remove unused debugs
+- Changelog
 
 ## [0.14.2] - 2023-02-20
 

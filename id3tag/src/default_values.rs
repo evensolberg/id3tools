@@ -138,7 +138,10 @@ impl DefaultValues {
                     .unwrap_or("~/.config/id3tag/config.toml"),
             )
             .to_string();
+            log::debug!("build_config::config_filename = {}", config_filename);
             config = Self::load_config(&config_filename)?;
+        } else {
+            log::debug!("No config file specified.");
         }
 
         // Collate config file flags and CLI flags and output the right config
@@ -160,12 +163,20 @@ impl DefaultValues {
     /// Loads the config from the supplied TOML file.
     pub fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
         let mut config_toml = String::new();
+        log::debug!("load_config::Loading {filename}");
 
         let mut file = File::open(filename)
             .map_err(|err| format!("Config file {filename} not found. Error: {err}"))?;
 
-        file.read_to_string(&mut config_toml)?;
-        log::debug!("Config file contents: {}", &config_toml);
+        log::debug!("load_config::file = {file:?}");
+
+        let bytes = file.read_to_string(&mut config_toml)?;
+        if bytes > 0 {
+            log::debug!("Bytes read: {bytes}");
+        } else {
+            return Err(format!("Unable to read the contents of {filename}").into());
+        }
+        log::debug!("load_config::config_toml = {config_toml}");
 
         let mut config = match toml::from_str(&config_toml) {
             Ok(config) => config,
@@ -179,6 +190,8 @@ impl DefaultValues {
             }
         };
 
+        log::debug!("load_config::config = {config:?}");
+
         // Check if the picture_search_folders contain "." and "..". Add them if not.
         let mut psf = config.picture_search_folders.clone().unwrap_or_default();
         if !psf.contains(&'.'.to_string()) {
@@ -189,7 +202,7 @@ impl DefaultValues {
         }
         config.picture_search_folders = Some(psf);
 
-        log::debug!("Config: {:?}", config);
+        log::debug!("load_config::returning Ok({config:?})");
 
         Ok(config)
     }
@@ -276,8 +289,8 @@ impl DefaultValues {
             }
             candidate_list.push(".".to_string());
             candidate_list.push("..".to_string());
+            self.picture_search_folders = Some(candidate_list);
         }
-        self.picture_search_folders = Some(candidate_list);
     }
 
     /// Set the maximum picture size from the CLI to the config.
@@ -297,9 +310,7 @@ impl DefaultValues {
                 candidate_list.push(candidate.to_string());
             }
         }
-        if candidate_list.is_empty() {
-            self.picture_front_candidates = None;
-        } else {
+        if !candidate_list.is_empty() && self.picture_front_candidates.is_none() {
             self.picture_front_candidates = Some(candidate_list);
         }
     }
@@ -312,9 +323,7 @@ impl DefaultValues {
                 candidate_list.push(candidate.to_string());
             }
         }
-        if candidate_list.is_empty() {
-            self.picture_back_candidates = None;
-        } else {
+        if !candidate_list.is_empty() && self.picture_back_candidates.is_none() {
             self.picture_back_candidates = Some(candidate_list);
         }
     }
