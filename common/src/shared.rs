@@ -11,23 +11,21 @@ use infer::MatcherType;
 use crate::file_types::FileTypes;
 
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
+///
+/// # Errors
+///
+/// - If we can't infer the file type from path, we give an error
 pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
     // Read the file and check the mime type
-    let file_type = if let Some(file_type) = infer::get_from_path(filename)? {
-        file_type
-    } else {
+    let Some(file_type) = infer::get_from_path(filename)? else {
         return Err("File type not supported".into());
     };
-    log::debug!("File type: {:?}", file_type);
 
-    let mime_fmt = file_type.mime_type();
-    log::debug!("MIME type: {}", mime_fmt);
-
-    // Return safely
-    Ok(mime_fmt.to_string())
+    Ok(file_type.mime_type().to_string())
 }
 
 /// Get the extension part of the filename and return it as a string
+#[must_use]
 pub fn get_extension(filename: &str) -> String {
     Path::new(&filename)
         .extension()
@@ -38,14 +36,16 @@ pub fn get_extension(filename: &str) -> String {
         .to_string()
 }
 
-// Get the file type from the Extension
+/// Get the file type from the Extension
+///
+/// # Errors
+///
+/// - `infer::get_from_path()` fails
 pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     // return the file type
     let file_type = infer::get_from_path(filename)?;
     log::debug!("File type = {:?}", file_type);
-    let file_type = if let Some(file_type) = file_type {
-        file_type
-    } else {
+    let Some(file_type) = file_type else {
         return Err("File type not supported".into());
     };
 
@@ -60,8 +60,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
             "audio/x-dsf" => FileTypes::Dsf,
             "audio/x-flac" => FileTypes::Flac,
             "audio/mpeg" => FileTypes::MP3,
-            "audio/m4a" => FileTypes::MP4,
-            "video/mp4" => FileTypes::MP4,
+            "audio/m4a" | "video/mp4" => FileTypes::MP4,
             _ => FileTypes::Unknown,
         };
         log::debug!("File type is {}", ft);
@@ -81,20 +80,29 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     Ok(ft)
 }
 
-/// Checks that the new filename pattern results in a unique file
-pub fn file_rename_pattern_validate(pattern: &str) -> Result<(), String> {
+/// Checks that the new filename pattern results in a unique file.
+/// Not perfect since the track title can occur multiple times on the same album.
+/// TODO: Make this better. Include a check for the disc number and track title combo, for example.
+///
+/// # Errors
+///
+/// - Return an error if the pattern provided is unlikely to return unique file names
+pub fn validate_file_rename_pattern(pattern: &str) -> Result<(), String> {
     if !pattern.contains("%tn")
         && !pattern.contains("%tt")
         && !pattern.contains("%track-number")
         && !pattern.contains("%track-title")
+        && !pattern.contains("%tts")
+        && !pattern.contains("%track-title-sort")
     {
-        Err(format!("Pattern \"{}\" would not yield unique file names. Pattern must contain track number and/or track name. Cannot continue.", pattern))
+        Err(format!("Pattern \"{pattern}\" would likely not yield unique file names. Pattern should contain track number and/or track name variants."))
     } else {
         Ok(())
     }
 }
 
 /// Roman to Decimal conversion
+#[must_use]
 pub fn roman_to_decimal(roman: &str) -> u16 {
     struct RomanNumeral {
         symbol: &'static str,
@@ -156,22 +164,26 @@ pub fn roman_to_decimal(roman: &str) -> u16 {
         },
     ];
 
-    match NUMERALS
+    NUMERALS
         .iter()
         .find(|num| roman.to_uppercase().starts_with(num.symbol))
-    {
-        Some(num) => num.value + roman_to_decimal(&roman[num.symbol.len()..]),
-        None => 0, // if string empty, add nothing
-    }
+        .map_or(0, |num| {
+            num.value + roman_to_decimal(&roman[num.symbol.len()..])
+        })
 }
 
 /// Determines if a value (typically track or disc number) needs to be split into two values.
 /// This is determined if the provided value contains "/" or "of"
+#[must_use]
 pub fn need_split(value: &str) -> bool {
     value.contains('/') || value.contains("of")
 }
 
 /// Splits a value (typically track or disc number) into two values at a "/" or "of".
+///
+/// # Errors
+///
+/// - Returns an error if the split pattern can't be found.
 pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
     let split_str: Vec<&str>;
     if value.contains("of") {
@@ -182,35 +194,43 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
         return Err("Split pattern not found.".into());
     }
 
-    log::debug!("split_str = {:?}", split_str);
-    let num = split_str[0].trim().parse::<u16>().unwrap_or(1);
+    let count = split_str[0].trim().parse::<u16>().unwrap_or(1);
     let total = split_str[1].trim().parse::<u16>().unwrap_or(1);
 
-    // return the values
-    Ok((num, total))
+    // return the values (i.e., 1 of 2)
+    Ok((count, total))
 }
 
 /// Counts the number of files in with the same extension in the same directory as the file specified.
+/// TODO: Look into canonicalizing the path so we can be sure to get the parent.
+///
+/// The count is returned as a formatted `String`.
+///
+/// # Arguments
+/// `filename: &str` - the name of the file to be used as the example. The function will get the extension and look for the number of files with the same extension.
+///
+/// # Returns
+/// `Result<String, Box<dyn Error>>` - a formatted string with the number of files found, or an error if something went wrong.
+///
+/// # Errors
+/// - Returns an error if unable to get the directory name from the fielname.
+///
+/// # Panics
+/// None.
 pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let ext = get_extension(filename);
-    log::debug!("ext = {}", ext);
 
     // Get just the directory part, excluding the filename
     let mut dir = Path::new(&filename)
         .parent()
         .unwrap_or_else(|| Path::new("."));
-    log::debug!(
-        "dir = {}, dir length = {}",
-        dir.display(),
-        dir.as_os_str().len()
-    );
 
     if dir.as_os_str().is_empty() {
         dir = Path::new(&".");
     }
 
     if !dir.is_dir() {
-        return Err(format!("Unable to get directory name from filename {}.", filename).into());
+        return Err(format!("Unable to get directory name from filename {filename}.").into());
     }
 
     // Get the list of (music) files in the directory
@@ -231,11 +251,14 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     let count = file_list.count();
     log::debug!("count = {}", count);
 
+    // Format the file count
     let file_count = if count < 100 {
-        format!("{:0>2}", count)
+        format!("{count:0>2}")
     } else {
-        format!("{:0>3}", count)
+        format!("{count:0>3}")
     };
+
+    // Return safely with the formatted file count
     Ok(file_count)
 }
 
@@ -243,6 +266,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
+#[must_use]
 pub fn get_unique_value() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -255,9 +279,14 @@ pub fn get_unique_value() -> u128 {
 /// Examples:
 ///
 /// ```
-/// assert_eq!(thousand_separated(10000), "10,000".to_string());
-/// assert_eq!(thousand_separated(10000000), "10,000,000".to_string());
+/// assert_eq!(thousand_separated(10000), String::from("10,000"));
+/// assert_eq!(thousand_separated(10000000), String::from("10,000,000"));
 /// ```
+///
+/// # Panics
+///
+/// Mapping from UTF8 to u8 can panic if the unwrap fails.
+/// Mapping the result from UTF8 to String can panic if the unwrap fails.
 pub fn thousand_separated<T>(val: T) -> String
 where
     T: std::fmt::Display,
@@ -266,10 +295,41 @@ where
     let bytes: Vec<_> = s.bytes().rev().collect();
     let chunks: Vec<_> = bytes
         .chunks(3)
-        .map(|chunk| std::str::from_utf8(chunk).unwrap())
+        .map(|chunk| std::str::from_utf8(chunk).unwrap_or_default())
         .collect();
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
-    String::from_utf8(result).unwrap()
+    String::from_utf8(result).unwrap_or_default()
+}
+
+/// Gets the complete directory path to the file, sans the filename.
+///
+/// # Arguments
+/// `filename: &str` - the name of the file for which we need the full path
+///
+/// # Returns
+/// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
+///
+/// # Errors
+///
+/// `canonicalize` has a problem.
+///
+/// # Example
+/// `get_full_path_directory("/some/path/myfile.txt")` returns "/some/path/"
+pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
+    let mut music_file_path = std::fs::canonicalize(filename)?;
+    music_file_path = music_file_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf();
+    log::debug!("music_file_path = {:?}", music_file_path);
+
+    Ok(music_file_path)
+}
+
+/// Converts a `Path` to a `String`
+#[must_use]
+pub fn path_to_string(p: std::path::PathBuf) -> String {
+    p.into_os_string().into_string().unwrap_or_default()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -280,69 +340,65 @@ where
 ///
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay(include = ["../music/01 Gavottes BWV 1012.mp3", "../music/01-13 Surf's Up.flac", "../music/01.ape", "../music/02 2. Prestissimo [Piano Sonata No.30].dsf", "../music/cover-small.jpg", "../music/glb.mp4", "../music/This Is The Story.m4a"])]
+    #[test]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
-        assert!(get_mime_type("../music/01 Gavottes BWV 1012.mp3").is_ok());
-        assert!(get_mime_type("../music/01-13 Surf's Up.flac").is_ok());
-        assert!(get_mime_type("../music/01.ape").is_ok());
-        assert!(get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").is_ok());
-        assert!(get_mime_type("../music/cover-small.jpg").is_ok());
-        assert!(get_mime_type("../music/glb.mp4").is_ok());
-        assert!(get_mime_type("../music/This Is The Story.m4a").is_ok());
+        assert!(get_mime_type("../testdata/sample.mp3").is_ok());
+        assert!(get_mime_type("../testdata/sample.flac").is_ok());
+        assert!(get_mime_type("../testdata/sample.ape").is_ok());
+        assert!(get_mime_type("../testdata/sample.dsf").is_ok());
+        assert!(get_mime_type("../testdata/DSOTM_Cover.jpeg").is_ok());
+        assert!(get_mime_type("../testdata/sample.m4a").is_ok());
         assert!(get_mime_type("somefile.svg").is_err());
 
         assert_eq!(
-            get_mime_type("../music/01 Gavottes BWV 1012.mp3").unwrap(),
+            get_mime_type("../testdata/sample.mp3").unwrap(),
             "audio/mpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/01-13 Surf's Up.flac").unwrap(),
+            get_mime_type("../testdata/sample.flac").unwrap(),
             "audio/x-flac".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/01.ape").unwrap(),
+            get_mime_type("../testdata/sample.ape").unwrap(),
             "audio/x-ape".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/02 2. Prestissimo [Piano Sonata No.30].dsf").unwrap(),
+            get_mime_type("../testdata/sample.dsf").unwrap(),
             "audio/x-dsf".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/cover-small.jpg").unwrap(),
+            get_mime_type("../testdata/DSOTM_Cover.jpeg").unwrap(),
             "image/jpeg".to_string()
         );
         assert_eq!(
-            get_mime_type("../music/glb.mp4").unwrap(),
-            "video/mp4".to_string()
-        );
-        assert_eq!(
-            get_mime_type("../music/This Is The Story.m4a").unwrap(),
+            get_mime_type("../testdata/sample.m4a").unwrap(),
             "audio/m4a".to_string()
         );
     }
 
-    #[assay]
-    ///
+    #[test]
+    /// Tests the `get_extension` function to ensure it returns the correct extension.
     fn test_get_extension() {
         assert_eq!(get_extension("somefile.png"), "png".to_string());
         assert_eq!(get_extension("somewhere/somefile.png"), "png".to_string());
         assert_eq!(get_extension("noextension"), "unknown".to_string());
-        assert_eq!(get_extension("noextension."), "".to_string());
+        assert_eq!(get_extension("noextension."), String::new());
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_file_rename_pattern_validate() {
-        assert!(file_rename_pattern_validate("%dn-%tn %tt").is_ok());
-        assert!(file_rename_pattern_validate("%track-number %track-title").is_ok());
+        assert!(validate_file_rename_pattern("%dn-%tn %tt").is_ok());
+        assert!(validate_file_rename_pattern("%track-number %track-title").is_ok());
+        assert!(validate_file_rename_pattern("%track-number %track-title-sort").is_ok());
+        assert!(validate_file_rename_pattern("%track-title-sort").is_ok());
 
-        assert!(file_rename_pattern_validate("%disc-number").is_err());
+        assert!(validate_file_rename_pattern("%disc-number").is_err());
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_roman_to_decimal() {
         assert_eq!(roman_to_decimal("I"), 1);
@@ -380,7 +436,7 @@ mod tests {
         assert_ne!(roman_to_decimal("IM"), 999);
     }
 
-    #[assay]
+    #[test]
     /// Tests whether the need_split function does what it says on the tin
     fn test_need_split() {
         assert_eq!(need_split("1 of 2"), true);
@@ -394,7 +450,7 @@ mod tests {
         assert_eq!(need_split("DISC 03"), false);
     }
 
-    #[assay]
+    #[test]
     ///
     fn test_split_val() {
         assert!(split_val("1 of 2").is_ok());
@@ -403,6 +459,8 @@ mod tests {
         assert!(split_val("1/2").is_ok());
 
         assert!(split_val("1-2").is_err());
+        assert!(split_val("1-2-3").is_err());
+        assert!(split_val("1 av 2").is_err());
 
         assert_eq!(split_val("1 of 2").unwrap(), (1, 2));
         assert_eq!(split_val("1of2").unwrap(), (1, 2));
@@ -413,30 +471,39 @@ mod tests {
     #[test]
     ///
     fn test_count_files() {
-        assert!(count_files("../music/01.ape").is_ok());
-        assert!(count_files("../music/01 Gavottes BWV 1012.mp3").is_ok());
-        assert!(count_files("../music/01-13 Surf's Up.flac").is_ok());
-        assert!(count_files("../music/glb.mp4").is_ok());
-        assert!(count_files("../music/This Is The Story.m4a").is_ok());
-        assert!(count_files("../music/cover-small.jpg").is_ok());
+        if Path::new("../testdata/DOSTM_Cover-reesize.jpg").exists() {
+            let _res = std::fs::remove_file(Path::new("../testdata/DOSTM_Cover-reesize.jpg"));
+        }
+        assert!(count_files("../testdata/sample.ape").is_ok());
+        assert!(count_files("../testdata/sample.mp3").is_ok());
+        assert!(count_files("../testdata/sample.flac").is_ok());
+        assert!(count_files("../testdata/sample.mp4").is_ok());
+        assert!(count_files("../testdata/sample.m4a").is_ok());
+        assert!(count_files("../testdata/DSOTM_Cover.jpeg").is_ok());
 
-        assert_eq!(count_files("../music/01.ape").unwrap(), "02".to_string());
         assert_eq!(
-            count_files("../music/01 Gavottes BWV 1012.mp3").unwrap(),
+            count_files("../testdata/sample.ape").unwrap(),
             "01".to_string()
         );
         assert_eq!(
-            count_files("../music/01-13 Surf's Up.flac").unwrap(),
-            "02".to_string()
-        );
-        assert_eq!(count_files("../music/glb.mp4").unwrap(), "01".to_string());
-        assert_eq!(
-            count_files("../music/This Is The Story.m4a").unwrap(),
+            count_files("../testdata/sample.mp3").unwrap(),
             "01".to_string()
         );
         assert_eq!(
-            count_files("../music/cover-small.jpg").unwrap(),
+            count_files("../testdata/sample.flac").unwrap(),
             "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/sample.mp4").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/sample.m4a").unwrap(),
+            "01".to_string()
+        );
+        assert_eq!(
+            count_files("../testdata/DSOTM_Cover.jpeg").unwrap(),
+            "03".to_string()
         );
 
         assert_eq!(
@@ -445,11 +512,17 @@ mod tests {
         );
     }
 
-    #[assay]
+    /// Test the unique value generator
+    #[test]
+    fn test_get_unique_value() {
+        assert!(get_unique_value() < 10_000_000);
+    }
+
+    #[test]
     ///
     fn test_thousand_separated() {
         assert_eq!(thousand_separated(10), "10".to_string());
         assert_eq!(thousand_separated(1000), "1,000".to_string());
-        assert_eq!(thousand_separated(1000000), "1,000,000".to_string());
+        assert_eq!(thousand_separated(1_000_000), "1,000,000".to_string());
     }
 }

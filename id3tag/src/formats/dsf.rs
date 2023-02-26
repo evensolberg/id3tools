@@ -103,7 +103,7 @@ fn rename_file(
     let tags_names = option_to_tag(FileTypes::Dsf);
     let mut replace_map = HashMap::new();
 
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }
@@ -141,8 +141,7 @@ fn rename_file(
                     }
                     _ => {
                         return Err(format!(
-                            "Unknown tag {} encountered when unwrapping disc/track information.",
-                            tag_name
+                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
                         )
                         .into())
                     }
@@ -163,8 +162,7 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
@@ -200,7 +198,7 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
         Ok(n) => n,
         Err(err) => {
             if stop_on_error {
-                return Err(format!("Unable to set {} to {}. Error: {}", item, value, err).into());
+                return Err(format!("Unable to set {item} to {value}. Error: {err}").into());
             }
             log::error!(
                 "Unable to set {} to {}. Setting to 1 and continuing. Error: {}",
@@ -214,4 +212,35 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
 
     // Return the value
     Ok(num)
+}
+
+#[cfg(test)]
+///
+mod tests {
+    use super::*;
+
+    #[test]
+    /// Test the to_number function.
+    fn test_to_number() {
+        for n in 0..=100 {
+            let num1 = to_number(&format!("{n}"), "test", false).unwrap();
+            assert_eq!(num1, n);
+
+            let num2 = to_number(&format!("{n}"), "test", true).unwrap();
+            assert_eq!(num2, n);
+        }
+
+        assert!(to_number("error", "some value", true).is_err());
+        assert!(to_number("error", "some value", false).is_ok());
+        assert_eq!(to_number("error", "some value", false).unwrap(), 1);
+        assert_eq!(to_number("-1", "some value", false).unwrap(), 1);
+    }
+
+    #[test]
+    /// Test the rename_file function.
+    fn test_rename_file() {
+        let _filename = "../testdata/sample.dsf";
+        let mut config = DefaultValues::default();
+        config.rename_file = Some("%dn-%tn %tt".to_string());
+    }
 }

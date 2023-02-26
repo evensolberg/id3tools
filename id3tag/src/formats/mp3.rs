@@ -1,4 +1,5 @@
 //! Contains the functionality to process MP3 files.
+use crate::formats::images::read_cover;
 use crate::formats::tags::option_to_tag;
 use crate::{default_values::DefaultValues, rename_file};
 use common::FileTypes;
@@ -8,66 +9,59 @@ use id3::{frame::PictureType, Tag, Version};
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
 
 /// Performs the actual processing of MP4 files.
+#[allow(clippy::too_many_lines)]
 pub fn process(
     filename: &str,
-    new_tags: &HashMap<String, String>,
-    config: &DefaultValues,
+    nt: &HashMap<String, String>,
+    cfg: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {}", &filename);
     let mut processed_ok = false;
+    let max_size = cfg.picture_max_size.unwrap_or(500);
 
     // Reat the tag - bomb out if it doesn't work.
-    let mut tag = Tag::read_from_path(&filename)?;
-
-    log::trace!("Tag = {:?}", tag);
-    for frame in tag.frames() {
-        log::debug!("{} = {}", frame.id(), frame.content());
-    }
+    let mut tag = Tag::read_from_path(filename)?;
 
     // Print new tags
-    for (key, value) in new_tags {
+    for (key, value) in nt {
         // Output information about tags getting changed
-        if config.detail_off.unwrap_or(false) {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
-        } else if config.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
-        } else {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+        if cfg.dry_run.unwrap_or(false) {
+            log::info!("{filename} :: New {key} = {value}");
         }
 
         // Process the tags into the file. Arguaby we could skip this if it's a
         // dry run, but it's good to do it anyway to ensure that it works.
         match key.as_ref() {
             // Front picture
-            "APIC-F" => match add_picture(&mut tag, value.trim(), PictureType::CoverFront) {
-                Ok(_) => (),
-                Err(err) => {
-                    if config.stop_on_error.unwrap_or(false) {
-                        return Err(format!(
-                            "Unable to set front cover for {}. Error: {}",
-                            filename, err
-                        )
-                        .into());
+            "APIC-F" => {
+                match set_picture(&mut tag, value.trim(), PictureType::CoverFront, max_size) {
+                    Ok(_) => (),
+                    Err(err) => {
+                        if cfg.stop_on_error.unwrap_or(false) {
+                            return Err(format!(
+                                "Unable to set front cover for {filename}. Error: {err}"
+                            )
+                            .into());
+                        }
+                        log::error!("Unable to set front cover for {filename}. Error: {err}");
                     }
-                    log::error!("Unable to set front cover for {}. Error: {}", filename, err);
                 }
-            },
+            }
 
             // Back picture
-            "APIC-B" => match add_picture(&mut tag, value.trim(), PictureType::CoverBack) {
+            "APIC-B" => match set_picture(&mut tag, value.trim(), PictureType::CoverBack, max_size)
+            {
                 Ok(_) => (),
                 Err(err) => {
-                    if config.stop_on_error.unwrap_or(false) {
+                    if cfg.stop_on_error.unwrap_or(false) {
                         return Err(format!(
-                            "Unable to set back cover for {}. Error: {}",
-                            filename, err
+                            "Unable to set back cover for {filename}. Error: {err}"
                         )
                         .into());
                     }
-                    log::error!("Unable to set back cover for {}. Error: {}", filename, err);
+                    log::error!("Unable to set back cover for {filename}. Error: {err}");
                 }
             },
 
@@ -79,17 +73,14 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set disc number to {}. Error: {}",
-                                value, err
+                                "Unable to set disc number to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set disc number to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set disc number to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -102,18 +93,14 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set total discs to {}. Error: {}",
-                                value, err
+                                "Unable to set total discs to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set total discs to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
-                        );
+                            "Unable to set total discs to {value}. Setting to 1 and continuing. Error: {err}"                        );
                         1
                     }
                 };
@@ -125,17 +112,14 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set track number to {}. Error: {}",
-                                value, err
+                                "Unable to set track number to {value}. Error: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set track number to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set track number to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -148,17 +132,14 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(false) {
+                        if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
-                                "Unable to set total tracks to {}. Error: {}",
-                                value, err
+                                "Unable to set total tracks to {value}. Error: {err}",
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set total tracks to {}. Setting to 1 and continuing. Error: {}",
-                            value,
-                            err
+                            "Unable to set total tracks to {value}. Setting to 1 and continuing. Error: {err}"
                         );
                         1
                     }
@@ -171,18 +152,17 @@ pub fn process(
         }
     }
 
-    // Write tags to file
-    if config.dry_run.unwrap_or(true) {
-        log::debug!("Not writing {}", filename);
+    // Write tags to file - unless we're on a dry run.
+    if cfg.dry_run.unwrap_or(true) {
         processed_ok = true;
     } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
         processed_ok = true;
-        log::info!("{}  ✓", filename);
+        log::info!("{filename}  ✓");
     }
 
     // Rename file
-    if config.rename_file.is_some() {
-        if rename_file(filename, config, &tag).is_ok() {
+    if cfg.rename_file.is_some() {
+        if rename_file(filename, cfg, &tag).is_ok() {
             processed_ok = true;
         } else {
             processed_ok = false;
@@ -194,14 +174,14 @@ pub fn process(
 }
 
 /// Adds front or back covers
-fn add_picture(
+fn set_picture(
     tags: &mut Tag,
-    filename: &str,
+    img_file: &str,
     picture_type: PictureType,
+    max_size: u32,
 ) -> Result<(), Box<dyn Error>> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
-    log::debug!("Reading image file {}", filename);
 
     let description = if picture_type == PictureType::CoverFront {
         "Front Cover".to_string()
@@ -210,18 +190,17 @@ fn add_picture(
     };
 
     // Read the file and check the mime type
-    let mime_type = common::get_mime_type(filename)?;
-    log::debug!("Image format: {}", mime_type);
+    log::debug!("Reading image file {img_file}");
+    let img = read_cover(img_file, max_size)?;
+    let mime_type = String::from("image/jpeg");
+    log::debug!("Image format: {mime_type}");
 
-    log::debug!("Reading image file {}", filename);
-    let image_data = fs::read(&filename)?;
-
-    log::debug!("Setting picture to {}", filename);
+    log::debug!("Setting picture to {img_file}");
     tags.add_frame(frame::Picture {
         mime_type,
         picture_type,
         description,
-        data: image_data,
+        data: img,
     });
 
     // Return safely
@@ -240,24 +219,20 @@ fn set_comment(tags: &mut id3::Tag, value: &str) {
         );
     }
     tags.remove("COMM");
-    log::debug!("Setting comment to: {}", value);
+    log::debug!("Setting comment to: {value}");
     tags.add_frame(ExtendedText {
-        description: "Comment".to_string(),
-        value: value.to_string(),
+        description: String::from("Comment"),
+        value: String::from(value),
     });
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tag: &id3::Tag,
-) -> Result<(), Box<dyn Error>> {
+fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<(), Box<dyn Error>> {
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
-    let mut pattern = "".to_string();
-    if let Some(p) = &config.rename_file {
+    let mut pattern = String::new();
+    if let Some(p) = &cfg.rename_file {
         pattern = p.clone();
     }
 
@@ -276,7 +251,7 @@ fn rename_file(
                 if separates.len() > 1 {
                     total = format!("{:0>2}", separates[1]);
                 }
-                log::debug!("{} count = {}, total = {}", tag_name, count, total);
+                log::debug!("{tag_name} count = {count}, total = {total}");
                 match tag_name.as_str() {
                     "TPOS" => {
                         replace_map.insert("%dn".to_string(), count.clone());
@@ -294,15 +269,14 @@ fn rename_file(
                     }
                     _ => {
                         return Err(format!(
-                            "Unknown tag {} encountered when unwrapping disc/track information.",
-                            tag_name
+                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
                         )
                         .into())
                     }
                 }
             } else {
                 let value = vval.to_string();
-                log::debug!("key = {}, tag_name = {}, value = {}", key, tag_name, value);
+                log::debug!("key = {key}, tag_name = {tag_name}, value = {value}");
                 replace_map.insert(key, value);
             }
         }
@@ -310,22 +284,18 @@ fn rename_file(
 
     log::debug!("replace_map = {:?}", replace_map);
 
-    let rename_result = rename_file::rename_file(filename, &replace_map, config);
+    let rename_result = rename_file::rename_file(filename, &replace_map, cfg);
     match rename_result {
         Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
         Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
+            if cfg.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
             );
         }
     }

@@ -1,5 +1,5 @@
 # Sample log config file
-# Formatters: https://docs.rs/log4rs/1.0.0/log4rs/encode/pattern/index.html
+# Formatters: https://docs.rs/log4rs/latest/log4rs/encode/pattern/index.html
 
 # These decide how to treat logs
 appenders:

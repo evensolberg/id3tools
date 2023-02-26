@@ -59,8 +59,9 @@ These are the values that can be set for each file. Note that all of these shoul
 |`--track-composer-sort`|`--tcs`|Yes|Track composer sort. This is often set to be the same for all tracks on an album. Use quotation marks for multi-word entries.
 |`--track-comment`|`--tm`|Yes|Any comments related to the track (or album).
 |`--track-date`|`--td`|Yes|Sets the release date for the track, eg. "2021", "2010-09-27". This is usually set to be the same for all tracks on an album.
-|`--picture-front`|`--pf`|Yes|Sets the front cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
-|`--picture-back`|`--pb`|Yes|Sets the back cover picture. This is normally set to be the same for all tracks on an album. Looks for the cover picture alongside the music first, then in the invocation directory. **Not supported on APE.**
+|`--picture-front-candidate`|`--pfc`|Yes|Can be used multiple times to specify front cover candidates. Will look alongside the music, in the parent directory, and in the directories specified with the `picture-search-folder` option.
+|`--picture-back-candidate`|`--pbc`|Yes|Can be used multiple times to specify back cover candidates. Will look alongside the music, in the parent directory, and in the directories specified with the `picture-search-folder` option.
+|`--picture-search-folder`|`--psf`|Yes|Specifies the sub-directories in which to search for picture candidates. These are relative to the music.
 |`--rename-file`|`--rf`|Yes|Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in this table. Note that for "%disc-number-total" and "%track-number-total" you can also use "%dnt" and "%tnt" as file rename patterns in addition to the options listed above. This is done in an attempt to make it a little more intutitive.
 
 Any values omitted are left as-is. Note that for artists and titles, multi-word entries must be surrounded by quotes - eg. "Demi Lovato".
@@ -116,11 +117,17 @@ This file describes the configuration parameters found in the config file. You c
 |`track_composer`|Any text||The track composer. Will be applied to each track.
 |`track_composer_sort`|Any text||The track composer. Will be applied to each track.
 |`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.
-|`picture_front`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
-|`picture_back`|Any file name.||The name of the file which will be used as the front cover for the processed file(s). Looks for the cover picture alongside the music first, then in the invocation directory.
+|`picture_front_candidate`|Any file name.||An array of names of files to look for. These are candidates for the front cover.
+|`picture_back_candidate`|Any file name.||An array of names of files to look for. These are candidates for the back cover.
+|`picture_search_folders`|Any folder name.|`.` & `..`|An array of folders in which to look for cover candidates. `.` and `..` are added automatically.
+|`picture_max_size`|Any positive number.|500|The maximum size (horizontally & vertically) of the cover. If the cover found is bigger, it will be resized to this size.
 |`rename_file`|||Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in the Options table above.
 
 Note that any flags or options provided via the command line will override the default from the config file.
+
+### Configuring Logs
+
+
 
 ### Sample Configuration File
 
@@ -135,6 +142,8 @@ disc_count=true
 track_genre="Metal"
 track_composer="Hendrix, Jimi"
 picture_front="cover-small.jpg"
+picture_front_candidates=["folder.jpg", "front.jpg", "cover.jpg"]
+picture_search_folders=["Scans", "Artwork"]
 rename_file="%dn-%tn %tt"
 ```
 

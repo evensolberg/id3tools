@@ -6,61 +6,6 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- Disc number bug
-- Config not loading picture candidates
-
-### Chore
-
-- Update Changelog
-
-### Documentation
-
-- README update
-
-### Miscellaneous Tasks
-
-- Remove unused debugs
-- Changelog
-- Changelog
-
-## [0.14.2] - 2023-02-20
-
-### Refactor
-
-- Imaging and tagging rewrite
-
-## [0.14.1] - 2023-02-20
-
-### Bug Fixes
-
-- Image assignment fixed - hopefully
-
-### Refactor
-
-- Don't save resized images
-- Simplify cover search
-
-## [0.13.2] - 2023-02-18
-
-### Miscellaneous Tasks
-
-- CHANGELOG update
-- Lockfile rebuild and Changelog Update
-
-### Refactor
-
-- Simplify FLAC processing code
-
-## [0.13.1] - 2023-02-18
-
-### Refactor
-
-- Update parse_options
-
-## [0.13.0] - 2023-02-18
-
-### Bug Fixes
-
 - Trackinfo not set correctly for FLAC
 
 ### Features
@@ -92,8 +37,6 @@ All notable changes to this project will be documented in this file.
 - Remove test output file
 - Update Justfile
 - Justfile update
-- Bump tokio from 1.18.2 to 1.24.1
-- Bump tokio from 1.24.1 to 1.25.0
 - Update CHANGELOG
 
 ### Refactor
@@ -110,15 +53,12 @@ All notable changes to this project will be documented in this file.
 - Cleaned up some lints
 - Change numerous functions
 - Simplify complex functions
-- Change the images module
-- Move out more functions
 
 ### Testing
 
 - Added a bunch of tests
 - Add tests for functions
 - Add various tests in the images crate
-- Remove Assay
 
 ### Refact
 

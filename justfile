@@ -14,6 +14,8 @@ alias bra := buildra
 alias fmt := format
 alias r := release
 alias update := upgrade
+alias t := test
+alias tp := testp
 
 # SHORTCUTS AND COMMANDS
 
@@ -22,7 +24,7 @@ alias update := upgrade
 
 # Check if it builds at all
 @check: format
-    cargo lcheck  --color 'always'
+    cargo lcheck --color 'always'
 
 # Only compiles the project
 @build: format changelog
@@ -106,6 +108,11 @@ alias update := upgrade
     tokei | tee tokei.txt
     cargo outdated
 
+# Build the documentation and open it
+@docr:
+    cargo doc --no-deps
+    open file://{{invocation_directory()}}/target/doc/{{application}}/index.html
+
 # Formats the project source files
 @format:
     cargo fmt -- --emit=files
@@ -113,6 +120,10 @@ alias update := upgrade
 # Tests the project
 @test:
     cargo nextest run
+
+# Tests the project with output
+@testp:
+    cargo nextest run --no-capture | tee {{invocation_directory()}}/test.txt
 
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint spell
@@ -123,7 +134,15 @@ alias update := upgrade
 
 # Checks for potential code improvements
 @lint:
-    cargo lclippy
+    cargo lclippy -- -W clippy::pedantic -W clippy::nursery -W clippy::unwrap_used
+
+# Checks for potential code improvements and fixes what it can
+@lintfix:
+    cargo lclippy --fix -- -W clippy::pedantic -W clippy::nursery -W clippy::unwrap_used
+
+# Checks for potential code improvements except unsafe unwraps.
+@lintnuw:
+    cargo lclippy -- -W clippy::pedantic -W clippy::nursery
 
 # Initialize directory for various services such as cargo deny
 @init:
@@ -224,3 +243,18 @@ alias update := upgrade
     -brew install PurpleBooth/repo/git-mit
     -brew install graphviz
     -cp ~/CloudStation/Source/_Templates/deny.toml {{invocation_directory()}}/deny.toml
+
+# Testing actions
+
+# Run the program with a bunch of parameters to test things
+@runit:
+    -rm id3tag.log
+    target/debug/id3tag \
+        --pfc folder.jpg --pfc Front.jpg \
+        --pbc Back.jpg --pbc Back-Cover.jpg \
+        --psf Artwork --psf "." --psf ".." \
+        --pms 300 \
+        --pf cover-small.jpg --pb back-small.jpg  \
+        -l id3tag/debug.yaml \
+        music/01-13\ Surf\'s\ Up.flac \
+        -r

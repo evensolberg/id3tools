@@ -2,12 +2,13 @@
 //! This is also used by the `id3cli-gen` program to generate the CLI completion tags for Fig, Bash, etc.
 use clap::{Arg, Command};
 
-/// Builds the CLI so the main file doesn't get cluttered.
+/// Builds the CLI so the main file doesn't get cluttered. Note that the `<'static>` means it returns a global variable.
 pub fn build_cli(version: &'static str) -> Command<'static> {
     // This is the heading under which all the tags settings are grouped
     // run the app with `-h` to see.
     let tags_name = "TAGS";
     let operations_name = "OPERATIONS";
+    let images_name = "IMAGES";
     Command::new("id3tag")
         .about("A simple application for updating metadata (ID3) information in music files.")
         .version(version)
@@ -319,25 +320,47 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
                 .multiple_occurrences(false)
                 .require_equals(false).help_heading(tags_name)
         )
-        .arg( // Front cover picture
-            Arg::new("picture-front")
-                .long("picture-front")
-                .visible_alias("pf")
-                .help("The front cover picture file name.")
-                .long_help("The front cover picture file name. Example: 'cover-front.jpg'. Looks for the cover picture alongside the music first, then in the invocation directory.")
+        .arg( // Front cover picture candidate
+            Arg::new("picture-front-candidate")
+                .long("picture-front-candidate")
+                .visible_alias("pfc")
+                .help("The front cover picture candidate file name.")
+                .long_help("The front cover picture candidate file name. Example: 'front.jpg' or 'folder.jpg'. Looks for the cover picture alongside the music first, then in the parent folder, then in any directories supplied using the `--picture-search-folder` argument.")
                 .takes_value(true)
-                .multiple_occurrences(false)
-                .require_equals(false).help_heading(tags_name)
+                .multiple_occurrences(true)
+                .require_equals(false).help_heading(images_name)
         )
-        .arg( // Back cover picture
-            Arg::new("picture-back")
-                .long("picture-back")
-                .visible_alias("pb")
-                .help("The back cover picture file name.")
-                .long_help("The back cover picture file name. Example: 'cover-back.jpg'. Looks for the cover picture alongside the music first, then in the invocation directory.")
+        .arg( // Front cover picture candidate
+            Arg::new("picture-back-candidate")
+                .long("picture-back-candidate")
+                .visible_alias("pbc")
+                .help("The back cover picture candidate file name.")
+                .long_help("The back cover picture candidate file name. Example: 'back.jpg' or 'back-cover.jpg'. Looks for the cover picture alongside the music first, then in the parent folder, then in any directories supplied using the `--picture-search-folder` argument.")
                 .takes_value(true)
+                .multiple_occurrences(true)
+                .require_equals(false).help_heading(images_name)
+        )
+        .arg( // Picture search folder
+            Arg::new("picture-search-folder")
+                .long("picture-search-folder")
+                .visible_alias("psf")
+                .help("Folder(s) in which to look for the candidate front and back covers.")
+                .long_help("The folder(s) to seach for the candidate cover images. Can be either relative to the music file ('../Artwork') or absolute ('/users/me/Documents/images').")
+                .takes_value(true)
+                .default_missing_value(".")
+                .multiple_occurrences(true)
+                .require_equals(false).help_heading(images_name)
+        )
+        .arg( // Picture max size
+            Arg::new("picture-max-size")
+                .long("picture-max-size")
+                .visible_alias("pms")
+                .help("Picture maximum size in pixels for the longest edge.")
+                .long_help("The number of pixels for the longest edge of the cover picture. The default is '0', which means no maximum size.")
+                .takes_value(true)
+                .default_missing_value("0")
                 .multiple_occurrences(false)
-                .require_equals(false).help_heading(tags_name)
+                .require_equals(false).help_heading(images_name)
         )
         .arg( // Tags (Hidden)
             Arg::new("tags")
@@ -358,7 +381,7 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
                 .multiple_occurrences(false)
                 .require_equals(false)
                 .required(false)
-                .validator(crate::shared::file_rename_pattern_validate)
+                .validator(crate::shared::validate_file_rename_pattern)
                 .hide(false).help_heading(operations_name)
                 .display_order(1)
         )
@@ -367,34 +390,48 @@ pub fn build_cli(version: &'static str) -> Command<'static> {
 /// Checks that the specified genre number is in the valid range (0..=191)
 fn genre_number_validator(input: &str) -> Result<(), String> {
     let genre_num = input.parse::<u16>();
-    match genre_num {
-        Ok(gn) => {
+
+    genre_num.map_or_else(
+        |_| {
+            Err(String::from(
+                "Unable to parse the input provided to --track-genre-number.",
+            ))
+        },
+        |gn| {
             if gn <= 191 {
                 Ok(())
             } else {
                 Err(String::from("track-genre-number must be 0-191."))
             }
-        }
-        Err(_) => Err(String::from(
-            "Unable to parse the input provided to --track-genre-number.",
-        )),
-    }
+        },
+    )
 }
 
 #[cfg(test)]
 /// Test the CLI functions.
 mod tests {
     use super::*;
-    use assay::assay;
 
-    #[assay]
-    /// Test that the genre number validator returns OK if genre 0 <= genre number <= 191, otherwise error.
+    #[test]
+    /// Test that the genre number validator returns OK if genre number is 0..=191, otherwise error.
     fn test_genre_numbervalidator() {
-        assert!(genre_number_validator("0").is_ok());
-        assert!(genre_number_validator("9").is_ok());
-        assert!(genre_number_validator("191").is_ok());
+        // Check the valid range.
+        for i in 0..=191 {
+            assert_eq!(
+                genre_number_validator(&i.to_string()),
+                Ok(()),
+                "genre_number_validator failed for {}",
+                i
+            );
+        }
+
+        // Check numbers outside the valid range.
         assert!(genre_number_validator("192").is_err());
         assert!(genre_number_validator("200").is_err());
+        assert!(genre_number_validator("200_000").is_err());
+
+        // Check that other types of input are rejected.
+        assert!(genre_number_validator("wrong!").is_err());
     }
 
     // TODO: Create tests for the build_cli() function.

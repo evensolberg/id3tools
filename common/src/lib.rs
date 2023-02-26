@@ -14,16 +14,18 @@ pub use crate::file_types::FileTypes;
 pub use crate::main_cli::build_cli;
 
 // Builds the log config
-pub use crate::log::build_log;
+pub use crate::log::build_logger;
 
 // Misc utility functions
 pub use crate::shared::count_files;
-pub use crate::shared::file_rename_pattern_validate;
+pub use crate::shared::directory;
 pub use crate::shared::get_extension;
 pub use crate::shared::get_file_type;
 pub use crate::shared::get_mime_type;
 pub use crate::shared::get_unique_value;
 pub use crate::shared::need_split;
+pub use crate::shared::path_to_string;
 pub use crate::shared::roman_to_decimal;
 pub use crate::shared::split_val;
 pub use crate::shared::thousand_separated;
+pub use crate::shared::validate_file_rename_pattern;

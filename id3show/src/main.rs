@@ -23,7 +23,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let logging_config_filename = cli_args
         .value_of("log-config-file")
         .unwrap_or("~/.config/id3tag/id3show-logs.yaml");
-    common::build_log(logging_config_filename)?;
+    common::build_logger(logging_config_filename)?;
 
     // Initialize counters for total files, skipped and processed.
     let mut files_processed = 0;
@@ -32,8 +32,8 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
-    for filename in cli_args.values_of("files").unwrap() {
-        filenames.push(&*filename);
+    for filename in cli_args.values_of("files").unwrap_or_default() {
+        filenames.push(filename);
         file_count += 1;
     }
 

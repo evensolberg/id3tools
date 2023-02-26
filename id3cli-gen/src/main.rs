@@ -1,6 +1,8 @@
+// use clap_mangen;
+
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Set up the command line. Ref https://docs.rs/clap for details.
-    println!("Genereting Fig completions for id3tag - id3tag.js");
+    println!("Generating Fig completions for id3tag - id3tag.js");
     let mut cli = common::build_cli("latest");
     clap_complete::generate(
         clap_complete_fig::Fig,
@@ -9,10 +11,10 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         &mut std::fs::File::create("id3tag.js")?,
     );
 
-    println!("Genereting man file for id3tag - id3tag.1 ");
+    println!("Generating man file for id3tag - id3tag.1 ");
     let out_dir = std::path::PathBuf::from(".");
     let man = clap_mangen::Man::new(cli);
-    let mut buffer: Vec<u8> = Default::default();
+    let mut buffer: Vec<u8> = std::vec::Vec::default();
     man.render(&mut buffer)?;
 
     std::fs::write(out_dir.join("id3tag.1"), buffer)?;

@@ -1,6 +1,7 @@
 //! Contains the functionality to process FLAC files.
 
 use crate::default_values::DefaultValues;
+use crate::formats::images::read_cover;
 use crate::formats::tags;
 use crate::formats::FileTypes;
 use crate::rename_file;
@@ -8,7 +9,38 @@ use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
 use std::error::Error;
-use std::fs;
+
+/// Splits the incoming value into two the (disc/track) number and count.
+/// Inserts the split values into their respective spots in the `HashSet`.
+///
+/// # Arguments
+///
+/// - `$cfg:ident` - the name of the `DefaultValues` config being used.
+/// - `$tag:ident` - the name of the `HashSet` being used.
+/// - `$nt:ident` - the name of the field holding the total number of discs/tracks (`number_total`)
+/// - `$nn:ident` - the name of the field holding the number of the current disc/track
+/// - `$nm:literal` - used to indicate whether we're dealing with a "DISC" or "TRACK". Used when inserting into the `HashSet`.
+/// - `$value:ident` - the name of the variable containing the value to be split
+///
+/// # Examples
+///
+/// `split!(config, new_tags, track_number_total, track_number, "TRACK", value);`
+///
+macro_rules! split {
+    ($cfg:ident, $tag:ident, $nt:ident, $nn:ident, $nm:literal, $value:ident) => {
+        let split = common::split_val($value.trim())?;
+        if split.0 != 0 {
+            $cfg.$nn = Some(split.0);
+            let name = format!("{}NUMBER", $nm);
+            $tag.insert(name, split.0.to_string());
+        }
+        if split.1 != 0 {
+            $cfg.$nt = Some(split.1);
+            let name = format!("{}TOTAL", $nm);
+            $tag.insert(name, split.1.to_string());
+        }
+    };
+}
 
 /// Performs the actual processing of FLAC files.
 ///
@@ -26,120 +58,87 @@ use std::fs;
 ///
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
 pub fn process(
-    filename: &str,
-    new_tags: &mut HashMap<String, String>,
+    m_file: &str,
+    nt: &mut HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    let mut tags = Tag::read_from_path(&filename)?;
-    log::debug!("Filename: {}", filename);
-
+    let mut tags = Tag::read_from_path(m_file)?;
     let mut processed_ok = false;
+    let mut cfg = config.clone();
+    let max_size = cfg.picture_max_size.unwrap_or(500);
 
-    // Output existing blocks
-    for block in tags.blocks() {
-        log::trace!("{:?}", block);
-    }
-
-    let mut config = config.clone();
-
-    // Read old tags
+    // If existing TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
     if let Some(id3) = tags.vorbis_comments() {
-        log::debug!("vendor_string = {}", &id3.vendor_string);
-        for (key, values) in &id3.comments {
-            for value in values {
-                log::debug!("Old {} = {}", key, value.trim());
+        for (k, values) in &id3.comments {
+            for v in values {
+                if k == "TRACKNUMBER" && common::need_split(v) {
+                    split!(cfg, nt, track_number_total, track_number, "TRACK", v);
+                }
 
-                // If TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
-                if key == "TRACKNUMBER" && common::need_split(value) {
-                    let track_split = common::split_val(value.trim())?;
-                    log::debug!("track_split = {:?}", track_split);
-                    if track_split.0 != 0 {
-                        config.track_number = Some(track_split.0);
-                        new_tags.insert("TRACKNUMBER".to_string(), track_split.0.to_string());
-                    }
-                    if track_split.1 != 0 {
-                        config.track_total = Some(track_split.1);
-                        new_tags.insert("TRACKTOTAL".to_string(), track_split.1.to_string());
-                    }
-                } // TRACKNUMBERid3t --help
-                if key == "DISCNUMBER" && common::need_split(value) {
-                    let disc_split = common::split_val(value.trim())?;
-                    log::debug!("disc_split = {:?}", disc_split);
-                    if disc_split.0 != 0 {
-                        config.disc_number = Some(disc_split.0);
-                        new_tags.insert("DISCNUMBER".to_string(), disc_split.0.to_string());
-                    }
-                    if disc_split.1 != 0 {
-                        config.disc_total = Some(disc_split.1);
-                        new_tags.insert("DISCTOTAL".to_string(), disc_split.1.to_string());
-                    }
+                if k == "DISCNUMBER" && common::need_split(v) {
+                    split!(cfg, nt, disc_number_total, disc_number, "DISC", v);
                 } // DISCNUMBER
             } // for value in values
         } // for (key, value)
     } // if let
 
     // Set new tags
-    for (key, value) in new_tags {
-        if !(config.detail_off.unwrap_or(false)) {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
-        } else if config.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &filename, key, value.trim());
+    for (k, v) in nt {
+        if !(cfg.detail_off.unwrap_or(false)) {
+            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
+        } else if cfg.dry_run.unwrap_or(false) {
+            log::info!("{} :: New {} = {}", &m_file, k, v.trim());
         } else {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
         }
 
         // Process the tags
-        match key.as_ref() {
+        match k.as_ref() {
             // Pictures need special treatment
             "PICTUREFRONT" | "PICTUREBACK" => {
-                let cover_type = if key == "PICTUREFRONT" {
+                let cover_type = if k == "PICTUREFRONT" {
                     CoverFront
                 } else {
                     CoverBack
                 };
-                log::debug!("Setting {:?}.", cover_type);
 
-                match add_picture(&mut tags, value.trim(), cover_type) {
-                    Ok(_) => log::trace!("Picture set."),
+                match set_picture(&mut tags, v.trim(), cover_type, max_size) {
+                    Ok(_) => log::debug!("process::Picture set."),
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(true) {
+                        if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(
-                                "Unable to set {:?} to {}. Error message: {}",
-                                cover_type, value, err
+                                "Unable to set {cover_type:?} to {v}. Error message: {err}"
                             )
                             .into());
                         }
                         log::error!(
-                            "Unable to set {:?} to {}. Continuing. Error message: {}",
-                            cover_type,
-                            value,
-                            err
+                            "Unable to set {cover_type:?} to {v}. Continuing. Error message: {err}"
                         );
                     }
                 } // match
             }
 
-            _ => tags.set_vorbis(key.clone(), vec![value.clone().trim()]),
+            _ => tags.set_vorbis(k.clone(), vec![v.clone().trim()]),
         } // match key.as_ref()
     }
 
     // Try to save
-    if config.dry_run.unwrap_or(true) {
+    if cfg.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
         processed_ok = true;
     } else if tags.save().is_ok() {
         processed_ok = true;
-        log::info!("{}   ✓", filename);
+        log::info!("{}   ✓", m_file);
     } else {
-        if config.stop_on_error.unwrap_or(true) {
-            return Err(format!("Unable to save {}", filename).into());
+        if cfg.stop_on_error.unwrap_or(true) {
+            return Err(format!("Unable to save {m_file}").into());
         }
-        log::warn!("Unable to save {}", filename);
+        log::warn!("Unable to save {}", m_file);
     }
 
     // Rename file
-    if config.rename_file.is_some() {
-        rename_file(filename, &config, &tags)?;
+    if cfg.rename_file.is_some() {
+        rename_file(m_file, &cfg, &tags)?;
     }
 
     // Return safely
@@ -147,23 +146,17 @@ pub fn process(
 }
 
 /// Set the front or back cover (for now)
-fn add_picture(
+fn set_picture(
     tags: &mut metaflac::Tag,
-    filename: &str,
+    img_file: &str,
     cover_type: metaflac::block::PictureType,
+    max_size: u32,
 ) -> Result<(), Box<dyn Error>> {
-    log::debug!("Removing existing picture.");
     tags.remove_picture_type(cover_type);
+    let img = read_cover(img_file, max_size)?;
+    log::debug!("set_picture::Image {img_file} read. Length = {}", img.len());
 
-    // Read the file and check the mime type
-    let mime_fmt = common::get_mime_type(filename)?;
-    log::debug!("MIME type: {}", mime_fmt);
-
-    log::debug!("Reading image file {}", filename);
-    let image_data = fs::read(filename)?;
-
-    log::debug!("Attempting to set picture.");
-    tags.add_picture(mime_fmt, cover_type, image_data);
+    tags.add_picture("image/jpeg", cover_type, img);
 
     // Return safely
     Ok(())
@@ -177,7 +170,7 @@ fn rename_file(
 ) -> Result<(), Box<dyn Error>> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
-    let mut pattern = "".to_string();
+    let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
         pattern = p.clone();
     }
@@ -187,11 +180,11 @@ fn rename_file(
     for (key, vorbis_key) in tags_names {
         if let Some(mut vval) = tags.get_vorbis(&vorbis_key) {
             let value = vval.next().unwrap_or_default().to_string();
-            log::debug!("key = {}, value = {}", key, value);
+            log::debug!("key = {key}, value = {value}");
             replace_map.insert(key, value);
         }
     }
-    log::debug!("replace_map = {:?}", replace_map);
+    log::debug!("replace_map = {replace_map:?}");
 
     // Try to rename, and process the result
     let rename_result = rename_file::rename_file(filename, &replace_map, config);
@@ -200,16 +193,12 @@ fn rename_file(
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
-                    "Unable to rename {} with tags \"{}\". Error: {}",
-                    filename, pattern, err
+                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
             );
         }
     }

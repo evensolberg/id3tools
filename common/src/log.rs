@@ -15,14 +15,15 @@ use std::error::Error;
 use std::path::Path;
 
 /// Creates a log configuration for the application.
-pub fn build_log(config_filename: &str) -> Result<(), Box<dyn Error>> {
+///
+/// # Errors
+///
+/// - `init_file()` failure
+pub fn build_logger(config_filename: &str) -> Result<(), Box<dyn Error>> {
     let path = Path::new(&shellexpand::tilde(&config_filename).to_string()).to_owned();
     if path.exists() {
-        // Read the logger config from file
         log4rs::init_file(path, log4rs::config::Deserializers::default())?;
     } else {
-        // If, for some reason, we can't find the logger config file, create a default logger profile
-
         // Build a stdout logger.
         let stdout = ConsoleAppender::builder()
             .encoder(Box::new(PatternEncoder::new(
@@ -37,8 +38,7 @@ pub fn build_log(config_filename: &str) -> Result<(), Box<dyn Error>> {
             .encoder(Box::new(PatternEncoder::new(
                 "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}",
             )))
-            .build("./id3tag.log")
-            .unwrap();
+            .build("./id3tag.log")?;
 
         // Log Info level output to file where trace is the default level
         // and the programmatically specified level to stdout.
@@ -58,8 +58,7 @@ pub fn build_log(config_filename: &str) -> Result<(), Box<dyn Error>> {
                     .appender("logfile")
                     .appender("stdout")
                     .build(LevelFilter::Info),
-            )
-            .unwrap();
+            )?;
 
         // Use this to change log levels at runtime.
         // This means you can change the default log level to trace
