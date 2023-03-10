@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Refactor
 
 - Upgrade id3tag to Clap4
+- Default logging format changed
 
 ## [0.14.4] - 2023-02-26
 
