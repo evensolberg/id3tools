@@ -26,9 +26,7 @@ pub fn build_logger(config_filename: &str) -> Result<(), Box<dyn Error>> {
     } else {
         // Build a stdout logger.
         let stdout = ConsoleAppender::builder()
-            .encoder(Box::new(PatternEncoder::new(
-                "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}",
-            )))
+            .encoder(Box::new(PatternEncoder::new("{message}{n}")))
             .target(Target::Stdout)
             .build();
 

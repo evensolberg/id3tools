@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- Upgrade id3tag to Clap4
+
+## [0.14.4] - 2023-02-26
+
 ### Bug Fixes
 
 - Disc number bug
@@ -22,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Remove unused debugs
 - Changelog
 - Changelog
+- Components update and debug removal
 
 ## [0.14.2] - 2023-02-20
 

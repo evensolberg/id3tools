@@ -385,12 +385,17 @@ mod tests {
     #[test]
     ///
     fn test_file_rename_pattern_validate() {
-        assert!(validate_file_rename_pattern("%dn-%tn %tt").is_ok());
-        assert!(validate_file_rename_pattern("%track-number %track-title").is_ok());
-        assert!(validate_file_rename_pattern("%track-number %track-title-sort").is_ok());
-        assert!(validate_file_rename_pattern("%track-title-sort").is_ok());
-
-        assert!(validate_file_rename_pattern("%disc-number").is_err());
+        assert_eq!(file_rename_pattern_not_ok("%dn-%tn %tt"), false);
+        assert_eq!(
+            file_rename_pattern_not_ok("%track-number %track-title"),
+            false
+        );
+        assert_eq!(
+            file_rename_pattern_not_ok("%track-number %track-title-sort"),
+            false
+        );
+        assert_eq!(file_rename_pattern_not_ok("%track-title-sort"), false);
+        assert_eq!(file_rename_pattern_not_ok("%disc-number"), true);
     }
 
     #[test]
