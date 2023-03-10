@@ -87,18 +87,14 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
 /// # Errors
 ///
 /// - Return an error if the pattern provided is unlikely to return unique file names
-pub fn validate_file_rename_pattern(pattern: &str) -> Result<(), String> {
-    if !pattern.contains("%tn")
+#[must_use]
+pub fn file_rename_pattern_not_ok(pattern: &str) -> bool {
+    !pattern.contains("%tn")
         && !pattern.contains("%tt")
         && !pattern.contains("%track-number")
         && !pattern.contains("%track-title")
         && !pattern.contains("%tts")
         && !pattern.contains("%track-title-sort")
-    {
-        Err(format!("Pattern \"{pattern}\" would likely not yield unique file names. Pattern should contain track number and/or track name variants."))
-    } else {
-        Ok(())
-    }
 }
 
 /// Roman to Decimal conversion
@@ -235,7 +231,6 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 
     // Get the list of (music) files in the directory
     let file_list = std::fs::read_dir(Path::new(dir))?
-        .into_iter()
         .map(std::result::Result::unwrap)
         .filter(|x| {
             x.path()

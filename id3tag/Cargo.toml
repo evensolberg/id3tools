@@ -13,7 +13,7 @@ keywords = ["flac", "audio", "parser", "metadata"]
 
 [dependencies]
 ape = "0"
-clap = { version = "3.2.23", features = ["cargo", "color"] }
+clap = { version = "4.1.8", features = ["cargo", "color"] }
 id3 = "1.6.0"
 log = "0.4.17"
 metaflac = "0.2.5"

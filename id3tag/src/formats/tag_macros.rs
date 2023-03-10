@@ -21,21 +21,28 @@
 #[macro_export]
 macro_rules! tag {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, false) => {
-        if $cli.is_present($arg) {
-            $nt.insert($t.$name, $cli.value_of($arg).unwrap_or("").to_string());
-        } else if $cli.is_present("config-file") {
+        if $cli.contains_id($arg) {
+            $nt.insert(
+                $t.$name,
+                $cli.get_one::<String>($arg)
+                    .unwrap_or(&String::new())
+                    .to_string(),
+            );
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.$name {
                 $nt.insert($t.$name, val.to_string());
             }
         }
     };
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, true) => {
-        if $cli.is_present($arg) {
+        if $cli.contains_id($arg) {
             $nt.insert(
                 $t.$name.clone(),
-                $cli.value_of($arg).unwrap_or("").to_string(),
+                $cli.get_one::<String>($arg)
+                    .unwrap_or(&String::new())
+                    .to_string(),
             );
-        } else if $cli.is_present("config-file") {
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.$name {
                 $nt.insert($t.$name.clone(), val.to_string());
             }
@@ -55,7 +62,7 @@ macro_rules! tag {
 #[macro_export]
 macro_rules! pic {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, front) => {
-        if $cli.is_present("picture-front-candidate") {
+        if $cli.contains_id("picture-front-candidate") {
             $nt.insert(
                 $t.picture_front.clone(),
                 $cfg.picture_front
@@ -63,14 +70,14 @@ macro_rules! pic {
                     .unwrap_or(&String::new())
                     .to_string(),
             );
-        } else if $cli.is_present("config-file") {
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.picture_front {
                 $nt.insert($t.picture_front, val.to_string());
             }
         }
     };
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, back) => {
-        if $cli.is_present("picture-back-candidate") {
+        if $cli.contains_id("picture-back-candidate") {
             $nt.insert(
                 $t.picture_back.clone(),
                 $cfg.picture_back
@@ -78,7 +85,7 @@ macro_rules! pic {
                     .unwrap_or(&String::new())
                     .to_string(),
             );
-        } else if $cli.is_present("config-file") {
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.picture_back {
                 $nt.insert($t.picture_back, val.to_string());
             }
@@ -97,14 +104,14 @@ macro_rules! pic {
 #[macro_export]
 macro_rules! track_album_artist {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident) => {
-        if $cli.is_present("track-album-artist") {
+        if $cli.contains_id("track-album-artist") {
             let taa = $cli
-                .value_of("track-album-artist")
-                .unwrap_or("")
+                .get_one::<String>("track-album-artist")
+                .unwrap_or(&String::new())
                 .to_string();
             $nt.insert($t.track_artist.clone(), taa.clone());
             $nt.insert($t.album_artist.clone(), taa);
-        } else if $cli.is_present("config-file") {
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.track_album_artist {
                 let taa = val.to_string();
                 $nt.insert($t.track_artist.clone(), taa.clone());
@@ -126,8 +133,8 @@ macro_rules! track_album_artist {
 #[macro_export]
 macro_rules! disc_number_count {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $fname:ident) => {
-        if $cli.is_present("disc-number-count")
-            || ($cli.is_present("config-file") && $cfg.disc_count.unwrap_or(false))
+        if $cli.contains_id("disc-number-count")
+            || ($cli.contains_id("config-file") && $cfg.disc_count.unwrap_or(false))
         {
             let disc_num = disc_number($fname)?;
             let disc_count = disc_count($fname)?;
@@ -149,8 +156,8 @@ macro_rules! disc_number_count {
 #[macro_export]
 macro_rules! track_number_count {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $fname:ident) => {
-        if $cli.is_present("track-count")
-            || ($cli.is_present("config-file") && $cfg.track_count.unwrap_or(false))
+        if $cli.contains_id("track-count")
+            || ($cli.contains_id("config-file") && $cfg.track_count.unwrap_or(false))
         {
             let file_count = common::count_files($fname)?;
             $nt.insert($t.track_number_total, file_count);
@@ -169,17 +176,17 @@ macro_rules! track_number_count {
 #[macro_export]
 macro_rules! track_genre_num {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident) => {
-        if $cli.is_present("track-genre-number") {
+        if $cli.contains_id("track-genre-number") {
             $nt.insert(
                 $t.track_genre.clone(),
                 genre_name(
-                    $cli.value_of("track-genre-number")
-                        .unwrap_or_default()
+                    $cli.get_one::<String>("track-genre-number")
+                        .unwrap_or(&String::new())
                         .parse::<u16>()
                         .unwrap_or_default(),
                 )?,
             );
-        } else if $cli.is_present("config-file") {
+        } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.track_genre_number {
                 $nt.insert($t.track_genre.clone(), genre_name(*val)?);
             }

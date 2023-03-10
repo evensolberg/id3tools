@@ -8,18 +8,16 @@
 #![warn(clippy::pedantic)]
 #![forbid(unsafe_code)]
 
+use clap::ArgMatches;
 use std::error::Error;
 use std::time::Instant;
-
-// Logging
-// use log::LevelFilter;
 
 // Local modules
 mod default_values;
 mod formats;
 mod rename_file;
 
-use common::thousand_separated;
+use common::{file_rename_pattern_not_ok, thousand_separated};
 use rayon::prelude::*;
 
 use crate::default_values::DefaultValues;
@@ -32,6 +30,16 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = common::build_cli(env!("CARGO_PKG_VERSION")).get_matches();
+
+    let binding = String::new();
+    let pattern = cli_args
+        .get_one::<String>("rename-file")
+        .unwrap_or(&binding);
+    if cli_args.contains_id("rename-file") && file_rename_pattern_not_ok(pattern) {
+        return Err(
+            format!("File rename pattern {pattern} likely won't create unique files.").into(),
+        );
+    }
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
     let config = DefaultValues::build_config(&cli_args)?;
@@ -51,12 +59,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // create a list of the files to gather
-    for file in cli_args.values_of("files").unwrap_or_default() {
+    for file in cli_args.get_many::<String>("files").unwrap_or_default() {
         log::trace!("file: {:?}", file);
     }
 
-    if cli_args.is_present("tags") {
-        for value in cli_args.values_of("tags").unwrap_or_default() {
+    if cli_args.contains_id("tags") {
+        for value in cli_args.get_many::<String>("tags").unwrap_or_default() {
             log::debug!("tag = {:?}", value);
         }
     }
@@ -64,7 +72,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
-    for filename in cli_args.values_of("files").unwrap_or_default() {
+    for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
         filenames.push(filename);
         file_count += 1;
     }
@@ -132,7 +140,7 @@ fn main() {
 }
 
 /// Processes the file based on the filename
-fn process_file(filename: &str, cli_args: &clap::ArgMatches, config: &DefaultValues) -> bool {
+fn process_file(filename: &str, cli_args: &ArgMatches, config: &DefaultValues) -> bool {
     log::debug!("----------- NEW FILE ---------");
     log::debug!("process_file::filename = {filename}");
 
@@ -164,9 +172,9 @@ fn get_logging_config_filename(
 ) -> String {
     let default = "~/.config/id3tag/logs.yaml".to_string();
 
-    if cli_args.is_present("log-config-file") {
+    if cli_args.contains_id("log-config-file") {
         cli_args
-            .value_of("log-config-file")
+            .get_one::<String>("log-config-file")
             .unwrap_or(&default)
             .to_string()
     } else if config.log_config_file.is_some() {

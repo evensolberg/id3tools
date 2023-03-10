@@ -67,12 +67,7 @@ pub fn rename_file(
     }
 
     // Fix a few things we know will give us trouble later.
-    new_filename = new_filename.replace('/', "-");
-    new_filename = new_filename.replace(':', " -");
-    new_filename = new_filename.replace('.', "");
-
-    // Remove leading or trailing spaces
-    new_filename = new_filename.trim().to_string();
+    new_filename = clean_filename(&new_filename);
 
     // Get the path in front of the filename (eg. "music/01.flac" returns "music/")
     let parent = Path::new(&filename)
@@ -93,7 +88,7 @@ pub fn rename_file(
     if Path::new(&new_path).exists() {
         let unique_val = common::get_unique_value();
 
-        log::warn!("{new_filename} already exists. Appending unique identifier.");
+        log::warn!("{new_filename} already exists. Appending unique identifier ({unique_val}).");
         new_filename = format!("{new_filename} ({unique_val:0>4})");
         new_path =
             parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
@@ -128,6 +123,15 @@ pub fn rename_file(
     Ok(result)
 }
 
+fn clean_filename(filename: &str) -> String {
+    let mut new_filename = filename.to_string();
+    new_filename = new_filename.replace('/', "-");
+    new_filename = new_filename.replace(':', " -");
+    new_filename = new_filename.replace('.', "");
+    new_filename = new_filename.trim().to_string();
+    new_filename
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Tests
 // --------------------------------------------------------------------------------------------------------------------
@@ -136,6 +140,11 @@ pub fn rename_file(
 //
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_clean_filename() {
+        assert_eq!(clean_filename("my/long.file:name"), "my-longfile -name");
+    }
 
     #[test]
     fn test_rename_file() {
