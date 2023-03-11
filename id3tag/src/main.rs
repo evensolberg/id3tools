@@ -105,6 +105,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             }
         }
 
+        log::info!("   ");
         log::info!(
             "Files examined:              {:>5}",
             thousand_separated(file_count)

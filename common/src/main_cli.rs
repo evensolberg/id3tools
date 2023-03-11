@@ -29,10 +29,10 @@ pub fn build_cli(version: &'static str) -> Command {
             Arg::new("stop-on-error")
                 .short('s')
                 .long("stop-on-error")
-                .num_args(0)
                 .help("Stop on error.")
                 .long_help("Stop on error. If this flag isn't set, the application will attempt to continue in case of error.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Dry-run
             Arg::new("dry-run")
@@ -40,6 +40,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("dry-run")
                 .help("Iterate through the files and produce output without actually processing anything.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Print summary information
             Arg::new("print-summary")
@@ -47,6 +48,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("print-summary")
                 .help("Print summary after all files are processed.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("detail-off")
@@ -54,6 +56,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("detail-off")
                 .help("Don't display detailed information about each file processed.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("single-thread")
@@ -61,6 +64,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("single-thread")
                 .help("Run processing single-threaded. Takes longer, but has less impact on the system.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Config file
             Arg::new("config-file")
@@ -350,7 +354,6 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .required(false)
-                // .validator(crate::shared::validate_file_rename_pattern)
                 .hide(false).help_heading(operations_name)
                 .display_order(1)
         )

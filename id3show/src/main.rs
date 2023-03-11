@@ -38,8 +38,8 @@ fn run() -> Result<(), Box<dyn Error>> {
         file_count += 1;
     }
 
-    let show_detail = cli_args.contains_id("show-detail");
-    let print_summary = cli_args.contains_id("print-summary");
+    let show_detail = cli_args.get_flag("show-detail");
+    let print_summary = cli_args.get_flag("print-summary");
 
     for filename in filenames {
         log::info!("{}", filename);

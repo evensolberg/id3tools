@@ -18,6 +18,7 @@ pub fn build_cli() -> Command {
                 .long("print-summary")
                 .help("Print summary detail for each session processed.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("show-detail")
@@ -25,6 +26,7 @@ pub fn build_cli() -> Command {
                 .long("show-detail")
                 .help("Show detailed information about each file processed.")
                 .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Log config
             Arg::new("log-config-file")
@@ -33,6 +35,15 @@ pub fn build_cli() -> Command {
                 .help("The name of the YAML file containing the logging settings.")
                 .num_args(0..)
                 .default_missing_value("~/.config/id3tag/id3show-logs.yaml")
+                .display_order(2)
+        )
+        .arg( // CSV output file name
+            Arg::new("csv-file")
+                .short('c')
+                .long("csv-file")
+                .help("The name of the CSV into which information is to be written.")
+                .num_args(0..)
+                .default_missing_value("id3show.csv")
                 .display_order(2)
         )
 }

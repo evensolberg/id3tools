@@ -8,6 +8,24 @@ use std::io::Read;
 
 use clap::ArgMatches;
 
+/// Checks the command line to see if flags have been set and updates the corresponding values accordingly.
+///
+/// # Parameters
+///
+/// - `$args:ident`: the `ArgMatches` we're checking.
+/// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification
+/// - `$var:ident`: The name of the `DefaultValues` instance to be updated
+/// - `$val:ident`: The `DefaultValues` variable to be set.
+macro_rules! check_flag {
+    ($args:ident, $par:literal, $var:ident, $val:ident) => {
+        if $args.value_source($par) == Some(clap::parser::ValueSource::CommandLine) {
+            $var.$val = Some(true);
+        } else if $var.$val.is_none() {
+            $var.$val = Some(false);
+        }
+    };
+}
+
 //~ spec:startcode
 /// The default values for the flags and options.
 /// TODO: Write Deserialize trait for this struct
@@ -143,13 +161,16 @@ impl DefaultValues {
             config = Self::load_config(&config_filename)?;
         }
 
+        // dbg!(&config);
+
         // Collate config file flags and CLI flags and output the right config
+        check_flag!(cli_args, "stop-on-error", config, stop_on_error);
+        check_flag!(cli_args, "print-summary", config, print_summary);
+        check_flag!(cli_args, "detail-off", config, detail_off);
+        check_flag!(cli_args, "dry-run", config, dry_run);
+        check_flag!(cli_args, "single-thread", config, single_thread);
+
         config.check_for_file_rename(cli_args)?;
-        config.check_for_stop_on_error(cli_args);
-        config.check_for_print_summary(cli_args);
-        config.check_for_detail_off(cli_args);
-        config.check_for_dry_run(cli_args);
-        config.check_for_single_thread(cli_args);
         config.add_picture_search_folders(cli_args);
         config.check_for_picture_max_size(cli_args);
         config.check_for_picture_front_candidates(cli_args);
@@ -202,80 +223,33 @@ impl DefaultValues {
     /// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
     fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
         // Check if anything came from the config file and validate it
-        let mut pattern = String::new();
+        let mut pattern = None;
         let binding = String::new();
 
         if let Some(pat) = &self.rename_file {
-            pattern = pat.to_string();
+            pattern = Some(pat.to_string());
         }
 
         // Even if we have something from the config file, CLI takes presedence
         if args.contains_id("rename-file") {
-            pattern = args
-                .get_one::<String>("rename-file")
-                .unwrap_or(&binding)
-                .to_string();
-        };
-
-        if common::file_rename_pattern_not_ok(&pattern) {
-            return Err(
-                format!("File rename pattern {pattern} likely won't create unique files.").into(),
+            pattern = Some(
+                args.get_one::<String>("rename-file")
+                    .unwrap_or(&binding)
+                    .to_string(),
             );
         }
-        self.rename_file = Some(pattern);
+
+        if let Some(pat) = pattern {
+            if common::file_rename_pattern_not_ok(&pat) {
+                return Err(
+                    format!("File rename pattern {pat} likely won't create unique files.").into(),
+                );
+            }
+            self.rename_file = Some(pat);
+        }
 
         // Return safely
         Ok(())
-    }
-
-    /// Check if the stop-on-error flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_stop_on_error(&mut self, args: &clap::ArgMatches) {
-        if args.contains_id("stop-on-error") {
-            self.stop_on_error = Some(true);
-        } else if self.stop_on_error.is_none() {
-            self.stop_on_error = Some(false);
-        }
-    }
-
-    /// Check if the print-summary flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_print_summary(&mut self, args: &clap::ArgMatches) {
-        if args.contains_id("print-summary") {
-            self.print_summary = Some(true);
-        } else if self.print_summary.is_none() {
-            self.print_summary = Some(false);
-        }
-    }
-
-    /// Check if the detail-off flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_detail_off(&mut self, args: &clap::ArgMatches) {
-        if args.contains_id("detail-off") {
-            self.detail_off = Some(true);
-        } else if self.detail_off.is_none() {
-            self.detail_off = Some(false);
-        }
-    }
-
-    /// Check if the detail-off flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_dry_run(&mut self, args: &clap::ArgMatches) {
-        if args.contains_id("dry-run") {
-            self.dry_run = Some(true);
-        } else if self.dry_run.is_none() {
-            self.dry_run = Some(false);
-        }
-    }
-
-    /// Check if the single-thread flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_single_thread(&mut self, args: &clap::ArgMatches) {
-        if args.contains_id("single-thread") {
-            self.single_thread = Some(true);
-        } else if self.single_thread.is_none() {
-            self.single_thread = Some(false);
-        }
     }
 
     /// Add any picture search folders from the CLI to the config.

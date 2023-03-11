@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Miscellaneous Tasks
+
+- Changelog
+
 ### Refactor
 
 - Upgrade id3tag to Clap4
