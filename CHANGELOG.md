@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Bug Fixes
+
+- Id3tag CLI flags not set properly
+
 ### Miscellaneous Tasks
 
 - Changelog

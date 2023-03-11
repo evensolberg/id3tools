@@ -36,6 +36,7 @@ pub fn build_cli() -> Command {
                 .num_args(0..)
                 .default_missing_value("~/.config/id3tag/id3show-logs.yaml")
                 .display_order(2)
+                .action(clap::ArgAction::Set)
         )
         .arg( // CSV output file name
             Arg::new("csv-file")
@@ -45,5 +46,6 @@ pub fn build_cli() -> Command {
                 .num_args(0..)
                 .default_missing_value("id3show.csv")
                 .display_order(2)
+                .action(clap::ArgAction::Set)
         )
 }

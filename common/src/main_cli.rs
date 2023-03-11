@@ -1,6 +1,6 @@
 //! Contains a single function to build the main CLI for the `id3tag` program.
 //! This is also used by the `id3cli-gen` program to generate the CLI completion tags for Fig, Bash, etc.
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 
 /// Builds the CLI so the main file doesn't get cluttered. Note that the `<'static>` means it returns a global variable.
 #[must_use]
@@ -24,6 +24,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long_help("One or more files to process.  Wildcards and multiple_occurrences files (e.g. 2019*.flac 2020*.mp3) are supported. Use the ** glob to recurse (eg. **/*.mp3). Note: Case sensitive.")
                 .num_args(1..)
                 .required(true)
+                .action(ArgAction::Append)
         )
         .arg( // Stop on error
             Arg::new("stop-on-error")
@@ -32,7 +33,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .help("Stop on error.")
                 .long_help("Stop on error. If this flag isn't set, the application will attempt to continue in case of error.")
                 .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Dry-run
             Arg::new("dry-run")
@@ -40,7 +41,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("dry-run")
                 .help("Iterate through the files and produce output without actually processing anything.")
                 .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Print summary information
             Arg::new("print-summary")
@@ -48,7 +49,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("print-summary")
                 .help("Print summary after all files are processed.")
                 .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("detail-off")
@@ -56,7 +57,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("detail-off")
                 .help("Don't display detailed information about each file processed.")
                 .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("single-thread")
@@ -64,7 +65,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long("single-thread")
                 .help("Run processing single-threaded. Takes longer, but has less impact on the system.")
                 .num_args(0)
-                .action(clap::ArgAction::SetTrue)
+                .action(ArgAction::SetTrue)
         )
         .arg( // Config file
             Arg::new("config-file")
@@ -76,6 +77,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .require_equals(false)
                 .default_missing_value("~/.config/id3tag/config.toml")
                 .display_order(1)
+                .action(ArgAction::Set)
         )
         .arg( // Log config
             Arg::new("log-config-file")
@@ -86,6 +88,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .require_equals(false)
                 .default_missing_value("~/.config/id3tag/id3tag-logs.yaml")
                 .display_order(2)
+                .action(ArgAction::Set)
         )
         //////////////////////////////////////////////
         // Options
@@ -98,6 +101,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Album artist sort
             Arg::new("album-artist-sort")
@@ -108,6 +112,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Album title
             Arg::new("album-title")
@@ -118,6 +123,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Album title sort
             Arg::new("album-title-sort")
@@ -128,6 +134,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Disc number
             Arg::new("disc-number")
@@ -138,6 +145,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
             )
         .arg( // Determine disc number automagically
             Arg::new("disc-number-count")
@@ -145,11 +153,12 @@ pub fn build_cli(version: &'static str) -> Command {
                 .visible_alias("dnc")
                 .help("Determine the disc number and total number of discs based on the folder structure.")
                 .long_help("Tries to determine disc number and total number of discs for the disc being processed based on whether we're in a subdirectory called 'CD xx' or 'Disc xx' etc. If not, assumes the disc number to be 1.")
-                .num_args(1)
+                .num_args(0)
                 .require_equals(false)
                 .conflicts_with("disc-number")
                 .conflicts_with("disc-total")
                 .help_heading(tags_name)
+                .action(ArgAction::SetTrue)
             )
         .arg( // Disc total
             Arg::new("disc-total")
@@ -160,6 +169,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track artist
             Arg::new("track-artist")
@@ -170,6 +180,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track artist
             Arg::new("track-album-artist")
@@ -182,6 +193,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .conflicts_with("track-artist")
                 .conflicts_with("album-artist")
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track artist sort
             Arg::new("track-artist-sort")
@@ -192,6 +204,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track title
             Arg::new("track-title")
@@ -202,6 +215,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track title sort
             Arg::new("track-title-sort")
@@ -212,6 +226,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track number
             Arg::new("track-number")
@@ -222,6 +237,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .require_equals(false)
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
             )
         .arg( // Track total
             Arg::new("track-total")
@@ -231,6 +247,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long_help("The total number of tracks for the disc. Takes the form of 'TRACKNUMBER of TOTALTRACKS (this value)'.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track count
             Arg::new("track-count")
@@ -241,6 +258,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .conflicts_with("track-total")
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track genre
             Arg::new("track-genre")
@@ -250,6 +268,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long_help("The track music genre (eg. 'Rock', 'R&B', 'Classical'). This is usually set to the same value for all tracks on a disc or album. Use quotation marks for multi-word entries. Cannot be combined with '--track-genre-number'.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track genre number
             Arg::new("track-genre-number")
@@ -262,6 +281,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .conflicts_with("track-genre") // works both ways
                 .value_parser(clap::value_parser!(u16).range(0..=191))
                 .help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track composer
             Arg::new("track-composer")
@@ -271,6 +291,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .help("The composer(s) for the track. Use quotation marks for multi-word entries.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track composer sort
             Arg::new("track-composer-sort")
@@ -280,6 +301,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .help("The sort composer(s) for the track. Use quotation marks for multi-word entries. For example, if the composer is 'Ludwig van Beethoven', this value could be 'Beethoven, Ludwig van'.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track date
             Arg::new("track-date")
@@ -289,6 +311,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .help("The release date for the track. This is usually the album release date. Can be a year or a date.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Track comments
             Arg::new("track-comments")
@@ -298,6 +321,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .help("The comments for the track. Use quotation marks for multi-word entries.")
                 .num_args(1)
                 .require_equals(false).help_heading(tags_name)
+                .action(ArgAction::Set)
         )
         .arg( // Front cover picture candidate
             Arg::new("picture-front-candidate")
@@ -307,6 +331,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long_help("The front cover picture candidate file name. Example: 'front.jpg' or 'folder.jpg'. Looks for the cover picture alongside the music first, then in the parent folder, then in any directories supplied using the `--picture-search-folder` argument.")
                 .num_args(1..)
                 .require_equals(false).help_heading(images_name)
+                .action(ArgAction::Append)
         )
         .arg( // Front cover picture candidate
             Arg::new("picture-back-candidate")
@@ -316,6 +341,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .long_help("The back cover picture candidate file name. Example: 'back.jpg' or 'back-cover.jpg'. Looks for the cover picture alongside the music first, then in the parent folder, then in any directories supplied using the `--picture-search-folder` argument.")
                 .num_args(1..)
                 .require_equals(false).help_heading(images_name)
+                .action(ArgAction::Append)
         )
         .arg( // Picture search folder
             Arg::new("picture-search-folder")
@@ -326,6 +352,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1..)
                 .default_missing_value(".")
                 .require_equals(false).help_heading(images_name)
+                .action(ArgAction::Append)
         )
         .arg( // Picture max size
             Arg::new("picture-max-size")
@@ -336,6 +363,7 @@ pub fn build_cli(version: &'static str) -> Command {
                 .num_args(1)
                 .default_missing_value("0")
                 .require_equals(false).help_heading(images_name)
+                .action(ArgAction::Set)
         )
         .arg( // Tags (Hidden)
             Arg::new("tags")
@@ -343,8 +371,9 @@ pub fn build_cli(version: &'static str) -> Command {
                 .short('t')
                 .help("The tags you wish to set in the form `key1=value1, key2=value2`. Note the space between entries!")
                 .num_args(1..)
-                .require_equals(false)
+                .require_equals(true)
                 .hide(true).help_heading(tags_name)
+                .action(ArgAction::Append)
         )
         .arg( // Rename file
             Arg::new("rename-file")
@@ -356,5 +385,6 @@ pub fn build_cli(version: &'static str) -> Command {
                 .required(false)
                 .hide(false).help_heading(operations_name)
                 .display_order(1)
+                .action(ArgAction::Set)
         )
 }

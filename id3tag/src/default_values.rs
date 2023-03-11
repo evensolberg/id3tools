@@ -6,9 +6,9 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
-use clap::ArgMatches;
+use clap::{parser::ValueSource, ArgMatches};
 
-/// Checks the command line to see if flags have been set and updates the corresponding values accordingly.
+/// Check the command line (and environment) to see if flags have been set and update the corresponding values accordingly.
 ///
 /// # Parameters
 ///
@@ -18,7 +18,9 @@ use clap::ArgMatches;
 /// - `$val:ident`: The `DefaultValues` variable to be set.
 macro_rules! check_flag {
     ($args:ident, $par:literal, $var:ident, $val:ident) => {
-        if $args.value_source($par) == Some(clap::parser::ValueSource::CommandLine) {
+        if $args.value_source($par) == Some(ValueSource::CommandLine)
+            || $args.value_source($par) == Some(ValueSource::EnvVariable)
+        {
             $var.$val = Some(true);
         } else if $var.$val.is_none() {
             $var.$val = Some(false);

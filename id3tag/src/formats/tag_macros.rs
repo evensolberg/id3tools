@@ -133,7 +133,7 @@ macro_rules! track_album_artist {
 #[macro_export]
 macro_rules! disc_number_count {
     ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $fname:ident) => {
-        if $cli.contains_id("disc-number-count")
+        if $cli.value_source("disc-number-count") == Some(clap::parser::ValueSource::CommandLine)
             || ($cli.contains_id("config-file") && $cfg.disc_count.unwrap_or(false))
         {
             let disc_num = disc_number($fname)?;
