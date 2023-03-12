@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Id3tag CLI flags not set properly
+- Track-genre-number bug
 
 ### Features
 
@@ -20,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade id3tag to Clap4
 - Default logging format changed
+- Version bump after bug fix
 
 ## [0.14.4] - 2023-02-26
 
