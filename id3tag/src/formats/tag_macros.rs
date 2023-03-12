@@ -179,12 +179,7 @@ macro_rules! track_genre_num {
         if $cli.contains_id("track-genre-number") {
             $nt.insert(
                 $t.track_genre.clone(),
-                genre_name(
-                    $cli.get_one::<String>("track-genre-number")
-                        .unwrap_or(&String::new())
-                        .parse::<u16>()
-                        .unwrap_or_default(),
-                )?,
+                genre_name(*$cli.get_one::<u16>("track-genre-number").unwrap_or(&0))?,
             );
         } else if $cli.contains_id("config-file") {
             if let Some(val) = &$cfg.track_genre_number {

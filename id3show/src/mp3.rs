@@ -1,7 +1,6 @@
 use id3::frame;
 use id3::Content;
 use id3::Tag;
-use mp3_metadata;
 use mp3_metadata::MP3Metadata;
 use std::error::Error;
 
@@ -255,6 +254,7 @@ fn show_frame_data(meta: &MP3Metadata) {
 }
 
 /// Show optional audio tags
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn show_optional_audio_tags(m: &MP3Metadata) {
     let t = &m.optional_info;
     log::info!("  Optional Audio Tags:");
@@ -446,14 +446,13 @@ fn open_mp3(filename: &str) -> Result<MP3Metadata, Box<dyn Error>> {
     match meta_res {
         Ok(r) => Ok(r),
         Err(e) => {
-            return Err(
-                format!("Unable to open {filename} for to read stream info. Error: {e}").into(),
-            )
+            Err(format!("Unable to open {filename} for to read stream info. Error: {e}").into())
         }
     }
 }
 
 /// Returns the ID3 genre as a string
+#[allow(clippy::too_many_lines)]
 fn genre(g: &mp3_metadata::Genre) -> String {
     match g {
         mp3_metadata::Genre::Blues => String::from("Blues"),

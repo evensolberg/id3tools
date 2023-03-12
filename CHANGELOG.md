@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Id3tag CLI flags not set properly
 
+### Features
+
+- ID3Show updated with more detail
+
 ### Miscellaneous Tasks
 
 - Changelog
