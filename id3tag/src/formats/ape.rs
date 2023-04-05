@@ -71,6 +71,8 @@ pub fn process(
 }
 
 /// Renames the APE file based on the tags
+// Allow the uneccesary Ok(()) for now for consistency with other functions and possible changes later.
+#[allow(clippy::unnecessary_wraps)]
 fn rename_file(
     _filename: &str,
     _config: &DefaultValues,

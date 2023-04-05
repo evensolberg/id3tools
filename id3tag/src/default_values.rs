@@ -6,6 +6,28 @@ use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
+use clap::{parser::ValueSource, ArgMatches};
+
+/// Check the command line (and environment) to see if flags have been set and update the corresponding values accordingly.
+///
+/// # Parameters
+///
+/// - `$args:ident`: the `ArgMatches` we're checking.
+/// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification
+/// - `$var:ident`: The name of the `DefaultValues` instance to be updated
+/// - `$val:ident`: The `DefaultValues` variable to be set.
+macro_rules! check_flag {
+    ($args:ident, $par:literal, $var:ident, $val:ident) => {
+        if $args.value_source($par) == Some(ValueSource::CommandLine)
+            || $args.value_source($par) == Some(ValueSource::EnvVariable)
+        {
+            $var.$val = Some(true);
+        } else if $var.$val.is_none() {
+            $var.$val = Some(false);
+        }
+    };
+}
+
 //~ spec:startcode
 /// The default values for the flags and options.
 /// TODO: Write Deserialize trait for this struct
@@ -124,30 +146,33 @@ impl DefaultValues {
     }
 
     /// Builds a config based on CLI arguments
-    pub fn build_config(cli_args: &clap::ArgMatches) -> Result<Self, Box<dyn Error>> {
+    pub fn build_config(cli_args: &ArgMatches) -> Result<Self, Box<dyn Error>> {
         let mut config = Self::new();
 
         let psf_list: Vec<String> = vec![String::from("."), String::from("..")];
         config.picture_search_folders = Some(psf_list);
 
         // Read the config file
-        if cli_args.is_present("config-file") {
+        if cli_args.contains_id("config-file") {
             let config_filename = shellexpand::tilde(
                 cli_args
-                    .value_of("config-file")
-                    .unwrap_or("~/.config/id3tag/config.toml"),
+                    .get_one::<String>("config-file")
+                    .unwrap_or(&String::from("~/.config/id3tag/config.toml")),
             )
             .to_string();
             config = Self::load_config(&config_filename)?;
         }
 
+        // dbg!(&config);
+
         // Collate config file flags and CLI flags and output the right config
+        check_flag!(cli_args, "stop-on-error", config, stop_on_error);
+        check_flag!(cli_args, "print-summary", config, print_summary);
+        check_flag!(cli_args, "detail-off", config, detail_off);
+        check_flag!(cli_args, "dry-run", config, dry_run);
+        check_flag!(cli_args, "single-thread", config, single_thread);
+
         config.check_for_file_rename(cli_args)?;
-        config.check_for_stop_on_error(cli_args);
-        config.check_for_print_summary(cli_args);
-        config.check_for_detail_off(cli_args);
-        config.check_for_dry_run(cli_args);
-        config.check_for_single_thread(cli_args);
         config.add_picture_search_folders(cli_args);
         config.check_for_picture_max_size(cli_args);
         config.check_for_picture_front_candidates(cli_args);
@@ -200,76 +225,40 @@ impl DefaultValues {
     /// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
     fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
         // Check if anything came from the config file and validate it
-        if let Some(pattern) = &self.rename_file {
-            common::validate_file_rename_pattern(pattern)?;
+        let mut pattern = None;
+        let binding = String::new();
+
+        if let Some(pat) = &self.rename_file {
+            pattern = Some(pat.to_string());
         }
 
         // Even if we have something from the config file, CLI takes presedence
-        if args.is_present("rename-file") {
-            let pattern = args.value_of("rename-file").unwrap_or_default();
-            common::validate_file_rename_pattern(pattern)?;
-            self.rename_file = Some(pattern.to_string());
-        };
+        if args.contains_id("rename-file") {
+            pattern = Some(
+                args.get_one::<String>("rename-file")
+                    .unwrap_or(&binding)
+                    .to_string(),
+            );
+        }
+
+        if let Some(pat) = pattern {
+            if common::file_rename_pattern_not_ok(&pat) {
+                return Err(
+                    format!("File rename pattern {pat} likely won't create unique files.").into(),
+                );
+            }
+            self.rename_file = Some(pat);
+        }
 
         // Return safely
         Ok(())
-    }
-
-    /// Check if the stop-on-error flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_stop_on_error(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("stop-on-error") {
-            self.stop_on_error = Some(true);
-        } else if self.stop_on_error.is_none() {
-            self.stop_on_error = Some(false);
-        }
-    }
-
-    /// Check if the print-summary flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_print_summary(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("print-summary") {
-            self.print_summary = Some(true);
-        } else if self.print_summary.is_none() {
-            self.print_summary = Some(false);
-        }
-    }
-
-    /// Check if the detail-off flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_detail_off(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("detail-off") {
-            self.detail_off = Some(true);
-        } else if self.detail_off.is_none() {
-            self.detail_off = Some(false);
-        }
-    }
-
-    /// Check if the detail-off flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_dry_run(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("dry-run") {
-            self.dry_run = Some(true);
-        } else if self.dry_run.is_none() {
-            self.dry_run = Some(false);
-        }
-    }
-
-    /// Check if the single-thread flag has been set, either in the config file
-    /// or via the CLI.
-    fn check_for_single_thread(&mut self, args: &clap::ArgMatches) {
-        if args.is_present("single-thread") {
-            self.single_thread = Some(true);
-        } else if self.single_thread.is_none() {
-            self.single_thread = Some(false);
-        }
     }
 
     /// Add any picture search folders from the CLI to the config.
     /// Note that '.' and '..' are always added to the list.
     fn add_picture_search_folders(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
-        if let Some(folders) = args.values_of("picture-search-folder") {
+        if let Some(folders) = args.get_many::<String>("picture-search-folder") {
             for folder in folders {
                 candidate_list.push(folder.to_string());
             }
@@ -281,7 +270,7 @@ impl DefaultValues {
 
     /// Set the maximum picture size from the CLI to the config.
     fn check_for_picture_max_size(&mut self, args: &clap::ArgMatches) {
-        if let Some(size) = args.value_of("picture-max-size") {
+        if let Some(size) = args.get_one::<String>("picture-max-size") {
             let pms: u32 = size.parse::<u32>().unwrap_or(0);
             self.picture_max_size = Some(pms);
             log::debug!("picture-max-size = {:?}", pms);
@@ -291,7 +280,7 @@ impl DefaultValues {
     /// Add the front cover candidates from the CLI to the config. If the list is empty, add "front.jpg", "cover.jpg", and "folder.jpg".
     fn check_for_picture_front_candidates(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
-        if let Some(candidates) = args.values_of("picture-front-candidate") {
+        if let Some(candidates) = args.get_many::<String>("picture-front-candidate") {
             for candidate in candidates {
                 candidate_list.push(candidate.to_string());
             }
@@ -304,7 +293,7 @@ impl DefaultValues {
     /// Add the back cover candidates from the CLI to the config. If the list is empty, add "back.jpg".
     fn check_for_picture_back_candidates(&mut self, args: &clap::ArgMatches) {
         let mut candidate_list: Vec<String> = Vec::new();
-        if let Some(candidates) = args.values_of("picture-back-candidate") {
+        if let Some(candidates) = args.get_many::<String>("picture-back-candidate") {
             for candidate in candidates {
                 candidate_list.push(candidate.to_string());
             }

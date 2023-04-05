@@ -6,6 +6,27 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- Id3tag CLI flags not set properly
+- Track-genre-number bug
+
+### Features
+
+- ID3Show updated with more detail
+
+### Miscellaneous Tasks
+
+- Changelog
+
+### Refactor
+
+- Upgrade id3tag to Clap4
+- Default logging format changed
+- Version bump after bug fix
+
+## [0.14.4] - 2023-02-26
+
+### Bug Fixes
+
 - Disc number bug
 - Config not loading picture candidates
 
@@ -22,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - Remove unused debugs
 - Changelog
 - Changelog
+- Components update and debug removal
 
 ## [0.14.2] - 2023-02-20
 

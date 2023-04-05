@@ -1,6 +1,6 @@
 use clap::{Arg, Command}; // Command line
 
-pub fn build_cli() -> Command<'static> {
+pub fn build_cli() -> Command {
     Command::new(clap::crate_name!())
         .about(clap::crate_description!())
         .version(clap::crate_version!())
@@ -10,34 +10,42 @@ pub fn build_cli() -> Command<'static> {
             Arg::new("files")
                 .value_name("FILE(S)")
                 .help("One or more file(s) to process. Globs, wildcards and multiple files (e.g. *.mp3 Genesis/**/*.flac) are supported.")
-                .takes_value(true)
-                .multiple_occurrences(true),
+                .num_args(1..),
         )
         .arg( // Print summary information
             Arg::new("print-summary")
                 .short('p')
                 .long("print-summary")
-                .multiple_occurrences(false)
                 .help("Print summary detail for each session processed.")
-                .takes_value(false)
+                .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
             Arg::new("show-detail")
                 .short('d')
                 .long("show-detail")
-                .multiple_occurrences(false)
                 .help("Show detailed information about each file processed.")
-                .takes_value(false)
+                .num_args(0)
+                .action(clap::ArgAction::SetTrue)
         )
         .arg( // Log config
             Arg::new("log-config-file")
                 .short('l')
                 .long("log-config-file")
                 .help("The name of the YAML file containing the logging settings.")
-                .takes_value(true)
-                .multiple_occurrences(false)
-                .require_equals(false)
+                .num_args(0..)
                 .default_missing_value("~/.config/id3tag/id3show-logs.yaml")
                 .display_order(2)
+                .action(clap::ArgAction::Set)
+        )
+        .arg( // CSV output file name
+            Arg::new("csv-file")
+                .short('c')
+                .long("csv-file")
+                .help("The name of the CSV into which information is to be written.")
+                .num_args(0..)
+                .default_missing_value("id3show.csv")
+                .display_order(2)
+                .action(clap::ArgAction::Set)
         )
 }
