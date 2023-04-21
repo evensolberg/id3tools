@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog
+- Changelog
+- Bump spin from 0.9.5 to 0.9.8
 
 ### Refactor
 

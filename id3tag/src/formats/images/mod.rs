@@ -112,7 +112,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     let img = image::open(cover_file)?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {
-        return Err("Image {cover_file} is outside the expected ratio.".into());
+        return Err(format!("Image {cover_file} is outside the expected ratio.").into());
     }
 
     let mut eib = Cursor::new(Vec::new());
