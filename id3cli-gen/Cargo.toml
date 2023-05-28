@@ -2,13 +2,18 @@
 name = "id3cli-gen"
 version = "0.1.3"
 edition = "2021"
+description="Generate man pages and fig configs from the id3tag CLI configuration."
+license="MIT"
+documentation="README.md"
+repository="https://github.com/evensolberg/id3tools/"
+homepage="https://github.com/evensolberg/id3tools/tree/main/id3cli-gen"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # Our own package
 common = { path = "../common" }
-clap_complete = "4.1.4"
-clap_complete_fig = "4.1.1"
-clap_mangen = "0.2.9"
-log = "0.4.17"
+clap_complete = "4.3.0"
+clap_complete_fig = "4.3.0"
+clap_mangen = "0.2.11"
+log = "0.4.18"

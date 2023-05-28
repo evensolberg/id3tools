@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Id3tag CLI flags not set properly
 - Track-genre-number bug
+- Filename doesn't get output when ratio is unacceptable
 
 ### Features
 

@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.14.8"
+version = "0.14.9"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -13,18 +13,18 @@ keywords = ["flac", "audio", "parser", "metadata"]
 
 [dependencies]
 ape = "0"
-clap = { version = "4.1.8", features = ["cargo", "wrap_help"] }
-id3 = "1.6.0"
-log = "0.4.17"
+clap = { version = "4.3.0", features = ["cargo", "wrap_help"] }
+id3 = "1.7.0"
+log = "0.4.18"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
 rayon = "1.7.0"
-serde = { version = "1.0.154", features = ["derive"] }
+serde = { version = "1.0.163", features = ["derive"] }
 shellexpand = "3"
 toml = "0"
 dsf = "0.2.2"
 
 # Our own package
 common = { path = "../common" }
-image = "0.24.5"
+image = "0.24.6"
 itertools = "0.10.5"
