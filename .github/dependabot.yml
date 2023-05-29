@@ -6,14 +6,18 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/fit2csv" # Location of package manifests
+    directory: "/common" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "cargo"
-    directory: "/fit2json" # Location of package manifests
+    directory: "/id3tag" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "cargo"
-    directory: "/gpx2csv" # Location of package manifests
+    directory: "/id3cli-gen" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
+  - package-ecosystem: "cargo"
+    directory: "/id3show" # Location of package manifests
+    schedule:
+      interval: "weekly"
