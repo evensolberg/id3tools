@@ -13,9 +13,9 @@ keywords = ["flac", "audio", "parser", "metadata"]
 
 [dependencies]
 ape = "0"
-clap = { version = "4.3.0", features = ["cargo", "wrap_help"] }
+clap = { workspace = true }
 id3 = "1.7.0"
-log = "0.4.18"
+log = { workspace = true }
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
 rayon = "1.7.0"

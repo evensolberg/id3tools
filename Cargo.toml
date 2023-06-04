@@ -28,3 +28,8 @@ strip = true
 inherits = "release"
 debug = true
 split-debuginfo = "packed"
+
+[workspace.dependencies]
+clap = { version = "4.3.1", features = ["cargo", "wrap_help"] }
+log = "0.4.18"
+log4rs = { version = "1.2.0", features = ["console_appender", "file_appender", "threshold_filter"] }

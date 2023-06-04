@@ -13,7 +13,7 @@ homepage="https://github.com/evensolberg/id3tools/tree/main/id3cli-gen"
 [dependencies]
 # Our own package
 common = { path = "../common" }
-clap_complete = "4.3.0"
-clap_complete_fig = "4.3.0"
-clap_mangen = "0.2.11"
-log = "0.4.18"
+clap_complete = "4.3.1"
+clap_complete_fig = "4.3.1"
+clap_mangen = "0.2.12"
+log = { workspace = true }

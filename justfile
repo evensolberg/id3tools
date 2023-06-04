@@ -128,6 +128,7 @@ alias tp := testp
 # Checks the project for inefficiencies and bloat
 @inspect: format doc lint spell
     cargo deny check
+    cargo audit
     cargo geiger
     cargo bloat
     cargo pants

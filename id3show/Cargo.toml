@@ -14,16 +14,11 @@ repository = "https://github.com/evensolberg/id3tools"
 ape = "0"
 dsf = "0.2.2"
 id3 = "1.7.0"
-log = "0.4.18"
+log = { workspace = true }
 metaflac = "0.2.5"
 mp3-metadata = "0.3.4"
 mp4ameta = "0.11.0"
-
-[dependencies.clap]
-version = "4.3.0"
-features = ["wrap_help", "usage", "std", "help", "suggestions", "color", "error-context"]
-optional = false
-default-features = false
+clap = { workspace = true }
 
 [dependencies.common]
 path = "../common"
