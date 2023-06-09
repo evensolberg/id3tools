@@ -12,7 +12,7 @@ members = [
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.0.7"
 # The preferred Rust toolchain to use in CI (rustup toolchain syntax)
-rust-toolchain-version = "1.67.1"
+rust-toolchain-version = "1.70.0"
 # CI backends to support (see 'cargo dist generate-ci')
 ci = ["github"]
 # The installers to generate for each app
@@ -30,6 +30,11 @@ debug = true
 split-debuginfo = "packed"
 
 [workspace.dependencies]
-clap = { version = "4.3.1", features = ["cargo", "wrap_help"] }
+ape = "0"
+clap = { version = "4.3.2", features = ["cargo", "wrap_help"] }
+dsf = "0.2.2"
 log = "0.4.18"
 log4rs = { version = "1.2.0", features = ["console_appender", "file_appender", "threshold_filter"] }
+id3 = "1.7.0"
+metaflac = "0.2.5"
+mp4ameta = "0.11.0"

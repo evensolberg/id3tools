@@ -11,13 +11,13 @@ license = "MIT"
 repository = "https://github.com/evensolberg/id3tools"
 
 [dependencies]
-ape = "0"
-dsf = "0.2.2"
-id3 = "1.7.0"
+ape = { workspace = true }
+dsf = { workspace = true }
+id3 = { workspace = true }
 log = { workspace = true }
-metaflac = "0.2.5"
+metaflac = { workspace = true }
 mp3-metadata = "0.3.4"
-mp4ameta = "0.11.0"
+mp4ameta = { workspace = true }
 clap = { workspace = true }
 
 [dependencies.common]

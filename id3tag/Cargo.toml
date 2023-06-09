@@ -12,19 +12,19 @@ keywords = ["flac", "audio", "parser", "metadata"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ape = "0"
+ape = { workspace = true }
 clap = { workspace = true }
-id3 = "1.7.0"
+dsf = { workspace = true }
+id3 = { workspace = true }
+image = "0.24.6"
+itertools = "0.10.5"
 log = { workspace = true }
-metaflac = "0.2.5"
-mp4ameta = "0.11.0"
+metaflac = { workspace = true }
+mp4ameta = { workspace = true }
 rayon = "1.7.0"
 serde = { version = "1.0.163", features = ["derive"] }
 shellexpand = "3"
 toml = "0"
-dsf = "0.2.2"
 
 # Our own package
 common = { path = "../common" }
-image = "0.24.6"
-itertools = "0.10.5"
