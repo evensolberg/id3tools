@@ -17,7 +17,7 @@ pub fn process(
     nt: &HashMap<String, String>,
     cfg: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    log::debug!("Filename: {}", &filename);
+    log::debug!("Filename: {filename}");
     let mut processed_ok = false;
     let max_size = cfg.picture_max_size.unwrap_or(500);
 
@@ -162,11 +162,7 @@ pub fn process(
 
     // Rename file
     if cfg.rename_file.is_some() {
-        if rename_file(filename, cfg, &tag).is_ok() {
-            processed_ok = true;
-        } else {
-            processed_ok = false;
-        }
+        processed_ok = rename_file(filename, cfg, &tag).is_ok();
     }
 
     // return safely
@@ -282,11 +278,11 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
         }
     }
 
-    log::debug!("replace_map = {:?}", replace_map);
+    log::debug!("replace_map = {replace_map:?}");
 
     let rename_result = rename_file::rename_file(filename, &replace_map, cfg);
     match rename_result {
-        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if cfg.stop_on_error.unwrap_or(true) {
                 return Err(format!(

@@ -514,7 +514,7 @@ fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
 /// ```
 ///
 fn disc_candidates() -> Vec<&'static str> {
-    vec!["CD", "DISC", "DISK", "PART"]
+    vec!["CD", "DISC", "DISK", "PART", "VOL", "VOLUME"]
 }
 
 /* ====================
@@ -547,7 +547,7 @@ mod tests {
     }
 
     #[test]
-    /// Tests the disc_candidates() function.
+    /// Tests the `disc_candidates`() function.
     fn test_disc_candidates() {
         let dc = disc_candidates();
         assert_eq!(dc[0], "CD");

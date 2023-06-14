@@ -10,14 +10,14 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
         match data {
             mp4ameta::Data::Reserved(res) => {
                 if show_detail {
-                    println!("  {} = {res:?} (Reserved)", data_ident);
+                    println!("  {data_ident} = {res:?} (Reserved)");
                 }
             }
             mp4ameta::Data::Utf8(d) => {
-                println!("  {} = {d} (UTF-8)", data_ident);
+                println!("  {data_ident} = {d} (UTF-8)");
             }
             mp4ameta::Data::Utf16(d) => {
-                println!("  {} = {d} (UTF-16)", data_ident);
+                println!("  {data_ident} = {d} (UTF-16)");
             }
             mp4ameta::Data::Jpeg(jpeg) => {
                 if show_detail {

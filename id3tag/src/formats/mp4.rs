@@ -19,12 +19,12 @@ pub fn process(
 
     // Read existing tags
     let mut tag = Tag::read_from_path(filename)?;
-    log::trace!("Tag: {:?}", tag);
+    log::trace!("Tag: {tag:?}");
     for (data_ident, data) in tag.data() {
-        log::debug!("{:?} = {:?}", data_ident, data);
+        log::debug!("{data_ident:?} = {data:?}");
 
         if data.is_image() {
-            log::trace!("{:?} = {:?}", data, data.image_data());
+            log::trace!("{data:?} = {:?}", data.image_data());
         }
     }
 
@@ -32,11 +32,11 @@ pub fn process(
     for (key, value) in new_tags {
         // Let the user know what we're processing
         if !(config.detail_off.unwrap_or(false)) {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+            log::debug!("{filename} :: New {key} = {value}");
         } else if config.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            log::info!("{filename} :: New {key} = {value}");
         } else {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+            log::debug!("{filename} :: New {key} = {value}");
         }
 
         // Process the tags
@@ -70,7 +70,7 @@ pub fn process(
     // Write to file
     if config.dry_run.unwrap_or(true) {
         processed_ok = true;
-        log::debug!("Not writing {}", filename);
+        log::debug!("Not writing {filename}");
     } else {
         match tag.write_to_path(filename) {
             Ok(_) => processed_ok = true,
@@ -78,7 +78,7 @@ pub fn process(
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to save tags to {filename}. Error: {err}").into());
                 }
-                log::warn!("Unable to save tags to {}. Error: {}", filename, err);
+                log::warn!("Unable to save tags to {filename}. Error: {err}");
             }
         }
     }
@@ -91,7 +91,7 @@ pub fn process(
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to rename {filename}. Error: {err}").into());
                 }
-                log::warn!("Unable to rename {}. Error: {}", filename, err);
+                log::warn!("Unable to rename {filename}. Error: {err}");
             }
         }
     }
@@ -117,7 +117,7 @@ fn rename_file(
     tag: &mp4ameta::Tag,
 ) -> Result<(), Box<dyn Error>> {
     let tags_map = get_mp4_tags(tag);
-    log::debug!("tags_map = {:?}", tags_map);
+    log::debug!("tags_map = {tags_map:?}");
 
     let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
@@ -126,7 +126,7 @@ fn rename_file(
 
     let rename_result = rename_file::rename_file(filename, &tags_map, config);
     match rename_result {
-        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(

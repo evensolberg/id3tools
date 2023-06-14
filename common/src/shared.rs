@@ -384,17 +384,13 @@ mod tests {
     #[test]
     ///
     fn test_file_rename_pattern_validate() {
-        assert_eq!(file_rename_pattern_not_ok("%dn-%tn %tt"), false);
-        assert_eq!(
-            file_rename_pattern_not_ok("%track-number %track-title"),
-            false
-        );
-        assert_eq!(
-            file_rename_pattern_not_ok("%track-number %track-title-sort"),
-            false
-        );
-        assert_eq!(file_rename_pattern_not_ok("%track-title-sort"), false);
-        assert_eq!(file_rename_pattern_not_ok("%disc-number"), true);
+        assert!(!file_rename_pattern_not_ok("%dn-%tn %tt"));
+        assert!(!file_rename_pattern_not_ok("%track-number %track-title"));
+        assert!(!file_rename_pattern_not_ok(
+            "%track-number %track-title-sort"
+        ));
+        assert!(!file_rename_pattern_not_ok("%track-title-sort"));
+        assert!(file_rename_pattern_not_ok("%disc-number"));
     }
 
     #[test]
@@ -436,17 +432,17 @@ mod tests {
     }
 
     #[test]
-    /// Tests whether the need_split function does what it says on the tin
+    /// Tests whether the `need_split` function does what it says on the tin
     fn test_need_split() {
-        assert_eq!(need_split("1 of 2"), true);
-        assert_eq!(need_split("1of2"), true);
-        assert_eq!(need_split("1 / 2"), true);
-        assert_eq!(need_split("1/2"), true);
+        assert!(need_split("1 of 2"));
+        assert!(need_split("1of2"));
+        assert!(need_split("1 / 2"));
+        assert!(need_split("1/2"));
 
-        assert_eq!(need_split("1"), false);
-        assert_eq!(need_split("01"), false);
-        assert_eq!(need_split("03"), false);
-        assert_eq!(need_split("DISC 03"), false);
+        assert!(!need_split("1"));
+        assert!(!need_split("01"));
+        assert!(!need_split("03"));
+        assert!(!need_split("DISC 03"));
     }
 
     #[test]

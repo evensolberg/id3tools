@@ -18,11 +18,11 @@ pub fn process(
     // Set new tags
     for (key, value) in new_tags {
         if config.detail_off.unwrap_or(false) {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+            log::debug!("{filename} :: New {key} = {value}",);
         } else if config.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &filename, key, value);
+            log::info!("{filename} :: New {key} = {value}");
         } else {
-            log::debug!("{} :: New {} = {}", &filename, key, value);
+            log::debug!("{filename} :: New {key} = {value}");
         }
 
         // Process the tags
@@ -44,7 +44,7 @@ pub fn process(
                             )
                             .into());
                         }
-                        log::error!("Unable to set {} to {}. Error message: {}", key, value, err);
+                        log::error!("Unable to set {key} to {value}. Error message: {err}");
                     }
                 }
             }
@@ -57,7 +57,7 @@ pub fn process(
         let res = ape::write_to(&tags, &mut file);
         if res.is_ok() {
             processed_ok = true;
-            log::info!("{}  ✓", filename);
+            log::info!("{filename}  ✓");
         }
     }
 

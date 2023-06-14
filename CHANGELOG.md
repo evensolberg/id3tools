@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Chore
 
 - Dependencies update
+- Fix lints
 
 ### Features
 
@@ -31,6 +32,7 @@ All notable changes to this project will be documented in this file.
 - Upgrade id3tag to Clap4
 - Default logging format changed
 - Version bump after bug fix
+- Use println for Show, tag outputs in seconds if > 1000 ms
 
 ### Security
 

@@ -85,11 +85,11 @@ pub fn process(
     // Set new tags
     for (k, v) in nt {
         if !(cfg.detail_off.unwrap_or(false)) {
-            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
+            log::debug!("process::{m_file} :: New {k} = {v}");
         } else if cfg.dry_run.unwrap_or(false) {
-            log::info!("{} :: New {} = {}", &m_file, k, v.trim());
+            log::info!("{m_file} :: New {k} = {}", v.trim());
         } else {
-            log::debug!("process::{} :: New {} = {}", &m_file, k, v);
+            log::debug!("process::{m_file} :: New {k} = {v}");
         }
 
         // Process the tags
@@ -128,12 +128,12 @@ pub fn process(
         processed_ok = true;
     } else if tags.save().is_ok() {
         processed_ok = true;
-        log::info!("{}   ✓", m_file);
+        log::info!("{m_file}   ✓");
     } else {
         if cfg.stop_on_error.unwrap_or(true) {
             return Err(format!("Unable to save {m_file}").into());
         }
-        log::warn!("Unable to save {}", m_file);
+        log::warn!("Unable to save {m_file}");
     }
 
     // Rename file
@@ -189,7 +189,7 @@ fn rename_file(
     // Try to rename, and process the result
     let rename_result = rename_file::rename_file(filename, &replace_map, config);
     match rename_result {
-        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(

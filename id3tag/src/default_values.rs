@@ -197,8 +197,7 @@ impl DefaultValues {
             Ok(config) => config,
             Err(err) => {
                 log::warn!(
-                    "Unable to read config from {}. Using defaults. Error message: {}",
-                    filename,
+                    "Unable to read config from {filename}. Using defaults. Error message: {}",
                     err.to_string()
                 );
                 Self::new()
@@ -273,7 +272,7 @@ impl DefaultValues {
         if let Some(size) = args.get_one::<String>("picture-max-size") {
             let pms: u32 = size.parse::<u32>().unwrap_or(0);
             self.picture_max_size = Some(pms);
-            log::debug!("picture-max-size = {:?}", pms);
+            log::debug!("picture-max-size = {pms:?}");
         }
     }
 
@@ -389,7 +388,7 @@ mod tests {
 
         // Check that the values got assigned OK.
         assert_eq!(dfv.disc_number.unwrap(), 1);
-        assert_eq!(dfv.disc_count.unwrap(), true);
+        assert!(dfv.disc_count.unwrap());
     }
 
     #[test]
@@ -403,11 +402,11 @@ mod tests {
         let dfvu = dfv.unwrap();
         println!("dfvu = {dfvu:?}");
 
-        assert_eq!(dfvu.detail_off.unwrap(), false);
-        assert_eq!(dfvu.print_summary.unwrap(), true);
-        assert_eq!(dfvu.stop_on_error.unwrap(), false);
-        assert_eq!(dfvu.dry_run.unwrap(), true);
-        assert_eq!(dfvu.single_thread.unwrap(), false);
+        assert!(!dfvu.detail_off.unwrap());
+        assert!(dfvu.print_summary.unwrap());
+        assert!(!dfvu.stop_on_error.unwrap());
+        assert!(dfvu.dry_run.unwrap());
+        assert!(!dfvu.single_thread.unwrap());
         assert_eq!(dfvu.log_config_file.unwrap(), "log4rs.yaml".to_string());
 
         assert_eq!(
@@ -425,7 +424,7 @@ mod tests {
         );
 
         assert_eq!(dfvu.disc_number.unwrap(), 1);
-        assert_eq!(dfvu.disc_count.unwrap(), true);
+        assert!(dfvu.disc_count.unwrap());
         assert_eq!(dfvu.disc_number_total.unwrap(), 2);
 
         assert_eq!(
@@ -445,7 +444,7 @@ mod tests {
             "Piano Sonata No. 5 - II. Adagio".to_string()
         );
         assert_eq!(dfvu.track_number.unwrap(), 2);
-        assert_eq!(dfvu.track_count.unwrap(), true);
+        assert!(dfvu.track_count.unwrap());
         assert_eq!(dfvu.track_number_total.unwrap(), 5);
 
         assert_eq!(dfvu.track_genre.unwrap(), "Classical".to_string());

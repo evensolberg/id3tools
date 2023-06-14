@@ -141,7 +141,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
 
 /// Show the `frame::Popularimeter` fields
 fn show_popularimeter(pm: &frame::Popularimeter) {
-    println!("  Popularimeter: {}", pm);
+    println!("  Popularimeter: {pm}");
     println!("    User: {}", pm.user);
     println!("    Rating: {}", pm.rating);
     println!("    Counter: {}", pm.counter);

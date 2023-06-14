@@ -67,8 +67,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Print summary
     if print_summary {
         println!(
-            "\nTotal number of files: {}\n  Processed: {}\n  Skipped: {}",
-            file_count, files_processed, files_skipped
+            "\nTotal number of files: {file_count}\n  Processed: {files_processed}\n  Skipped: {files_skipped}"
         );
         println!("Total time: {} ms", now.elapsed().as_millis());
     }

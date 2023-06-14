@@ -17,11 +17,11 @@ mod tests {
     #[test]
     ///
     fn test_aspect_ratio_is_ok() {
-        assert_eq!(aspect_ratio_ok(100, 100), true);
-        assert_eq!(aspect_ratio_ok(500, 500), true);
-        assert_eq!(aspect_ratio_ok(100, 150), true);
-        assert_eq!(aspect_ratio_ok(150, 100), true);
-        assert_eq!(aspect_ratio_ok(100, 151), false);
-        assert_eq!(aspect_ratio_ok(151, 100), false);
+        assert!(aspect_ratio_ok(100, 100));
+        assert!(aspect_ratio_ok(500, 500));
+        assert!(aspect_ratio_ok(100, 150));
+        assert!(aspect_ratio_ok(150, 100));
+        assert!(!aspect_ratio_ok(100, 151));
+        assert!(!aspect_ratio_ok(151, 100));
     }
 }

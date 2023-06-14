@@ -103,7 +103,7 @@ fn show_cuesheet(cs: &block::CueSheet) {
 /// Show the `block::Padding` fields
 fn show_padding(pad: u32) {
     println!("  Padding:");
-    println!("    Padding Size: {}", pad);
+    println!("    Padding Size: {pad}");
 }
 
 /// Show the `block::Picture` fields
@@ -133,7 +133,7 @@ fn show_vorbis_comment(vc: &block::VorbisComment, show_detail: bool) {
     }
     for (key, values) in &vc.comments {
         for value in values {
-            println!("    {} = {}", key, value);
+            println!("    {key} = {value}");
         }
     }
 }

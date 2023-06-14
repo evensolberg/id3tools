@@ -10,7 +10,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     if show_detail {
         match DsfFile::open(path) {
             Ok(dsf_file) => {
-                println!("DSF file metadata:\n\n{}", dsf_file);
+                println!("DSF file metadata:\n\n{dsf_file}");
             }
             Err(error) => {
                 return Err(format!("Unable to read DSF file {filename}. Error: {error}").into());

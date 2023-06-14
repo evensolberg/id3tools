@@ -14,12 +14,12 @@ pub fn process(
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
 ) -> Result<bool, Box<dyn Error>> {
-    log::debug!("Filename: {}", &filename);
+    log::debug!("Filename: {filename}");
 
     let mut processed_ok = false;
 
     if let Some(mut tag) = DsfFile::open(Path::new(&filename))?.id3_tag().clone() {
-        log::debug!("Tag: {:?}", tag);
+        log::debug!("Tag: {tag:?}");
         for frame in tag.frames() {
             log::debug!("{} = {}", frame.id(), frame.content());
         }
@@ -28,11 +28,11 @@ pub fn process(
         for (key, value) in new_tags {
             // Output information about tags getting changed
             if config.detail_off.unwrap_or(false) {
-                log::debug!("{} :: New {} = {}", &filename, key, value);
+                log::debug!("{filename} :: New {key} = {value}");
             } else if config.dry_run.unwrap_or(false) {
-                log::info!("{} :: New {} = {}", &filename, key, value);
+                log::info!("{filename} :: New {key} = {value}");
             } else {
-                log::debug!("{} :: New {} = {}", &filename, key, value);
+                log::debug!("{filename} :: New {key} = {value}");
             }
 
             // Process the tags into the file. Arguaby we could skip this if it's a
@@ -123,7 +123,7 @@ fn rename_file(
                 if separates.len() > 1 {
                     total = format!("{:0>2}", separates[1]);
                 }
-                log::debug!("{} count = {}, total = {}", tag_name, count, total);
+                log::debug!("{tag_name} count = {count}, total = {total}");
                 match tag_name.as_str() {
                     "TPOS" => {
                         replace_map.insert("%dn".to_string(), count.clone());
@@ -148,17 +148,17 @@ fn rename_file(
                 }
             } else {
                 let value = vval.to_string();
-                log::debug!("key = {}, tag_name = {}, value = {}", key, tag_name, value);
+                log::debug!("key = {key}, tag_name = {tag_name}, value = {value}");
                 replace_map.insert(key, value);
             }
         }
     }
 
-    log::debug!("replace_map = {:?}", replace_map);
+    log::debug!("replace_map = {replace_map:?}");
 
     let rename_result = rename_file::rename_file(filename, &replace_map, config);
     match rename_result {
-        Ok(new_filename) => log::info!("{} --> {}", filename, new_filename),
+        Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.stop_on_error.unwrap_or(true) {
                 return Err(format!(
@@ -167,10 +167,7 @@ fn rename_file(
                 .into());
             }
             log::warn!(
-                "Unable to rename {} with tags \"{}\". Error: {} Continuing.",
-                filename,
-                pattern,
-                err
+                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing.",
             );
         }
     }
@@ -201,10 +198,7 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dy
                 return Err(format!("Unable to set {item} to {value}. Error: {err}").into());
             }
             log::error!(
-                "Unable to set {} to {}. Setting to 1 and continuing. Error: {}",
-                item,
-                value,
-                err
+                "Unable to set {item} to {value}. Setting to 1 and continuing. Error: {err}",
             );
             1
         }
@@ -220,7 +214,7 @@ mod tests {
     use super::*;
 
     #[test]
-    /// Test the to_number function.
+    /// Test the `to_number` function.
     fn test_to_number() {
         for n in 0..=100 {
             let num1 = to_number(&format!("{n}"), "test", false).unwrap();
@@ -237,7 +231,7 @@ mod tests {
     }
 
     #[test]
-    /// Test the rename_file function.
+    /// Test the `rename_file` function.
     fn test_rename_file() {
         let _filename = "../testdata/sample.dsf";
         let mut config = DefaultValues::default();
