@@ -1,3 +1,5 @@
+//! Defines an enum with the types of files we can process.
+
 use std::fmt;
 
 /// The types of files we can process

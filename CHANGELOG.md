@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Track-genre-number bug
 - Filename doesn't get output when ratio is unacceptable
 
+### Chore
+
+- Dependencies update
+
 ### Features
 
 - ID3Show updated with more detail
@@ -19,12 +23,18 @@ All notable changes to this project will be documented in this file.
 - Changelog
 - Changelog
 - Bump spin from 0.9.5 to 0.9.8
+- Updated dependencies, added deployment
+- Version updates
 
 ### Refactor
 
 - Upgrade id3tag to Clap4
 - Default logging format changed
 - Version bump after bug fix
+
+### Security
+
+- Update Dependabot settings
 
 ## [0.14.4] - 2023-02-26
 

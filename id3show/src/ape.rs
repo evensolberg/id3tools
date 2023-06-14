@@ -10,20 +10,20 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
         match &item.value {
             // "Regular" metadata
             ItemValue::Text(ref s) => {
-                log::info!("  {} = {}", item.key, s);
+                println!("  {} = {s}", item.key);
             }
             // Pictures and such
             ItemValue::Binary(ref b) => {
                 if show_detail {
-                    log::info!("  Binary:");
-                    log::info!("    {} = {} bytes", item.key, b.len());
+                    println!("  Binary:");
+                    println!("    {} = {} bytes", item.key, b.len());
                 }
             }
             // Locator is an UTF-8 string contains a link to external information.
             ItemValue::Locator(l) => {
                 if show_detail {
-                    log::info!("  Locator:");
-                    log::info!("    {} = {}", item.key, l);
+                    println!("  Locator:");
+                    println!("    {} = {l}", item.key);
                 }
             }
         }

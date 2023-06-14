@@ -8,7 +8,7 @@ use std::error::Error;
 macro_rules! opt {
     ($var:ident, $field:ident, $title:literal) => {
         if let Some(f) = &$var.$field {
-            log::info!($title, f);
+            println!($title, f);
         }
     };
 }
@@ -24,7 +24,7 @@ macro_rules! string_vec {
                     .iter()
                     .fold(", ".to_string(), |i, j| (i.to_string() + &*j))
             };
-            log::info!($title, concated);
+            println!($title, concated);
         }
     };
 }
@@ -40,7 +40,7 @@ macro_rules! url_vec {
                     .iter()
                     .fold(", ".to_string(), |i, j| i + &url_to_string(&*j))
             };
-            log::info!($title, concated);
+            println!($title, concated);
         }
     };
 }
@@ -56,7 +56,7 @@ macro_rules! genre_vec {
                     .iter()
                     .fold(", ".to_string(), |i, j| (i + &genre(&*j)))
             };
-            log::info!($title, concated);
+            println!($title, concated);
         }
     };
 }
@@ -75,19 +75,19 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     for item in tag.frames() {
         match item.content() {
             Content::Text(t) => {
-                log::info!("  {} = {} (Text)", item.id(), t);
+                println!("  {} = {t} (Text)", item.id());
             }
             Content::ExtendedText(et) => {
-                log::info!("  {} = {} (Extended Text)", item.id(), et);
+                println!("  {} = {et} (Extended Text)", item.id());
             }
             Content::Link(l) => {
-                log::info!("  {} = {} (Link)", item.id(), l);
+                println!("  {} = {l} (Link)", item.id());
             }
             Content::ExtendedLink(el) => {
-                log::info!("  {} = {} (Extended Link)", item.id(), el);
+                println!("  {} = {el} (Extended Link)", item.id());
             }
             Content::Comment(co) => {
-                log::info!("  {} = {} (Comment)", item.id(), co);
+                println!("  {} = {co} (Comment)", item.id());
             }
             Content::Popularimeter(pm) => {
                 if show_detail {
@@ -141,130 +141,130 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
 
 /// Show the `frame::Popularimeter` fields
 fn show_popularimeter(pm: &frame::Popularimeter) {
-    log::info!("  Popularimeter: {}", pm);
-    log::info!("    User: {}", pm.user);
-    log::info!("    Rating: {}", pm.rating);
-    log::info!("    Counter: {}", pm.counter);
+    println!("  Popularimeter: {}", pm);
+    println!("    User: {}", pm.user);
+    println!("    Rating: {}", pm.rating);
+    println!("    Counter: {}", pm.counter);
 }
 
 /// Show the `frome::Lyrics` fields
 fn show_lyrics(l: &frame::Lyrics) {
-    log::info!("  Lyrics:");
-    log::info!("    Language: {}", l.lang);
-    log::info!("    Description: {}", l.description);
-    log::info!("    Text: {}", l.text);
+    println!("  Lyrics:");
+    println!("    Language: {}", l.lang);
+    println!("    Description: {}", l.description);
+    println!("    Text: {}", l.text);
 }
 
 /// Show the `frame::Picture` fields
 fn show_picture(p: &frame::Picture) {
-    log::info!("  Picture:");
-    log::info!("    Mime Type: {}", p.mime_type);
-    log::info!("    Picture Type: {:?}", p.picture_type);
-    log::info!("    Description: {}", p.description);
-    log::info!("    Picture Data: {} bytes", p.data.len());
+    println!("  Picture:");
+    println!("    Mime Type: {}", p.mime_type);
+    println!("    Picture Type: {:?}", p.picture_type);
+    println!("    Description: {}", p.description);
+    println!("    Picture Data: {} bytes", p.data.len());
 }
 
 /// Show the `frame::SynchronisedLyrics` fields
 fn show_synchronised_lyrics(sl: &frame::SynchronisedLyrics) {
-    log::info!("  Synchronised Lyrics:");
-    log::info!("    Language: {}", sl.lang);
-    log::info!("    Timestamp Format: {:?}", sl.timestamp_format);
-    log::info!("    Content Type: {:?}", sl.content_type);
-    log::info!("    Description: {}", sl.description);
-    log::info!("    Content:");
+    println!("  Synchronised Lyrics:");
+    println!("    Language: {}", sl.lang);
+    println!("    Timestamp Format: {:?}", sl.timestamp_format);
+    println!("    Content Type: {:?}", sl.content_type);
+    println!("    Description: {}", sl.description);
+    println!("    Content:");
     for (line_num, text) in &sl.content {
-        log::info!("      {}: {}", *line_num, text);
+        println!("      {}: {}", *line_num, text);
     }
 }
 
 /// Show the `frame::EncapsulatedObject` fields
 fn show_encapsulated_object(eo: &frame::EncapsulatedObject) {
-    log::info!("  Encapsulated Object:");
-    log::info!("    Mime Type: {}", eo.mime_type);
-    log::info!("    Filename: {}", eo.filename);
-    log::info!("    Description: {}", eo.description);
-    log::info!("    Object Data: {} bytes", eo.data.len());
+    println!("  Encapsulated Object:");
+    println!("    Mime Type: {}", eo.mime_type);
+    println!("    Filename: {}", eo.filename);
+    println!("    Description: {}", eo.description);
+    println!("    Object Data: {} bytes", eo.data.len());
 }
 
 /// Show the `frame::Chapter` fields
 fn show_chapter(c: &frame::Chapter) {
-    log::info!("  Chapter:");
-    log::info!("    Element ID: {}", c.element_id);
-    log::info!("    Start Time: {}", c.start_time);
-    log::info!("    End Time: {}", c.end_time);
-    log::info!("    Start Offset: {}", c.start_offset);
-    log::info!("    End Offset: {}", c.end_offset);
-    log::info!("    Frame Count: {}", c.frames.len());
+    println!("  Chapter:");
+    println!("    Element ID: {}", c.element_id);
+    println!("    Start Time: {}", c.start_time);
+    println!("    End Time: {}", c.end_time);
+    println!("    Start Offset: {}", c.start_offset);
+    println!("    End Offset: {}", c.end_offset);
+    println!("    Frame Count: {}", c.frames.len());
 }
 
 /// Show the `frame::MpegLocationLookupTable` fields
 fn show_mpeg_location_lookup_table(mllt: &frame::MpegLocationLookupTable) {
-    log::info!("  MPEG Location Lookup Table:");
-    log::info!(
+    println!("  MPEG Location Lookup Table:");
+    println!(
         "    Frames Between Reference: {}",
         mllt.frames_between_reference
     );
-    log::info!(
+    println!(
         "    Bytes Between Reference: {}",
         mllt.bytes_between_reference
     );
-    log::info!(
+    println!(
         "    Millis Between Reference: {}",
         mllt.millis_between_reference
     );
-    log::info!("    Bits for Bytes: {}", mllt.bits_for_bytes);
-    log::info!("    Bits for Millis: {}", mllt.bits_for_millis);
-    log::info!("    References Count: {}", mllt.references.len());
+    println!("    Bits for Bytes: {}", mllt.bits_for_bytes);
+    println!("    Bits for Millis: {}", mllt.bits_for_millis);
+    println!("    References Count: {}", mllt.references.len());
 }
 
 /// Show the `Content::Unknown` fields
 fn show_unknown(uk: &frame::Unknown) {
-    log::info!("  Unknown:");
-    log::info!("    Version: {}", uk.version);
-    log::info!("    Data: {} bytes", uk.data.len());
+    println!("  Unknown:");
+    println!("    Version: {}", uk.version);
+    println!("    Data: {} bytes", uk.data.len());
 }
 
 /// Show the MP3 Frame information
 fn show_frame_data(meta: &MP3Metadata) {
-    log::info!("Frame information:");
-    log::info!("  Duration: {:.1} seconds", meta.duration.as_secs_f64());
-    log::info!("  Number of Frames: {}", meta.frames.len());
+    println!("Frame information:");
+    println!("  Duration: {:.1} seconds", meta.duration.as_secs_f64());
+    println!("  Number of Frames: {}", meta.frames.len());
 
     let f = &meta.frames[0];
-    log::info!("  Frame #0:");
-    log::info!("    Size: {}", f.size);
-    log::info!("    Version: {}", mp3_version(f.version));
-    log::info!("    Layer: {}", mp3_layer(f.layer));
-    log::info!("    CRC Info: {}", mp3_crc(f.crc));
-    log::info!("    Bitrate: {} kb/sec", f.bitrate);
-    log::info!("    Sampling frequency: {} hz", f.sampling_freq);
-    log::info!("    Padding: {}", f.padding);
-    log::info!("    Private bit: {}", f.private_bit);
-    log::info!("    Channel type: {}", mp3_channeltype(f.chan_type));
-    log::info!("    Intensity stereo: {}", f.intensity_stereo);
-    log::info!("    MS Stereo: {}", f.ms_stereo);
-    log::info!("    Copyright: {}", mp3_copyright(f.copyright));
-    log::info!("    Status: {}", mp3_status(f.status));
-    log::info!("    Emphasis: {}", mp3_emphasis(f.emphasis));
+    println!("  Frame #0:");
+    println!("    Size: {}", f.size);
+    println!("    Version: {}", mp3_version(f.version));
+    println!("    Layer: {}", mp3_layer(f.layer));
+    println!("    CRC Info: {}", mp3_crc(f.crc));
+    println!("    Bitrate: {} kb/sec", f.bitrate);
+    println!("    Sampling frequency: {} hz", f.sampling_freq);
+    println!("    Padding: {}", f.padding);
+    println!("    Private bit: {}", f.private_bit);
+    println!("    Channel type: {}", mp3_channeltype(f.chan_type));
+    println!("    Intensity stereo: {}", f.intensity_stereo);
+    println!("    MS Stereo: {}", f.ms_stereo);
+    println!("    Copyright: {}", mp3_copyright(f.copyright));
+    println!("    Status: {}", mp3_status(f.status));
+    println!("    Emphasis: {}", mp3_emphasis(f.emphasis));
     if let Some(dur) = f.duration {
-        log::info!("    Duration: {:.1}", dur.as_secs_f64());
+        println!("    Duration: {:.1}", dur.as_secs_f64());
     }
-    log::info!("    Position: {:.1}", f.position.as_secs_f64());
-    log::info!("    Offset: {}", f.offset);
+    println!("    Position: {:.1}", f.position.as_secs_f64());
+    println!("    Offset: {}", f.offset);
 }
 
 /// Show optional audio tags
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn show_optional_audio_tags(m: &MP3Metadata) {
     let t = &m.optional_info;
-    log::info!("  Optional Audio Tags:");
-    log::info!("    Number of entries: {}", t.len());
+    println!("  Optional Audio Tags:");
+    println!("    Number of entries: {}", t.len());
     let mut en = 0;
     for e in &m.optional_info {
         en += 1;
-        log::info!("    Entry #{en}");
-        log::info!("      Position: {}", e.position);
-        log::info!("      Version: {}.{}", e.major_version, e.minor_version);
+        println!("    Entry #{en}");
+        println!("      Position: {}", e.position);
+        println!("      Version: {}.{}", e.major_version, e.minor_version);
         opt!(e, album_movie_show, "      Album/movie/show title: {}");
         opt!(e, bpm, "      Beats per Minute: {}");
         string_vec!(e, composers, "      Composers: {}");

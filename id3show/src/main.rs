@@ -42,7 +42,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let print_summary = cli_args.get_flag("print-summary");
 
     for filename in filenames {
-        log::info!("{}", filename);
+        println!("{filename}");
         let proc_res = match common::get_file_type(filename)? {
             common::FileTypes::Ape => ape::show_metadata(filename, show_detail),
             common::FileTypes::Dsf => dsf::show_metadata(filename, show_detail),
@@ -50,7 +50,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             common::FileTypes::MP3 => mp3::show_metadata(filename, show_detail),
             common::FileTypes::MP4 => mp4::show_metadata(filename, show_detail),
             common::FileTypes::Unknown => {
-                log::info!("  Unknown file type. Skipping.");
+                println!("  Unknown file type. Skipping.");
                 Ok(())
             }
         };
@@ -66,13 +66,11 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // Print summary
     if print_summary {
-        log::info!(
+        println!(
             "\nTotal number of files: {}\n  Processed: {}\n  Skipped: {}",
-            file_count,
-            files_processed,
-            files_skipped
+            file_count, files_processed, files_skipped
         );
-        log::info!("Total time: {} ms", now.elapsed().as_millis());
+        println!("Total time: {} ms", now.elapsed().as_millis());
     }
 
     // Everything is a-okay in the end

@@ -63,11 +63,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::trace!("file: {:?}", file);
     }
 
-    if cli_args.contains_id("tags") {
-        for value in cli_args.get_many::<String>("tags").unwrap_or_default() {
-            log::debug!("tag = {:?}", value);
-        }
-    }
+    // if cli_args.contains_id("tags") {
+    //     for value in cli_args.get_many::<String>("tags").unwrap_or_default() {
+    //         log::debug!("tag = {:?}", value);
+    //     }
+    // }
 
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
@@ -118,10 +118,19 @@ fn run() -> Result<(), Box<dyn Error>> {
             "   Skipped due to errors:    {:>5}",
             thousand_separated(skipped)
         );
-        log::info!(
-            "Time elapsed:            {:>9} ms",
-            thousand_separated(now.elapsed().as_millis() as usize)
-        );
+        let elapsed = now.elapsed().as_millis();
+        log::debug!("elapsed = {elapsed}");
+        if elapsed > 1000 {
+            log::info!(
+                "Time Elapsed:            {:>9.2} secs",
+                thousand_separated(elapsed / 1000)
+            );
+        } else {
+            log::info!(
+                "Time elapsed:            {:>9} ms",
+                thousand_separated(elapsed)
+            );
+        }
     }
 
     // Everything is a-okay in the end

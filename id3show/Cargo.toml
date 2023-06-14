@@ -1,7 +1,7 @@
 [package]
 name = "id3show"
 edition = "2021"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 description = "A simple application to display metadata (ID3) information in music files."
 homepage = "https://github.com/evensolberg/id3tools/id3show/"

@@ -72,75 +72,75 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
 
 /// Show the `block::StreamInfo` fields
 fn show_streaminfo(si: &block::StreamInfo) {
-    log::info!("  Stream Info:");
-    log::info!("    Min Block Size: {}", si.min_block_size);
-    log::info!("    Max Block Size: {}", si.max_block_size);
-    log::info!("    Min Frame Size: {}", si.min_frame_size);
-    log::info!("    Max Frame Size: {}", si.max_frame_size);
-    log::info!("    Sample Rate: {}", si.sample_rate);
-    log::info!("    Channels: {}", si.num_channels);
-    log::info!("    Bits Per Sample: {}", si.bits_per_sample);
-    log::info!("    Total Samples: {}", si.total_samples);
-    log::info!("    MD5: {:?}", si.md5);
+    println!("  Stream Info:");
+    println!("    Min Block Size: {}", si.min_block_size);
+    println!("    Max Block Size: {}", si.max_block_size);
+    println!("    Min Frame Size: {}", si.min_frame_size);
+    println!("    Max Frame Size: {}", si.max_frame_size);
+    println!("    Sample Rate: {}", si.sample_rate);
+    println!("    Channels: {}", si.num_channels);
+    println!("    Bits Per Sample: {}", si.bits_per_sample);
+    println!("    Total Samples: {}", si.total_samples);
+    println!("    MD5: {:?}", si.md5);
 }
 
 /// Show the `block::Application` fields
 fn show_application(app: &block::Application) {
-    log::info!("  Application Block:");
-    log::info!("    Application IDs: {:?}", app.id);
-    log::info!("    Application Data: {:?}", app.data);
+    println!("  Application Block:");
+    println!("    Application IDs: {:?}", app.id);
+    println!("    Application Data: {:?}", app.data);
 }
 
 /// Show the `block::CueSheet` fields
 fn show_cuesheet(cs: &block::CueSheet) {
-    log::info!("  Cue Sheet:");
-    log::info!("    Catalog number: {}", cs.catalog_num);
-    log::info!("    Lead-ins: {}", cs.num_leadin);
-    log::info!("    Is CD: {}", cs.is_cd);
-    log::info!("    Tracks: {:?}", cs.tracks);
+    println!("  Cue Sheet:");
+    println!("    Catalog number: {}", cs.catalog_num);
+    println!("    Lead-ins: {}", cs.num_leadin);
+    println!("    Is CD: {}", cs.is_cd);
+    println!("    Tracks: {:?}", cs.tracks);
 }
 
 /// Show the `block::Padding` fields
 fn show_padding(pad: u32) {
-    log::info!("  Padding:");
-    log::info!("    Padding Size: {}", pad);
+    println!("  Padding:");
+    println!("    Padding Size: {}", pad);
 }
 
 /// Show the `block::Picture` fields
 fn show_picture(pic: &block::Picture) {
-    log::info!("  Picture:");
-    log::info!("    Picture Type: {:?}", pic.picture_type);
-    log::info!("    MIME Type: {}", pic.mime_type);
-    log::info!("    Description: {}", pic.description);
-    log::info!("    Width: {}", pic.width);
-    log::info!("    Height: {}", pic.height);
-    log::info!("    Color Depth: {}", pic.depth);
-    log::info!("    Color Count: {}", pic.num_colors);
-    log::info!("    Picture size: {} bytes", pic.data.len());
+    println!("  Picture:");
+    println!("    Picture Type: {:?}", pic.picture_type);
+    println!("    MIME Type: {}", pic.mime_type);
+    println!("    Description: {}", pic.description);
+    println!("    Width: {}", pic.width);
+    println!("    Height: {}", pic.height);
+    println!("    Color Depth: {}", pic.depth);
+    println!("    Color Count: {}", pic.num_colors);
+    println!("    Picture size: {} bytes", pic.data.len());
 }
 
 /// Show the `block::SeekTable` fields
 fn show_seektable(st: &block::SeekTable) {
-    log::info!("  Seek Table:");
-    log::info!("    Number of Seek Points: {:?}", st.seekpoints.len());
+    println!("  Seek Table:");
+    println!("    Number of Seek Points: {:?}", st.seekpoints.len());
 }
 
 /// Show the `block::VorbisComment` fields
 fn show_vorbis_comment(vc: &block::VorbisComment, show_detail: bool) {
-    log::info!("  Vorbis Comments:");
+    println!("  Vorbis Comments:");
     if show_detail {
-        log::info!("    Vendor: {}", vc.vendor_string);
+        println!("    Vendor: {}", vc.vendor_string);
     }
     for (key, values) in &vc.comments {
         for value in values {
-            log::info!("  {} = {}", key, value);
+            println!("    {} = {}", key, value);
         }
     }
 }
 
 /// Show the `block::Unknown` fields
 fn show_unknown(uk: &(u8, Vec<u8>)) {
-    log::info!("  Unknown Block:");
-    log::info!("    Block Code: {}", uk.0);
-    log::info!("    Block Data: {:?}", uk.1);
+    println!("  Unknown Block:");
+    println!("    Block Code: {}", uk.0);
+    println!("    Block Data: {:?}", uk.1);
 }

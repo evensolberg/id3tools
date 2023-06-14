@@ -10,7 +10,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     if show_detail {
         match DsfFile::open(path) {
             Ok(dsf_file) => {
-                log::info!("DSF file metadata:\n\n{}", dsf_file);
+                println!("DSF file metadata:\n\n{}", dsf_file);
             }
             Err(error) => {
                 return Err(format!("Unable to read DSF file {filename}. Error: {error}").into());
@@ -19,7 +19,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {
         log::debug!("Tag: {:?}", tag);
         for frame in tag.frames() {
-            log::info!("  {} = {}", frame.id(), frame.content());
+            println!("  {} = {}", frame.id(), frame.content());
         }
     } else {
         return Err(format!("Unable to read DSF file {filename}").into());

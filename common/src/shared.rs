@@ -1,5 +1,4 @@
 //! Struct(s) and functions used across several other modules.
-// use env_logger::{Builder, Target};
 
 use std::ffi::OsStr;
 use std::path::Path;
