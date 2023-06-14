@@ -48,7 +48,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let logging_config_filename = get_logging_config_filename(&cli_args, &config);
     common::build_logger(&logging_config_filename)?;
 
-    log::debug!("config = {:?}", config);
+    log::debug!("config = {config:?}");
 
     // let show_detail_info = !cli_args.is_present("detail-off");
     if config.dry_run.unwrap_or(true) {
@@ -60,16 +60,10 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     // create a list of the files to gather
     for file in cli_args.get_many::<String>("files").unwrap_or_default() {
-        log::trace!("file: {:?}", file);
+        log::trace!("file: {file:?}");
     }
 
-    // if cli_args.contains_id("tags") {
-    //     for value in cli_args.get_many::<String>("tags").unwrap_or_default() {
-    //         log::debug!("tag = {:?}", value);
-    //     }
-    // }
-
-    let mut filenames = Vec::<&str>::new();
+     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
     for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
@@ -90,7 +84,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             .collect()
     };
 
-    log::trace!("res_vec = {:?}", res_vec);
+    log::trace!("res_vec = {res_vec:?}");
 
     // Print summary information
     if config.print_summary.unwrap_or(false) {
@@ -158,7 +152,7 @@ fn process_file(filename: &str, cli_args: &ArgMatches, config: &DefaultValues) -
 
     let res = formats::process_file(file_type, filename, config, cli_args).unwrap_or(false);
 
-    log::debug!("process_file result = {}", res);
+    log::debug!("process_file result = {res}");
 
     // return safely
     res
