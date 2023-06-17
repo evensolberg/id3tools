@@ -156,8 +156,7 @@ impl DefaultValues {
         // Read the config file
         if cli.contains_id("config-file") {
             let config_filename = shellexpand::tilde(
-                cli
-                    .get_one::<String>("config-file")
+                cli.get_one::<String>("config-file")
                     .unwrap_or(&String::from("~/.config/id3tag/config.toml")),
             )
             .to_string();
