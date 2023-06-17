@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - Move printed variables into brackets
 - Clean up a bunch of code
 - Format default_values.rs
+- Clean up code further
 
 ### Security
 
