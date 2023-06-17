@@ -77,8 +77,8 @@ pub fn process(
 
                 if k == "DISCNUMBER" && common::need_split(v) {
                     split!(cfg, nt, disc_number_total, disc_number, "DISC", v);
-                } // DISCNUMBER
-            } // for value in values
+                }
+            }
         } // for (key, value)
     } // if let
 

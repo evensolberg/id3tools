@@ -29,23 +29,21 @@ fn run() -> Result<(), Box<dyn Error>> {
     let now = Instant::now();
 
     // Set up the command line. Ref https://docs.rs/clap for details.
-    let cli_args = common::build_cli(env!("CARGO_PKG_VERSION")).get_matches();
+    let cli = common::build_cli(env!("CARGO_PKG_VERSION")).get_matches();
 
     let binding = String::new();
-    let pattern = cli_args
-        .get_one::<String>("rename-file")
-        .unwrap_or(&binding);
-    if cli_args.contains_id("rename-file") && file_rename_pattern_not_ok(pattern) {
+    let pattern = cli.get_one::<String>("rename-file").unwrap_or(&binding);
+    if cli.contains_id("rename-file") && file_rename_pattern_not_ok(pattern) {
         return Err(
             format!("File rename pattern {pattern} likely won't create unique files.").into(),
         );
     }
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
-    let config = DefaultValues::build_config(&cli_args)?;
+    let config = DefaultValues::build_config(&cli)?;
 
     // Configure logging
-    let logging_config_filename = get_logging_config_filename(&cli_args, &config);
+    let logging_config_filename = get_logging_config_filename(&cli, &config);
     common::build_logger(&logging_config_filename)?;
 
     log::debug!("config = {config:?}");
@@ -59,14 +57,14 @@ fn run() -> Result<(), Box<dyn Error>> {
     // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // create a list of the files to gather
-    for file in cli_args.get_many::<String>("files").unwrap_or_default() {
+    for file in cli.get_many::<String>("files").unwrap_or_default() {
         log::trace!("file: {file:?}");
     }
 
     let mut filenames = Vec::<&str>::new();
     let mut file_count = 0;
 
-    for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
+    for filename in cli.get_many::<String>("files").unwrap_or_default() {
         filenames.push(filename);
         file_count += 1;
     }
@@ -75,12 +73,12 @@ fn run() -> Result<(), Box<dyn Error>> {
     let res_vec: Vec<bool> = if config.single_thread.unwrap_or(true) {
         filenames
             .iter()
-            .map(|&filename| process_file(filename, &cli_args, &config))
+            .map(|&filename| process_file(filename, &cli, &config))
             .collect()
     } else {
         filenames
             .par_iter()
-            .map(|&filename| process_file(filename, &cli_args, &config))
+            .map(|&filename| process_file(filename, &cli, &config))
             .collect()
     };
 
@@ -115,9 +113,10 @@ fn run() -> Result<(), Box<dyn Error>> {
         let elapsed = now.elapsed().as_millis();
         log::debug!("elapsed = {elapsed}");
         if elapsed > 1000 {
+            let el = elapsed as f64 / 1000.0;
             log::info!(
                 "Time Elapsed:            {:>9.2} secs",
-                thousand_separated(elapsed / 1000)
+                thousand_separated(el)
             );
         } else {
             log::info!(
