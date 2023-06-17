@@ -302,7 +302,9 @@ where
         .map(|chunk| std::str::from_utf8(chunk).unwrap_or_default())
         .collect();
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
-    String::from_utf8(result).unwrap_or_default()
+    String::from_utf8(result)
+        .unwrap_or_default()
+        .replace(",.", ".")
 }
 
 /// Gets the complete directory path to the file, sans the filename.

@@ -30,7 +30,7 @@ use crate::default_values::DefaultValues;
 ///
 /// assert_eq!(res, "/home/user/music/cover.jpg");
 /// ```
-pub(crate) fn complete_path(folder: &Path, filename: &String) -> String {
+pub fn complete_path(folder: &Path, filename: &String) -> String {
     folder
         .join(Path::new(&filename))
         .to_str()
@@ -52,7 +52,7 @@ pub(crate) fn complete_path(folder: &Path, filename: &String) -> String {
 ///
 /// Returns:
 /// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
-pub(crate) fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
+pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
     let search_folders = cfg.search_folders();
     log::debug!("gather_cover_candidates::search_folders = {search_folders:?}");
 
@@ -93,7 +93,7 @@ pub(crate) fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues
 /// - Returns an error if the music directory cannot be canonicalized.
 /// - Returns an error if the music file's directory cannot be determined.
 /// - Returns an error if the image path cannot be canonicalized.
-pub(crate) fn find_first_image(
+pub fn find_first_image(
     m_file: &str,
     image_vec: &Vec<String>,
 ) -> Result<Option<PathBuf>, Box<dyn Error>> {

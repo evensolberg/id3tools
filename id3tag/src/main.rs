@@ -24,6 +24,7 @@ use crate::default_values::DefaultValues;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
+#[allow(clippy::cast_precision_loss)] // for  `let el = elapsed as f64 / 1000.0;`
 fn run() -> Result<(), Box<dyn Error>> {
     // Start timing the execution
     let now = Instant::now();

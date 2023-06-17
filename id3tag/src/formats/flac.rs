@@ -84,12 +84,10 @@ pub fn process(
 
     // Set new tags
     for (k, v) in nt {
-        if !(cfg.detail_off.unwrap_or(false)) {
+        if !(cfg.detail_off.unwrap_or(false)) && !cfg.dry_run.unwrap_or(false) {
             log::debug!("process::{m_file} :: New {k} = {v}");
-        } else if cfg.dry_run.unwrap_or(false) {
-            log::info!("{m_file} :: New {k} = {}", v.trim());
         } else {
-            log::debug!("process::{m_file} :: New {k} = {v}");
+            log::info!("{m_file} :: New {k} = {}", v.trim());
         }
 
         // Process the tags
@@ -103,7 +101,7 @@ pub fn process(
                 };
 
                 match set_picture(&mut tags, v.trim(), cover_type, max_size) {
-                    Ok(_) => log::debug!("process::Picture set."),
+                    Ok(_) => log::debug!("process::{cover_type:?} set."),
                     Err(err) => {
                         if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(

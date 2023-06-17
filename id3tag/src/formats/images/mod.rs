@@ -39,7 +39,7 @@ pub use ops::aspect_ratio_ok;
 ///
 /// `Result<(Option<String>, Option<String>), Box<dyn Error>>` - an `Option<String>` tuple containing the paths to the front and back covers, or None, if nothing has been found.
 // #[allow(clippy::module_name_repetitions)]
-pub(crate) fn get_cover_filenames(
+pub fn get_cover_filenames(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
@@ -103,7 +103,7 @@ fn find_cover(
 ///
 /// Returns an error if the image cannot be read or if the aspect ratio is not within the expected range.
 /// The expected aspect ratio is within 1.5:1 and 1:1.5 (eg. 300x200, 200x300, 300x300, 200x200)
-pub(crate) fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
     let img = image::open(cover_file)?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {

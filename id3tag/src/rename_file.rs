@@ -60,7 +60,9 @@ pub fn rename_file(
 
         // Do the actual filename replacement
         if fixed_value.is_empty() {
-            log::warn!("Tag '{key}' is empty.");
+            if new_filename.contains(key) {
+                log::warn!("Tag '{key}' is empty.");
+            }
             fixed_value = "unknown".to_string();
         }
         new_filename = new_filename.replace(key, &fixed_value);
@@ -94,33 +96,28 @@ pub fn rename_file(
             parent.join(Path::new(&new_filename).with_extension(common::get_extension(filename)));
     }
 
+    let npl = new_path.to_string_lossy();
+
     // Perform the actual rename and check the outcome
     if config.dry_run.unwrap_or(true) {
         log::debug!("dr: {filename} --> {}", new_path.display());
     } else {
         // Get parent dir
-        let rn_res = std::fs::rename(filename, &new_path);
-        match rn_res {
-            Ok(_) => log::debug!("{filename} --> {}", new_path.to_string_lossy()),
+        match std::fs::rename(filename, &new_path) {
+            Ok(_) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
-                    return Err(format!(
-                        "Unable to rename {filename} to {}. Error message: {err}",
-                        new_path.to_string_lossy()
-                    )
-                    .into());
+                    return Err(
+                        format!("Unable to rename {filename} to {npl}. Error: {err}").into(),
+                    );
                 }
-                log::warn!(
-                    "Unable to rename {filename} to {}. Error message: {err}",
-                    new_path.to_string_lossy()
-                );
+                log::warn!("Unable to rename {filename} to {npl}. Error: {err}");
             }
         }
     }
 
     // return safely
-    let result = new_path.to_string_lossy().into_owned();
-    Ok(result)
+    Ok(npl.into_owned())
 }
 
 fn clean_filename(filename: &str) -> String {

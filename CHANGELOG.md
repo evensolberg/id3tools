@@ -34,6 +34,8 @@ All notable changes to this project will be documented in this file.
 - Version bump after bug fix
 - Use println for Show, tag outputs in seconds if > 1000 ms
 - Move printed variables into brackets
+- Clean up a bunch of code
+- Format default_values.rs
 
 ### Security
 
