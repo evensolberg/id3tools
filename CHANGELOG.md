@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - Dependencies update
 - Fix lints
 
+### Doc
+
+- Changelog Update
+
 ### Features
 
 - ID3Show updated with more detail
