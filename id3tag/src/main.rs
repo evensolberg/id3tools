@@ -114,9 +114,9 @@ fn run() -> Result<(), Box<dyn Error>> {
         let elapsed = now.elapsed().as_millis();
         log::debug!("elapsed = {elapsed}");
         if elapsed > 1000 {
-            let el = elapsed as f64 / 1000.0;
+            let el = round_f64(elapsed as f64 / 1000.0, 2);
             log::info!(
-                "Time Elapsed:            {:>9.2} secs",
+                "Time Elapsed:            {:>9} secs",
                 thousand_separated(el)
             );
         } else {
@@ -186,4 +186,19 @@ fn get_logging_config_filename(
     } else {
         default
     }
+}
+
+/// Rounds a number to the specified number of decimals
+///
+/// # Arguments
+///
+/// * `x: f64` - The number to round
+/// * `decimals: u32` - The number of decimals to round to
+///
+/// # Returns
+///
+/// The rounded number as a `f64`
+fn round_f64(x: f64, decimals: u32) -> f64 {
+    let y = 10i32.pow(decimals) as f64;
+    (x * y).round() / y
 }
