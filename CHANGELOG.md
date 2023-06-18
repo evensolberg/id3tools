@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Track-genre-number bug
 - Filename doesn't get output when ratio is unacceptable
 
+### CICD
+
+- Remove Lint PR title
+
 ### Chore
 
 - Dependencies update
@@ -22,6 +26,10 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - ID3Show updated with more detail
+
+### Fix
+
+- Fixed seconds output
 
 ### Miscellaneous Tasks
 
