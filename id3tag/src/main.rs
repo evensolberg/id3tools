@@ -17,10 +17,11 @@ mod default_values;
 mod formats;
 mod rename_file;
 
-use common::{file_rename_pattern_not_ok, thousand_separated};
-use rayon::prelude::*;
-
 use crate::default_values::DefaultValues;
+use common::file_rename_pattern_not_ok;
+use human_duration::human_duration;
+use rayon::prelude::*;
+use thousands::Separable;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
@@ -101,30 +102,19 @@ fn run() -> Result<(), Box<dyn Error>> {
         log::info!("   ");
         log::info!(
             "Files examined:              {:>5}",
-            thousand_separated(file_count)
+            file_count.separate_with_commas()
         );
         log::info!(
             "   Processed:                {:>5}",
-            thousand_separated(processed)
+            processed.separate_with_commas()
         );
         log::info!(
             "   Skipped due to errors:    {:>5}",
-            thousand_separated(skipped)
+            skipped.separate_with_commas()
         );
-        let elapsed = now.elapsed().as_millis();
-        log::debug!("elapsed = {elapsed}");
-        if elapsed > 1000 {
-            let el = round_f64(elapsed as f64 / 1000.0, 2);
-            log::info!(
-                "Time Elapsed:            {:>9} secs",
-                thousand_separated(el)
-            );
-        } else {
-            log::info!(
-                "Time elapsed:            {:>9} ms",
-                thousand_separated(elapsed)
-            );
-        }
+        let elapsed = now.elapsed();
+        log::debug!("elapsed = {elapsed:?}");
+        log::info!("Time elapsed:{:>21}", human_duration(&elapsed));
     }
 
     // Everything is a-okay in the end
@@ -186,19 +176,4 @@ fn get_logging_config_filename(
     } else {
         default
     }
-}
-
-/// Rounds a number to the specified number of decimals
-///
-/// # Arguments
-///
-/// * `x: f64` - The number to round
-/// * `decimals: u32` - The number of decimals to round to
-///
-/// # Returns
-///
-/// The rounded number as a `f64`
-fn round_f64(x: f64, decimals: u32) -> f64 {
-    let y = 10i32.pow(decimals) as f64;
-    (x * y).round() / y
 }
