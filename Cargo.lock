@@ -569,6 +569,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "human-duration"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37a429277d8afba0e1a2cf784b43f938dff72ce33e6aba477c3021997171c87b"
+
+[[package]]
 name = "humantime"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -636,12 +642,13 @@ dependencies = [
 
 [[package]]
 name = "id3tag"
-version = "0.14.10"
+version = "0.14.13"
 dependencies = [
  "ape",
  "clap",
  "common",
  "dsf",
+ "human-duration",
  "id3",
  "image",
  "itertools",
@@ -651,6 +658,7 @@ dependencies = [
  "rayon",
  "serde",
  "shellexpand",
+ "thousands",
  "toml",
 ]
 
@@ -1346,6 +1354,12 @@ dependencies = [
  "quote",
  "syn 2.0.18",
 ]
+
+[[package]]
+name = "thousands"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3bf63baf9f5039dadc247375c29eb13706706cfde997d0330d05aa63a77d8820"
 
 [[package]]
 name = "thread-id"

@@ -2,8 +2,8 @@
 
 /// Check if the image ratio is within acceptable limits
 pub fn aspect_ratio_ok(x: u32, y: u32) -> bool {
-    let min_ratio = 1.0 / 1.5; // 1:2 ratio
-    let max_ratio = 1.5 / 1.0; // 2:1 ratio
+    let min_ratio = 1.0 / 1.5; // 1:1.5 ratio
+    let max_ratio = 1.5 / 1.0; // 1.5:1 ratio
 
     let ratio = f64::from(x) / f64::from(y);
     (min_ratio..=max_ratio).contains(&ratio)

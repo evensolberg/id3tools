@@ -5,7 +5,7 @@ use std::path::Path;
 use std::time::UNIX_EPOCH;
 use std::{error::Error, time::SystemTime};
 
-use infer::MatcherType;
+use infer::{MatcherType, Type};
 
 use crate::file_types::FileTypes;
 
@@ -53,21 +53,12 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     if file_type.matcher_type() == MatcherType::Audio
         || file_type.matcher_type() == MatcherType::Video
     {
-        log::debug!("File type is audio or video.");
-        ft = match file_type.mime_type() {
-            "audio/x-ape" => FileTypes::Ape,
-            "audio/x-dsf" => FileTypes::Dsf,
-            "audio/x-flac" => FileTypes::Flac,
-            "audio/mpeg" => FileTypes::MP3,
-            "audio/m4a" | "video/mp4" => FileTypes::MP4,
-            _ => FileTypes::Unknown,
-        };
-        log::debug!("File type is {}", ft);
+        ft = audio_file_type(file_type);
+        log::debug!("File type is {ft}");
     } else {
         log::debug!("File type is not a recognized audio format. Trying MP4 variants.");
         let mp4vec = vec!["mp4a", "mp4b"];
         let ext = file_type.extension().to_lowercase();
-        log::debug!("Extension: {}", ext);
         if mp4vec.contains(&ext.as_str()) {
             ft = FileTypes::MP4;
         } else {
@@ -77,6 +68,26 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
 
     // return safely
     Ok(ft)
+}
+
+/// Get the audio file type based on the the mime type from the Infer crate.
+///
+/// # Arguments
+///
+/// `ft: Type` - The file type returned from the Infer crate
+///
+/// # Returns
+///
+/// `FileTypes` - The audio file type
+fn audio_file_type(ft: Type) -> FileTypes {
+    match ft.mime_type() {
+        "audio/x-ape" => FileTypes::Ape,
+        "audio/x-dsf" => FileTypes::Dsf,
+        "audio/x-flac" => FileTypes::Flac,
+        "audio/mpeg" => FileTypes::MP3,
+        "audio/m4a" | "video/mp4" => FileTypes::MP4,
+        _ => FileTypes::Unknown,
+    }
 }
 
 /// Checks that the new filename pattern results in a unique file.
@@ -264,7 +275,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 pub fn get_unique_value() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards. Presumably, you have bigger things to worry about.")
+        .expect("Time appears to have gone backwards. Or it's after 03:14:07 UTC on 19 January 2038 (the Epochalypse).")
         .as_micros()
         % 10_000_000
 }
@@ -279,8 +290,7 @@ pub fn get_unique_value() -> u128 {
 ///
 /// # Panics
 ///
-/// Mapping from UTF8 to u8 can panic if the unwrap fails.
-/// Mapping the result from UTF8 to String can panic if the unwrap fails.
+/// None.
 pub fn thousand_separated<T>(val: T) -> String
 where
     T: std::fmt::Display,
@@ -292,7 +302,9 @@ where
         .map(|chunk| std::str::from_utf8(chunk).unwrap_or_default())
         .collect();
     let result: Vec<_> = chunks.join(",").bytes().rev().collect();
-    String::from_utf8(result).unwrap_or_default()
+    String::from_utf8(result)
+        .unwrap_or_default()
+        .replace(",.", ".")
 }
 
 /// Gets the complete directory path to the file, sans the filename.
@@ -519,5 +531,6 @@ mod tests {
         assert_eq!(thousand_separated(10), "10".to_string());
         assert_eq!(thousand_separated(1000), "1,000".to_string());
         assert_eq!(thousand_separated(1_000_000), "1,000,000".to_string());
+        assert_eq!(thousand_separated(1000.01), "1,000.01".to_string());
     }
 }

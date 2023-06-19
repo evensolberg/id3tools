@@ -10,14 +10,27 @@ All notable changes to this project will be documented in this file.
 - Track-genre-number bug
 - Filename doesn't get output when ratio is unacceptable
 
+### CICD
+
+- Remove Lint PR title
+
 ### Chore
 
 - Dependencies update
 - Fix lints
 
+### Doc
+
+- Changelog Update
+- Update changelog
+
 ### Features
 
 - ID3Show updated with more detail
+
+### Fix
+
+- Fixed seconds output
 
 ### Miscellaneous Tasks
 
@@ -33,6 +46,10 @@ All notable changes to this project will be documented in this file.
 - Default logging format changed
 - Version bump after bug fix
 - Use println for Show, tag outputs in seconds if > 1000 ms
+- Move printed variables into brackets
+- Clean up a bunch of code
+- Format default_values.rs
+- Clean up code further
 
 ### Security
 

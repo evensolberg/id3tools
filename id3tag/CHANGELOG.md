@@ -6,7 +6,61 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- Id3tag CLI flags not set properly
+- Track-genre-number bug
+- Filename doesn't get output when ratio is unacceptable
+
+### CICD
+
+- Remove Lint PR title
+
+### Chore
+
+- Dependencies update
+- Fix lints
+
+### Doc
+
+- Changelog Update
+- Update changelog
+
+### Features
+
+- ID3Show updated with more detail
+
+### Fix
+
+- Fixed seconds output
+
+### Miscellaneous Tasks
+
+- Changelog
+- Changelog
+- Bump spin from 0.9.5 to 0.9.8
+- Updated dependencies, added deployment
+- Version updates
+
+### Refactor
+
+- Upgrade id3tag to Clap4
+- Default logging format changed
+- Version bump after bug fix
+- Use println for Show, tag outputs in seconds if > 1000 ms
+- Move printed variables into brackets
+- Clean up a bunch of code
+- Format default_values.rs
+- Clean up code further
+
+### Security
+
+- Update Dependabot settings
+
+## [0.14.4] - 2023-02-26
+
+### Bug Fixes
+
 - Disc number bug
+- Config not loading picture candidates
 
 ### Chore
 
@@ -20,6 +74,8 @@ All notable changes to this project will be documented in this file.
 
 - Remove unused debugs
 - Changelog
+- Changelog
+- Components update and debug removal
 
 ## [0.14.2] - 2023-02-20
 

@@ -10,7 +10,7 @@
 //! 6. Check if the file identified needs to be resized, and if so, save it with "-resized" appended to the filename
 //! 7. Load the file as the cover
 
-use image::{self, imageops::FilterType};
+use image::{self, imageops::FilterType, ImageOutputFormat::Jpeg};
 use std::error::Error;
 use std::io::Cursor;
 
@@ -21,7 +21,7 @@ mod paths;
 mod tests;
 
 use crate::default_values::DefaultValues;
-use common::{directory, path_to_string};
+use common::path_to_string;
 use covertype::CoverType;
 use paths::{find_first_image, gather_cover_candidates};
 
@@ -44,22 +44,19 @@ pub fn get_cover_filenames(
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
     let front_cover_path = if cfg.picture_front_candidates.is_some() {
-        log::debug!("get_cover_filenames:: Gathering front cover candidates.");
         find_cover(CoverType::Front, music_file, cfg)?
     } else {
         None
     };
 
     let back_cover_path = if cfg.picture_back_candidates.is_some() {
-        log::debug!("get_cover_filenames:: Gathering back cover candidates.");
-
         find_cover(CoverType::Back, music_file, cfg)?
     } else {
         None
     };
 
-    // return safely
-    log::debug!("process_images::front_cover_path = {front_cover_path:?}, process_images::back_cover_path = {back_cover_path:?}");
+    log::debug!("process_images::front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}");
+
     Ok((front_cover_path, back_cover_path))
 }
 
@@ -80,34 +77,32 @@ fn find_cover(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<Option<String>, Box<dyn Error>> {
-    let music_path = path_to_string(directory(music_file)?);
-    log::debug!("find_cover::music_path = {music_path}");
+    let cover_candidates = gather_cover_candidates(cover_type, cfg);
 
-    let candidate_images = gather_cover_candidates(cover_type, cfg);
-    log::debug!("find_cover::candidate_images = {candidate_images:?}");
-
-    let cover_path = find_first_image(music_file, &candidate_images)?;
-    log::debug!("find_cover::cover_path = {cover_path:?}");
-
+    let cover_path = find_first_image(music_file, &cover_candidates)?;
     if cover_path.is_some() {
         return Ok(Some(path_to_string(cover_path.unwrap_or_default())));
     }
 
-    let image_path = find_first_image(music_file, &candidate_images)?;
-    log::debug!("find_cover::image_path = {image_path:?}");
-
-    if image_path.is_some() {
-        let cp = path_to_string(image_path.unwrap_or_default());
-        return Ok(Some(cp));
-    }
-
-    // return
     Ok(None)
 } // fn find_cover()
 
 /// Reads the image file and resizes it if needed. Returns the resized image as a vector of bytes.
 /// Set `max_size` to 0 to disable resizing.
-/// Returns a vector of bytes with the image data.
+///
+/// # Arguments
+///
+/// `cover_file: &str` - the name of the cover file to read.
+/// `max_size: u32` - the maximum size of the image, in pixels. If the image is larger than this, it will be resized. Set to 0 to disable resizing.
+///
+/// # Returns
+///
+/// `Result<Vec<u8>, Box<dyn Error>>` - a vector of bytes with the image data.
+///
+/// # Errors
+///
+/// Returns an error if the image cannot be read or if the aspect ratio is not within the expected range.
+/// The expected aspect ratio is within 1.5:1 and 1:1.5 (eg. 300x200, 200x300, 300x300, 200x200)
 pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
     let img = image::open(cover_file)?;
 
@@ -116,15 +111,13 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     }
 
     let mut eib = Cursor::new(Vec::new());
+
+    // TODO: Add tests to see if image size < max_size/2. If so, return an error that the image is too small.
     if (img.width() > max_size || img.height() > max_size) && max_size > 0 {
-        log::debug!("Reiszing to {max_size} pixels.");
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
-        img_resized
-            .write_to(&mut eib, image::ImageOutputFormat::Jpeg(90))
-            .unwrap_or_default();
+        img_resized.write_to(&mut eib, Jpeg(90)).unwrap_or_default();
     } else {
-        img.write_to(&mut eib, image::ImageOutputFormat::Jpeg(90))
-            .unwrap_or_default();
+        img.write_to(&mut eib, Jpeg(90)).unwrap_or_default();
     };
 
     Ok(eib.into_inner())

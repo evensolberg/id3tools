@@ -13,9 +13,9 @@ use clap::{parser::ValueSource, ArgMatches};
 /// # Parameters
 ///
 /// - `$args:ident`: the `ArgMatches` we're checking.
-/// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification
+/// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification (e.g. "detail-off")
 /// - `$var:ident`: The name of the `DefaultValues` instance to be updated
-/// - `$val:ident`: The `DefaultValues` variable to be set.
+/// - `$val:ident`: The `DefaultValues` variable to be set (e.g. `detail_off`)
 macro_rules! check_flag {
     ($args:ident, $par:literal, $var:ident, $val:ident) => {
         if $args.value_source($par) == Some(ValueSource::CommandLine)
@@ -31,6 +31,7 @@ macro_rules! check_flag {
 //~ spec:startcode
 /// The default values for the flags and options.
 /// TODO: Write Deserialize trait for this struct
+/// TODO: Separate the config and the values into two separate structs
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct DefaultValues {
     /// Flag: Do not output detail about each item processed.
@@ -146,39 +147,38 @@ impl DefaultValues {
     }
 
     /// Builds a config based on CLI arguments
-    pub fn build_config(cli_args: &ArgMatches) -> Result<Self, Box<dyn Error>> {
-        let mut config = Self::new();
+    pub fn build_config(cli: &ArgMatches) -> Result<Self, Box<dyn Error>> {
+        let mut cfg = Self::new();
 
         let psf_list: Vec<String> = vec![String::from("."), String::from("..")];
-        config.picture_search_folders = Some(psf_list);
+        cfg.picture_search_folders = Some(psf_list);
 
         // Read the config file
-        if cli_args.contains_id("config-file") {
+        if cli.contains_id("config-file") {
             let config_filename = shellexpand::tilde(
-                cli_args
-                    .get_one::<String>("config-file")
+                cli.get_one::<String>("config-file")
                     .unwrap_or(&String::from("~/.config/id3tag/config.toml")),
             )
             .to_string();
-            config = Self::load_config(&config_filename)?;
+            cfg = Self::load_config(&config_filename)?;
         }
 
         // dbg!(&config);
 
         // Collate config file flags and CLI flags and output the right config
-        check_flag!(cli_args, "stop-on-error", config, stop_on_error);
-        check_flag!(cli_args, "print-summary", config, print_summary);
-        check_flag!(cli_args, "detail-off", config, detail_off);
-        check_flag!(cli_args, "dry-run", config, dry_run);
-        check_flag!(cli_args, "single-thread", config, single_thread);
+        check_flag!(cli, "stop-on-error", cfg, stop_on_error);
+        check_flag!(cli, "print-summary", cfg, print_summary);
+        check_flag!(cli, "detail-off", cfg, detail_off);
+        check_flag!(cli, "dry-run", cfg, dry_run);
+        check_flag!(cli, "single-thread", cfg, single_thread);
 
-        config.check_for_file_rename(cli_args)?;
-        config.add_picture_search_folders(cli_args);
-        config.check_for_picture_max_size(cli_args);
-        config.check_for_picture_front_candidates(cli_args);
-        config.check_for_picture_back_candidates(cli_args);
+        cfg.check_for_file_rename(cli)?;
+        cfg.add_picture_search_folders(cli);
+        cfg.check_for_picture_max_size(cli);
+        cfg.check_for_picture_front_candidates(cli);
+        cfg.check_for_picture_back_candidates(cli);
 
-        Ok(config)
+        Ok(cfg)
     }
 
     /// Loads the config from the supplied TOML file.

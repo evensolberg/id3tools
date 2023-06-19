@@ -9,6 +9,27 @@ use super::covertype::CoverType;
 use crate::default_values::DefaultValues;
 
 /// Create the complete path name from the folder and the file name
+///
+/// # Arguments
+///
+/// * `folder: &Path` - the folder where the file is located
+/// * `filename: &String` - the file name
+///
+/// # Returns
+///
+/// * `String` - the complete path name as a string
+///
+/// # Examples
+///
+/// ```
+/// use std::path::Path;
+///
+/// let folder = Path::new("/home/user/music");
+/// let filename = "cover.jpg";
+/// let res = id3tag::formats::images::paths::complete_path(folder, &filename.to_string());
+///
+/// assert_eq!(res, "/home/user/music/cover.jpg");
+/// ```
 pub fn complete_path(folder: &Path, filename: &String) -> String {
     folder
         .join(Path::new(&filename))
@@ -19,14 +40,11 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
 
 /// Gathers the cover paths into a single vector that can be used to look for the cover(s) we want.
 /// Based on the input, the function will create the vector for:
-///   - Front cover
-///   - Back cover
-///   - Front cover candidates
-///   - Back cover candidates
+///   - Front cover (candidates)
+///   - Back cover (candidates)
 ///
 /// The function works by iterating through the `picture-search-folder` candidates and joining with the relevant
-/// picture arguments such as `picture-front`, `picture-back` or the corresponding `-candidate` parameters.
-/// The function will also return `-resize` versions of the file names.
+/// picture arguments - `picture-front-candidate`, `picture-back-candidate`.
 ///
 /// Parameters:
 /// `cover_type: CoverType` - the type of cover we wish to consolidate for
@@ -35,73 +53,66 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
 /// Returns:
 /// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
 pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
-    let mut res_vec: Vec<String> = Vec::new();
+    let search_folders = cfg.search_folders();
+    log::debug!("gather_cover_candidates::search_folders = {search_folders:?}");
 
-    // Depending on the cover type, collect the folder+filename combos
-    let sf = cfg.search_folders();
-    log::debug!("gather_cover_candidates::sf = {sf:?}");
+    let picture_candidates = if cover_type == CoverType::Front {
+        cfg.picture_front_candidates()
+    } else {
+        cfg.picture_back_candidates()
+    };
 
-    for f in sf {
-        let folder = Path::new(&f);
-        match cover_type {
-            CoverType::Front => {
-                let pcs = cfg.picture_front_candidates();
-                for c in pcs {
-                    let cp = complete_path(folder, &c);
-                    log::debug!("CoverType::FrontCandidate cp = {cp}");
-                    res_vec.push(cp);
-                }
-            }
-            CoverType::Back => {
-                let pcs = cfg.picture_back_candidates();
-                for c in pcs {
-                    let cp = complete_path(folder, &c);
-                    log::debug!("CoverType::BackCandidate cp = {cp}");
-                    res_vec.push(cp);
-                }
-            } // CoverType::BackCandidate
-        } // match cover_type
-    } // for f in sf
+    let mut cover_candidates: Vec<String> = Vec::new();
+    for folder in search_folders {
+        let current_folder = Path::new(&folder);
+        for current_picture in &picture_candidates {
+            cover_candidates.push(complete_path(current_folder, current_picture));
+        }
+    }
 
-    res_vec.sort();
-    log::debug!("gather_cover_candidates::res_vec = {res_vec:?}");
-
-    itertools::Itertools::unique(res_vec.into_iter()).collect()
+    cover_candidates.sort();
+    itertools::Itertools::unique(cover_candidates.into_iter()).collect()
 }
 
 /// Finds the first image from a list relative to a music file.
 /// Grabs the path (ie. directory) of the music file and looks for images relative to this.
 /// The function will return with the full path of the first image found, or `Ok(None)` if nothing is found.
 ///
-/// Parameters:
+/// # Arguments
+///
 /// `music_file: &str` - the name (and full path) of the music file being used as the basis for the search.
 /// `image_vec: &Vec<String>` - a vector of string values containing the candidate filenames to be searched.
+///
+/// # Returns
+///
+/// `Result<Option<PathBuf>, Box<dyn Error>>` - the full path of the first image found, or `Ok(None)` if nothing is found.
+///
+/// # Errors
+///
+/// - Returns an error if the music file does not appear to exist.
+/// - Returns an error if the music directory cannot be canonicalized.
+/// - Returns an error if the music file's directory cannot be determined.
+/// - Returns an error if the image path cannot be canonicalized.
 pub fn find_first_image(
     m_file: &str,
     image_vec: &Vec<String>,
 ) -> Result<Option<PathBuf>, Box<dyn Error>> {
-    let mf = Path::new(m_file);
-    if !mf.exists() {
+    let music_file = Path::new(m_file);
+    if !music_file.exists() {
         return Err(format!("Music file {m_file} does not appear to exist.").into());
     }
 
-    let music_path = mf.canonicalize()?;
-    log::debug!("find_first_image::music_path = {music_path:?}");
+    let music_path = music_file.canonicalize()?;
     let music_dir = directory(&common::path_to_string(music_path))?;
-    log::debug!("find_first_image::music_dir = {music_dir:?}");
 
     for img_candidate in image_vec {
         let image_path = music_dir.join(Path::new(&img_candidate));
         if image_path.exists() {
-            let image_path = image_path.canonicalize()?;
-            log::debug!("find_first_image:: Image found: {image_path:?}");
-            return Ok(Some(image_path));
+            return Ok(Some(image_path.canonicalize()?));
         }
     }
 
     log::debug!("No images found among the candidates supplied.");
-
-    // Nothing found - return safely
     Ok(None)
 }
 
