@@ -517,50 +517,65 @@ fn disc_candidates() -> Vec<&'static str> {
     vec!["CD", "DISC", "DISK", "PART", "VOL", "VOLUME"]
 }
 
-
-/// Returns the track number based on the filename and its position in the sorted list of files of the same type in the same directory.
+/// Retrieves the track number of a file based on its filename.
+///
+/// This function takes a filename as input and returns the track number of the file.
+/// It first obtains the full path of the file by resolving any symbolic links or relative paths.
+/// Then, it retrieves a list of files of the same type in the same directory as the input file.
+/// The list is filtered to include only regular files with the same file extension as the input file.
+/// The files are then sorted by name.
+/// Finally, the function determines the index of the input file in the sorted list and returns the track number.
 ///
 /// # Arguments
 ///
-/// * `filename` - A string slice that holds the filename of the file to be processed.
+/// * `filename` - A string slice that represents the filename of the file to be processed.
 ///
 /// # Returns
 ///
-/// `Result<u16, Box<dyn Error>>` - A Result containing a u16 with the track number if successful, or a Box<dyn Error> if not.
+/// * `Result<usize, Box<dyn Error>>` - The track number of the file, wrapped in a `Result` indicating success or failure.
+///   If the track number cannot be determined, an error is returned.
 ///
-/// # Errors
+/// # Examples
 ///
-/// * `Box<dyn Error>` - If the file cannot be opened, or the track number cannot be determined.
+/// ```
+/// use std::error::Error;
+/// use std::fs;
 ///
-/// # Panics
-///
-/// None.
-fn track_number(filename: &str) -> Result<u16, Box<dyn Error>> {
+/// fn main() -> Result<(), Box<dyn Error>> {
+///     let filename = "/path/to/file.mp3";
+///     let track_number = track_number(filename)?;
+///     println!("Track number: {track_number}");
+///     Ok(())
+/// }
+/// ```
+fn track_number(filename: &str) -> Result<usize, Box<dyn Error>> {
     let full_path = fs::canonicalize(filename)?;
 
-    // Get the list of similar files in the same directory
-    let mut files = fs::read_dir(full_path.parent().unwrap())?
-        .filter_map(|f| f.ok())
+    // Get the list of files of the same type in the same directory
+    let parent_path = full_path.parent().unwrap_or_else(|| Path::new(""));
+    let mut files = fs::read_dir(parent_path)?
+        .filter_map(Result::ok)
         .filter(|f| f.path().is_file())
         .filter(|f| {
             f.path()
                 .extension()
-                .unwrap_or_default()
-                .to_str()
-                .unwrap_or_default()
-                .to_ascii_uppercase()
+                .map(std::ffi::OsStr::to_ascii_uppercase)
                 == full_path
                     .extension()
-                    .unwrap_or_default()
-                    .to_str()
-                    .unwrap_or_default()
-                    .to_ascii_uppercase()
+                    .map(std::ffi::OsStr::to_ascii_uppercase)
         })
         .collect::<Vec<_>>();
 
+    // Sort the files by name
+    files.sort_by_key(std::fs::DirEntry::path);
 
-   // return safely
-   Ok(())
+    // Get the index of the current file in the list
+    let track_number = files
+        .iter()
+        .position(|file| file.path() == full_path)
+        .map_or(0, |i| i + 1);
+
+    Ok(track_number)
 }
 /* ====================
        TESTS
@@ -596,5 +611,19 @@ mod tests {
     fn test_disc_candidates() {
         let dc = disc_candidates();
         assert_eq!(dc[0], "CD");
+    }
+
+    #[test]
+    /// Tests that the track number gets returned correctly.
+    /// This test assumes that the files are sorted by name.
+    ///
+    /// TODO: This test is not very good. It should be rewritten to use a temporary directory
+    fn test_track_number() {
+        assert_eq!(track_number("../t_mp3/CD 1/02. Titanskull.mp3").unwrap(), 2);
+        assert_eq!(
+            track_number("../t_mp3/CD 1/10. The Gods All Sleep.mp3").unwrap(),
+            10
+        );
+        assert_eq!(track_number("../testdata/sample.flac").unwrap(), 1);
     }
 }

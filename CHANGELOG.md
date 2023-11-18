@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 ### Fix
 
 - Fixed seconds output
+- Fixed the elapsed time output
 
 ### Miscellaneous Tasks
 
@@ -39,6 +40,8 @@ All notable changes to this project will be documented in this file.
 - Bump spin from 0.9.5 to 0.9.8
 - Updated dependencies, added deployment
 - Version updates
+- Bump rustix from 0.37.19 to 0.37.25
+- Maintenance and dependencies update
 
 ### Refactor
 

@@ -5,6 +5,7 @@ members = [
     "id3tag",
     "common",
 ]
+resolver = "2"
 
 # Config for 'cargo dist'
 [workspace.metadata.dist]
