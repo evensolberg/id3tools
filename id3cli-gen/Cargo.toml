@@ -8,12 +8,16 @@ documentation="README.md"
 repository="https://github.com/evensolberg/id3tools/"
 homepage="https://github.com/evensolberg/id3tools/tree/main/id3cli-gen"
 
+[package.metadata.wix]
+upgrade-guid = "2AD48C7C-6059-4B7E-8A0E-D2805A5F5B9B"
+path-guid = "DA054B79-BC09-48F5-B5C2-BC24DE91C4F3"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # Our own package
 common = { path = "../common" }
-clap_complete = "4.3.1"
-clap_complete_fig = "4.3.1"
-clap_mangen = "0.2.12"
+clap_complete = "4.4.4"
+clap_complete_fig = "4.4.2"
+clap_mangen = "0.2.15"
 log = { workspace = true }

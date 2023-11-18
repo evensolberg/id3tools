@@ -1,5 +1,4 @@
 [workspace]
-
 members = [
     "id3cli-gen",
     "id3show",
@@ -10,15 +9,15 @@ members = [
 # Config for 'cargo dist'
 [workspace.metadata.dist]
 # The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.0.7"
-# The preferred Rust toolchain to use in CI (rustup toolchain syntax)
-rust-toolchain-version = "1.70.0"
-# CI backends to support (see 'cargo dist generate-ci')
+cargo-dist-version = "0.4.3"
+# CI backends to support
 ci = ["github"]
 # The installers to generate for each app
 installers = ["shell", "powershell"]
 # Target platforms to build apps for (Rust target-triple syntax)
-targets = ["x86_64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-pc-windows-msvc", "aarch64-apple-darwin"]
+targets = ["x86_64-unknown-linux-gnu", "aarch64-apple-darwin", "x86_64-apple-darwin", "x86_64-pc-windows-msvc"]
+# Publish jobs to run in CI
+pr-run-mode = "plan"
 
 [profile.release]
 strip = true
@@ -31,10 +30,17 @@ split-debuginfo = "packed"
 
 [workspace.dependencies]
 ape = "0"
-clap = { version = "4.3.2", features = ["cargo", "wrap_help"] }
+clap = { version = "4.4.8", features = ["cargo", "wrap_help"] }
 dsf = "0.2.2"
-log = "0.4.18"
+log = "0.4.20"
 log4rs = { version = "1.2.0", features = ["console_appender", "file_appender", "threshold_filter"] }
-id3 = "1.7.0"
+id3 = "1.10.0"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
+
+[workspace.package]
+edition = "2021"
+authors = ["Even Solberg <even.solberg@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+description = "A collection of command-line tools for working with ID3 tags in audio files."

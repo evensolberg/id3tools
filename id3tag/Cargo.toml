@@ -16,13 +16,13 @@ ape = { workspace = true }
 clap = { workspace = true }
 dsf = { workspace = true }
 id3 = { workspace = true }
-image = "0.24.6"
-itertools = "0.10.5"
+image = "0.24.7"
+itertools = "0.12.0"
 log = { workspace = true }
 metaflac = { workspace = true }
 mp4ameta = { workspace = true }
-rayon = "1.7.0"
-serde = { version = "1.0.163", features = ["derive"] }
+rayon = "1.8.0"
+serde = { version = "1.0.192", features = ["derive"] }
 shellexpand = "3"
 toml = "0"
 
