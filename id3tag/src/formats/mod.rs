@@ -445,6 +445,33 @@ fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 }
 
 /// Counts the number of discs by looking for the number of `disk`, `CD` etc subdirectories
+///
+/// Calculates the number of discs based on the given filename.
+///
+/// This function reads the directory structure of the grandparent directory of the given filename
+/// and counts the number of directories whose names match the disc candidates. The disc candidates
+/// are determined by the `disc_candidates` function.
+///
+/// # Arguments
+///
+/// * `filename` - A string slice representing the path to the file.
+///
+/// # Returns
+///
+/// * `Result<u16, Box<dyn Error>>` - The number of discs as a `u16` if successful, otherwise an error.
+///
+/// # Examples
+///
+/// ```
+/// use std::error::Error;
+///
+/// fn main() -> Result<(), Box<dyn Error>> {
+///     let filename = "/path/to/file.mp3";
+///     let disc_count = disc_count(filename)?;
+///     println!("Number of discs: {disc_count}");
+///     Ok(())
+/// }
+/// ```
 fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
     let disc_candidates = disc_candidates();
     log::trace!("disc_candidates = {disc_candidates:?}");

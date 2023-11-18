@@ -24,6 +24,10 @@ All notable changes to this project will be documented in this file.
 - Changelog Update
 - Update changelog
 
+### Feat
+
+- Add the track_number function
+
 ### Features
 
 - ID3Show updated with more detail
