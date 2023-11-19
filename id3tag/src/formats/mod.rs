@@ -575,7 +575,7 @@ fn disc_candidates() -> Vec<&'static str> {
 ///     Ok(())
 /// }
 /// ```
-fn track_number(filename: &str) -> Result<usize, Box<dyn Error>> {
+fn guess_track_number(filename: &str) -> Result<usize, Box<dyn Error>> {
     let full_path = fs::canonicalize(filename)?;
 
     // Get the list of files of the same type in the same directory
@@ -646,11 +646,11 @@ mod tests {
     ///
     /// TODO: This test is not very good. It should be rewritten to use a temporary directory
     fn test_track_number() {
-        assert_eq!(track_number("../t_mp3/CD 1/02. Titanskull.mp3").unwrap(), 2);
+        assert_eq!(guess_track_number("../t_mp3/CD 1/02. Titanskull.mp3").unwrap(), 2);
         assert_eq!(
-            track_number("../t_mp3/CD 1/10. The Gods All Sleep.mp3").unwrap(),
+            guess_track_number("../t_mp3/CD 1/10. The Gods All Sleep.mp3").unwrap(),
             10
         );
-        assert_eq!(track_number("../testdata/sample.flac").unwrap(), 1);
+        assert_eq!(guess_track_number("../testdata/sample.flac").unwrap(), 1);
     }
 }
