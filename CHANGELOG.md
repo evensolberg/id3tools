@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Dependencies update
 - Fix lints
+- Maintenance
 
 ### Doc
 
