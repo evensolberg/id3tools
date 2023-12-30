@@ -6,7 +6,7 @@ use std::{
     collections::HashMap,
     error::Error,
     fs,
-    path::{Component, Path},
+    path::{Component, Path, PathBuf},
 };
 
 use crate::default_values::DefaultValues;
@@ -121,6 +121,7 @@ fn parse_options(
     // code below still compiles as expected.
     tag!(cli, dv, nt, ot, "album-artist", album_artist, false);
     tag!(cli, dv, nt, ot, "track-artist", track_artist, false);
+
     tag!(
         cli,
         dv,
@@ -544,65 +545,40 @@ fn disc_candidates() -> Vec<&'static str> {
     vec!["CD", "DISC", "DISK", "PART", "VOL", "VOLUME"]
 }
 
-/// Retrieves the track number of a file based on its filename.
+/// Returns a vector of `DirEntry` structs for the given directory and file extension.
+/// The vector is sorted by filename.
+/// Returns a sorted list of directory entries for files with a specific extension.
 ///
-/// This function takes a filename as input and returns the track number of the file.
-/// It first obtains the full path of the file by resolving any symbolic links or relative paths.
-/// Then, it retrieves a list of files of the same type in the same directory as the input file.
-/// The list is filtered to include only regular files with the same file extension as the input file.
-/// The files are then sorted by name.
-/// Finally, the function determines the index of the input file in the sorted list and returns the track number.
+/// The `dir` parameter specifies the directory path to search for files.
+/// The `extension` parameter specifies the file extension to filter the files.
 ///
 /// # Arguments
 ///
-/// * `filename` - A string slice that represents the filename of the file to be processed.
+/// * `dir: &str` - The directory path to search for files.
+/// * `extension: &str` - The file extension to filter the files.
 ///
 /// # Returns
 ///
-/// * `Result<usize, Box<dyn Error>>` - The track number of the file, wrapped in a `Result` indicating success or failure.
-///   If the track number cannot be determined, an error is returned.
+/// A `Result` containing a vector of directory entries for the filtered files, sorted by file name.
+/// If an error occurs during the file reading or filtering process, a `Box<dyn Error>` is returned.
 ///
 /// # Examples
-///
 /// ```
 /// use std::error::Error;
-/// use std::fs;
 ///
-/// fn main() -> Result<(), Box<dyn Error>> {
-///     let filename = "/path/to/file.mp3";
-///     let track_number = track_number(filename)?;
-///     println!("Track number: {track_number}");
-///     Ok(())
-/// }
+/// let files = sorted_tracklist("../testdata", "flac")?;
+/// assert_eq!(files[0].path().file_name().unwrap(), "sample.flac");
 /// ```
-fn guess_track_number(filename: &str) -> Result<usize, Box<dyn Error>> {
-    let full_path = fs::canonicalize(filename)?;
-
-    // Get the list of files of the same type in the same directory
-    let parent_path = full_path.parent().unwrap_or_else(|| Path::new(""));
-    let mut files = fs::read_dir(parent_path)?
-        .filter_map(Result::ok)
-        .filter(|f| f.path().is_file())
-        .filter(|f| {
-            f.path()
-                .extension()
-                .map(std::ffi::OsStr::to_ascii_uppercase)
-                == full_path
-                    .extension()
-                    .map(std::ffi::OsStr::to_ascii_uppercase)
-        })
+///
+fn sorted_tracklist(dir: &PathBuf, extension: &str) -> Result<Vec<fs::DirEntry>, Box<dyn Error>> {
+    let mut files = fs::read_dir(dir)?
+        .filter_map(std::result::Result::ok)
+        .filter(|f| f.path().extension().unwrap_or_default() == extension)
         .collect::<Vec<_>>();
 
-    // Sort the files by name
-    files.sort_by_key(std::fs::DirEntry::path);
+    files.sort_by(|a, b| a.path().file_name().cmp(&b.path().file_name()));
 
-    // Get the index of the current file in the list
-    let track_number = files
-        .iter()
-        .position(|file| file.path() == full_path)
-        .map_or(0, |i| i + 1);
-
-    Ok(track_number)
+    Ok(files)
 }
 /* ====================
        TESTS
@@ -641,16 +617,35 @@ mod tests {
     }
 
     #[test]
-    /// Tests that the track number gets returned correctly.
-    /// This test assumes that the files are sorted by name.
-    ///
-    /// TODO: This test is not very good. It should be rewritten to use a temporary directory
-    fn test_track_number() {
-        assert_eq!(guess_track_number("../t_mp3/CD 1/02. Titanskull.mp3").unwrap(), 2);
-        assert_eq!(
-            guess_track_number("../t_mp3/CD 1/10. The Gods All Sleep.mp3").unwrap(),
-            10
-        );
-        assert_eq!(guess_track_number("../testdata/sample.flac").unwrap(), 1);
+    /// Tests the `sorted_tracklist`() function.
+    fn test_sorted_tracklist() {
+        // Create a temporary directory for testing
+        let temp_dir = tempfile::tempdir().expect("Failed to create temporary directory");
+        let temp_dir_path = temp_dir.path().to_path_buf();
+
+        // Create some test files with different extensions
+        let file1 = temp_dir_path.join("file1.flac");
+        let file2 = temp_dir_path.join("file2.mp3");
+        let file3 = temp_dir_path.join("file3.flac");
+        let file4 = temp_dir_path.join("file4.wav");
+        fs::write(&file1, "").expect("Failed to create test file");
+        fs::write(file2, "").expect("Failed to create test file");
+        fs::write(&file3, "").expect("Failed to create test file");
+        fs::write(file4, "").expect("Failed to create test file");
+
+        // Call the sorted_tracklist function
+        let result = sorted_tracklist(&temp_dir_path, "flac");
+
+        // Assert that the result is Ok and contains the correct files in the correct order
+        assert!(result.is_ok());
+        let files_vec = result.unwrap();
+        assert_eq!(files_vec.len(), 2);
+        assert_eq!(files_vec[0].path(), file1);
+        assert_eq!(files_vec[1].path(), file3);
+
+        // Clean up the temporary directory
+        temp_dir
+            .close()
+            .expect("Failed to clean up temporary directory");
     }
 }

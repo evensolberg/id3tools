@@ -22,7 +22,7 @@ log = { workspace = true }
 metaflac = { workspace = true }
 mp4ameta = { workspace = true }
 rayon = "1.8.0"
-serde = { version = "1.0.192", features = ["derive"] }
+serde = { version = "1.0.193", features = ["derive"] }
 shellexpand = "3"
 toml = "0"
 
@@ -30,3 +30,6 @@ toml = "0"
 common = { path = "../common" }
 human-duration = "0.1.0"
 thousands = "0.2.0"
+
+[dev-dependencies]
+tempfile = "3.9.0"

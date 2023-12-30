@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 
 - Changelog Update
 - Update changelog
+- Add some documentation
+- Update macro documentation
 
 ### Feat
 

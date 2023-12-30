@@ -100,8 +100,8 @@ fn audio_file_type(ft: Type) -> FileTypes {
 #[must_use]
 pub fn file_rename_pattern_not_ok(pattern: &str) -> bool {
     !pattern.contains("%tn")
-        && !pattern.contains("%tt")
         && !pattern.contains("%track-number")
+        && !pattern.contains("%tt")
         && !pattern.contains("%track-title")
         && !pattern.contains("%tts")
         && !pattern.contains("%track-title-sort")
