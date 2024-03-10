@@ -1,14 +1,4 @@
-//! Image processing module. Contains functions for reading, resizing and writing cover images.
-//!
-//! The methodology for finding a cover image, is as follows:
-//!
-//! 1. Gather the search paths
-//! 2. Check the search folders for the cover requested.
-//! 3. If not found, check the candidates
-//! 4. If anything is found, look for a "-resized" version of the file found.
-//! 5. If not found, exit
-//! 6. Check if the file identified needs to be resized, and if so, save it with "-resized" appended to the filename
-//! 7. Load the file as the cover
+//! Image processing module. Contains functions for finding and reading cover images.
 
 use image::{self, imageops::FilterType, io::Reader as ImageReader, ImageFormat::Jpeg};
 use std::error::Error;
@@ -38,7 +28,6 @@ pub use ops::aspect_ratio_ok;
 /// # Returns
 ///
 /// `Result<(Option<String>, Option<String>), Box<dyn Error>>` - an `Option<String>` tuple containing the paths to the front and back covers, or None, if nothing has been found.
-// #[allow(clippy::module_name_repetitions)]
 pub fn get_cover_filenames(
     music_file: &str,
     cfg: &DefaultValues,
@@ -110,15 +99,12 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         return Err(format!("Image {cover_file} is outside the expected ratio.").into());
     }
 
-    // Create a buffer to hold the image
     let mut img_buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
-    // Check if the image is too small
     if image_too_small(&img, max_size) {
         return Err(format!("Image {cover_file} is too small.").into());
     }
 
-    // Resize the image if needed
     if image_too_large(&img, max_size) {
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
         img_resized

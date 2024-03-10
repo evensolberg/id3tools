@@ -350,6 +350,7 @@ mod tests {
     #[test]
     /// Ensure that the substitution values are being used properly.
     /// Note that values for description and front/back pictures aren't used. Obviously.
+    #[allow(clippy::too_many_lines)]
     fn test_option_to_tag() {
         let ape_tag = option_to_tag(FileTypes::Ape);
         assert_eq!(

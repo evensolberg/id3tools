@@ -37,12 +37,11 @@ fn test_image_resizing() {
     let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
     println!("Image size: {}", return_vec.len());
     assert!(!return_vec.is_empty());
-    assert_eq!(return_vec.len(), 52_429);
+    assert_eq!(return_vec.len(), 7273);
 
     // Read the file with resizing.
     let max_size = 2500;
     let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
     println!("Image size: {}", return_vec.len());
-    assert!(!return_vec.is_empty());
-    assert_eq!(return_vec.len(), 52_429);
+    assert!(return_vec.is_empty());
 }

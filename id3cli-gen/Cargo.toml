@@ -1,9 +1,10 @@
 [package]
 name = "id3cli-gen"
 version = "0.1.3"
-edition = "2021"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 description="Generate man pages and fig configs from the id3tag CLI configuration."
-license="MIT"
 documentation="README.md"
 repository="https://github.com/evensolberg/id3tools/"
 homepage="https://github.com/evensolberg/id3tools/tree/main/id3cli-gen"

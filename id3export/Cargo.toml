@@ -1,14 +1,12 @@
 [package]
-name = "id3tag"
-version = "0.14.15"
+name = "id3export"
+version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-readme = "README.md"
-description = "A simple application for updating metadata (ID3) information in FLAC, MP3 and MP4 files."
-homepage = "https://github.com/evensolberg/id3tools/id3tag/"
-repository = "https://github.com/evensolberg/id3tools"
-keywords = ["flac", "audio", "parser", "metadata"]
+readme.workspace = true
+description = "Export ID3 tags to CSV and/or JSON. A file is generated for each directory processed."
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -16,17 +14,12 @@ ape = { workspace = true }
 clap = { workspace = true }
 dsf = { workspace = true }
 id3 = { workspace = true }
-image = { version = "0.25.0", features = ["jpeg", "png"] }
-itertools = "0.12.0"
 log = { workspace = true }
 metaflac = { workspace = true }
 mp4ameta = { workspace = true }
-rayon = "1.8.0"
 serde = { version = "1.0.192", features = ["derive"] }
-shellexpand = "3"
-toml = "0"
-human-duration = "0.1.0"
-thousands = "0.2.0"
+serde_json = { version = "1.0.79" }
+csv = { version = "1.1.6" }
 
 # Our own package
 common = { path = "../common" }

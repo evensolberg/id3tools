@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Refactor
+
+- Lint fixes
+
 ### Testing
 
 - Test update for image resize result

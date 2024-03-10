@@ -2,6 +2,7 @@
 members = [
     "common",
     "id3cli-gen",
+    "id3export",
     "id3show",
     "id3tag",
 ]
