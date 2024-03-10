@@ -18,11 +18,14 @@ All notable changes to this project will be documented in this file.
 
 - Dependencies update
 - Fix lints
+- Mergify autoupdates
 
 ### Doc
 
 - Changelog Update
 - Update changelog
+- Add some documentation
+- Update macro documentation
 
 ### Feat
 
@@ -31,6 +34,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - ID3Show updated with more detail
+- Check for empty tags before renaming
 
 ### Fix
 
@@ -39,9 +43,9 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
-- Changelog
-- Changelog
 - Bump spin from 0.9.5 to 0.9.8
+- Changelog
+- Changelog
 - Updated dependencies, added deployment
 - Version updates
 - Bump rustix from 0.37.19 to 0.37.25
@@ -106,6 +110,8 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - CHANGELOG update
+- Bump tokio from 1.18.2 to 1.24.1
+- Bump tokio from 1.24.1 to 1.25.0
 - Lockfile rebuild and Changelog Update
 
 ### Refactor
@@ -153,8 +159,6 @@ All notable changes to this project will be documented in this file.
 - Remove test output file
 - Update Justfile
 - Justfile update
-- Bump tokio from 1.18.2 to 1.24.1
-- Bump tokio from 1.24.1 to 1.25.0
 - Update CHANGELOG
 
 ### Refactor
