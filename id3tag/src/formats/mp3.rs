@@ -37,7 +37,7 @@ pub fn process(
             // Front picture
             "APIC-F" => {
                 match set_picture(&mut tag, value.trim(), PictureType::CoverFront, max_size) {
-                    Ok(_) => (),
+                    Ok(()) => (),
                     Err(err) => {
                         if cfg.stop_on_error.unwrap_or(false) {
                             return Err(format!(
@@ -53,7 +53,7 @@ pub fn process(
             // Back picture
             "APIC-B" => match set_picture(&mut tag, value.trim(), PictureType::CoverBack, max_size)
             {
-                Ok(_) => (),
+                Ok(()) => (),
                 Err(err) => {
                     if cfg.stop_on_error.unwrap_or(false) {
                         return Err(format!(

@@ -101,7 +101,7 @@ pub fn process(
                 };
 
                 match set_picture(&mut tags, v.trim(), cover_type, max_size) {
-                    Ok(_) => log::debug!("process::{cover_type:?} set."),
+                    Ok(()) => log::debug!("process::{cover_type:?} set."),
                     Err(err) => {
                         if cfg.stop_on_error.unwrap_or(true) {
                             return Err(format!(

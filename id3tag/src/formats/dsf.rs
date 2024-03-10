@@ -83,11 +83,7 @@ pub fn process(
 
         // Rename file
         if config.rename_file.is_some() {
-            if rename_file(filename, config, &tag).is_ok() {
-                processed_ok = true;
-            } else {
-                processed_ok = false;
-            }
+            processed_ok = rename_file(filename, config, &tag).is_ok();
         }
     }
 

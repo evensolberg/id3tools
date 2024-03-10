@@ -73,7 +73,7 @@ pub fn process(
         log::debug!("Not writing {filename}");
     } else {
         match tag.write_to_path(filename) {
-            Ok(_) => processed_ok = true,
+            Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to save tags to {filename}. Error: {err}").into());
@@ -86,7 +86,7 @@ pub fn process(
     // Rename file
     if config.rename_file.is_some() {
         match rename_file(filename, config, &tag) {
-            Ok(_) => processed_ok = true,
+            Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to rename {filename}. Error: {err}").into());

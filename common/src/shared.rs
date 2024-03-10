@@ -57,7 +57,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
         log::debug!("File type is {ft}");
     } else {
         log::debug!("File type is not a recognized audio format. Trying MP4 variants.");
-        let mp4vec = vec!["mp4a", "mp4b"];
+        let mp4vec: [&str; 2] = ["mp4a", "mp4b"];
         let ext = file_type.extension().to_lowercase();
         if mp4vec.contains(&ext.as_str()) {
             ft = FileTypes::MP4;
@@ -271,6 +271,11 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
+///
+/// # Panics
+///
+/// If the time appears to have gone backwards. Or it's after 03:14:07 UTC on 19 January 2038 (the Epochalypse).
+/// Either case is highly unlikely. If you need to worry about this, you have bigger problems.
 #[must_use]
 pub fn get_unique_value() -> u128 {
     SystemTime::now()

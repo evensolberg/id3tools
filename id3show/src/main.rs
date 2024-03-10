@@ -56,7 +56,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         };
 
         match proc_res {
-            Ok(_) => files_processed += 1,
+            Ok(()) => files_processed += 1,
             Err(err) => {
                 log::error!("  Unable to process. Error: {}", err);
                 files_skipped += 1;
@@ -80,7 +80,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 /// The actual executable function that gets called when the program in invoked.
 fn main() {
     std::process::exit(match run() {
-        Ok(_) => 0, // everying is hunky dory - exit with code 0 (success)
+        Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
             log::error!("{}", err.to_string().replace('\"', ""));
             1 // exit with a non-zero return code, indicating a problem

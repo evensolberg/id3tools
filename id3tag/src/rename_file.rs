@@ -37,7 +37,7 @@ pub fn rename_file(
     };
 
     // These tags (may) need to be padded with leading zeros.
-    let pad_tags = vec![
+    let pad_tags: [&str; 8] = [
         "%dn",
         "%dt",
         "%tn",
@@ -50,19 +50,25 @@ pub fn rename_file(
 
     // replace any options (eg. %aa, %tg) with the corresponding tag
     for (key, value) in tags {
-        // Make sure to pad disc and track numbers with leading zeros
         let mut fixed_value = value.clone();
         fixed_value = fixed_value.trim().to_string();
 
+        // Make sure to pad disc and track numbers with leading zeros
+        // or fill them in with "00" if empty.
         if pad_tags.contains(&key.as_str()) {
-            fixed_value = format!("{:0>2}", value.trim());
+            if value.is_empty() {
+                log::warn!("'{key}' has no value. Setting to '00'.");
+                fixed_value = "00".to_string();
+            } else {
+                fixed_value = format!("{:0>2}", value.trim());
+            }
         }
 
         // Do the actual filename replacement
         if fixed_value.is_empty() {
-            if new_filename.contains(key) {
-                log::warn!("Tag '{key}' is empty.");
-            }
+            // We can safely replace the tag with "unknown" if it's empty
+            // becauee numerical values are handled above.
+            log::warn!("'{key}' is empty. Setting to 'unknown'.");
             fixed_value = "unknown".to_string();
         }
         new_filename = new_filename.replace(key, &fixed_value);
@@ -104,7 +110,7 @@ pub fn rename_file(
     } else {
         // Get parent dir
         match std::fs::rename(filename, &new_path) {
-            Ok(_) => log::debug!("{filename} --> {npl}"),
+            Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 if config.stop_on_error.unwrap_or(true) {
                     return Err(

@@ -16,6 +16,17 @@ use clap::{parser::ValueSource, ArgMatches};
 /// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification (e.g. "detail-off")
 /// - `$var:ident`: The name of the `DefaultValues` instance to be updated
 /// - `$val:ident`: The `DefaultValues` variable to be set (e.g. `detail_off`)
+///
+/// # Example
+///
+/// ```ignore
+/// check_flag!(cli, "stop-on-error", cfg, stop_on_error);
+/// check_flag!(cli, "print-summary", cfg, print_summary);
+/// check_flag!(cli, "detail-off", cfg, detail_off);
+/// check_flag!(cli, "dry-run", cfg, dry_run);
+/// check_flag!(cli, "single-thread", cfg, single_thread);
+/// ``
+///
 macro_rules! check_flag {
     ($args:ident, $par:literal, $var:ident, $val:ident) => {
         if $args.value_source($par) == Some(ValueSource::CommandLine)
@@ -30,8 +41,8 @@ macro_rules! check_flag {
 
 //~ spec:startcode
 /// The default values for the flags and options.
-/// TODO: Write Deserialize trait for this struct
-/// TODO: Separate the config and the values into two separate structs
+// TODO: Write Deserialize trait for this struct
+// TODO: Separate the config and the values into two separate structs
 #[derive(Debug, Default, Clone, Deserialize)]
 pub struct DefaultValues {
     /// Flag: Do not output detail about each item processed.
