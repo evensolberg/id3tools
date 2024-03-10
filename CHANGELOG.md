@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 
 - ID3Show updated with more detail
 - Check for empty tags before renaming
+- Show duration for FLAC and MP3
 
 ### Fix
 
