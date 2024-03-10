@@ -1,0 +1,38 @@
+{
+    "album_artist": "AC/DC",
+    "album_name": "Back in Black",
+    "track_count": 10,
+    "disc_count": 1,
+    "total_duration_sec": 200,
+    "last_updated": "2024-03-10T09:26:00",
+    "tracks": [
+        {
+            "disc_number": 1,
+            "track_number": 1,
+            "disc_count": 1,
+            "track_count": 10,
+            "album_artist": "AC/DC",
+            "track_artist": "AC/DC",
+            "album_name": "Back in Black",
+            "track_name": "Hell's Bells",
+            "duration_sec": 20,
+            "file_format": "FLAC",
+            "bit_depth": 24,
+            "sample_frequency": 96000
+        },
+        {
+            "disc_number": 1,
+            "track_number": 2,
+            "disc_count": 1,
+            "track_count": 10,
+            "album_artist": "AC/DC",
+            "track_artist": "AC/DC",
+            "album_name": "Back in Black",
+            "track_name": "Shoot to Thrill",
+            "duration_sec": 20,
+            "file_format": "FLAC",
+            "bit_depth": 24,
+            "sample_frequency": 96000
+        }
+    ]
+}

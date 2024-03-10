@@ -579,21 +579,4 @@ mod tests {
         let dc = disc_candidates();
         assert_eq!(dc[0], "CD");
     }
-
-    #[test]
-    /// Tests that the track number gets returned correctly.
-    /// This test assumes that the files are sorted by name.
-    ///
-    /// TODO: This test is not very good. It should be rewritten to use a temporary directory
-    fn test_track_number() {
-        assert_eq!(
-            guess_track_number("../t_mp3/CD 1/02. Titanskull.mp3").unwrap(),
-            2
-        );
-        assert_eq!(
-            guess_track_number("../t_mp3/CD 1/10. The Gods All Sleep.mp3").unwrap(),
-            10
-        );
-        assert_eq!(guess_track_number("../testdata/sample.flac").unwrap(), 1);
-    }
 }

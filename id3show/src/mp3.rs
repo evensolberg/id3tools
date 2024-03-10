@@ -64,6 +64,7 @@ macro_rules! genre_vec {
 /// Performs the actual processing of MP3 files.
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
     let meta = open_mp3(filename)?;
+    let duration_string = calc_duration_string(meta.duration.as_secs_f64())?;
     if show_detail {
         show_optional_audio_tags(&meta);
         show_frame_data(&meta);
@@ -133,6 +134,10 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 return Err(format!("Unknown content type in file {filename}").into());
             }
         }
+    }
+
+    if !show_detail {
+        println!("  Duration = {duration_string} (Calc)");
     }
 
     // return safely
@@ -589,4 +594,14 @@ fn genre(g: &mp3_metadata::Genre) -> String {
 /// Returns the `Url` as a `String`
 fn url_to_string(u: &mp3_metadata::Url) -> String {
     u.0.clone()
+}
+
+fn calc_duration_string(duration: f64) -> Result<String, Box<dyn Error>> {
+    let hours = (duration / 3600.0) as u32;
+    let minutes = (duration / 60.0) as u32;
+    let seconds = (duration % 60.0) as u32;
+    if hours > 0 {
+        return Ok(format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds));
+    }
+    Ok(format!("{:0>2}:{:0>2}", minutes, seconds))
 }

@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file.
 - Add some documentation
 - Update macro documentation
 
+### Documentation
+
+- Changelog Update
+
 ### Feat
 
 - Add the track_number function

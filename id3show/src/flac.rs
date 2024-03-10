@@ -22,6 +22,9 @@ use std::error::Error;
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
     let tags = Tag::read_from_path(filename)?;
 
+    // Placeholder for duration
+    let mut duration = String::new();
+
     // Output existing blocks
     for block in tags.blocks() {
         match block {
@@ -29,6 +32,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 if show_detail {
                     show_streaminfo(si);
                 }
+                duration = calc_duration_string(si.total_samples, si.sample_rate)?;
             }
             metaflac::Block::Application(app) => {
                 if show_detail {
@@ -56,7 +60,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 }
             }
             metaflac::Block::VorbisComment(vc) => {
-                show_vorbis_comment(vc, show_detail);
+                show_vorbis_comment(vc, &duration, show_detail);
             }
             metaflac::Block::Unknown(uk) => {
                 if show_detail {
@@ -126,7 +130,7 @@ fn show_seektable(st: &block::SeekTable) {
 }
 
 /// Show the `block::VorbisComment` fields
-fn show_vorbis_comment(vc: &block::VorbisComment, show_detail: bool) {
+fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool) {
     println!("  Vorbis Comments:");
     if show_detail {
         println!("    Vendor: {}", vc.vendor_string);
@@ -136,6 +140,7 @@ fn show_vorbis_comment(vc: &block::VorbisComment, show_detail: bool) {
             println!("    {key} = {value}");
         }
     }
+    println!("    Duration = {duration} mm:ss");
 }
 
 /// Show the `block::Unknown` fields
@@ -143,4 +148,23 @@ fn show_unknown(uk: &(u8, Vec<u8>)) {
     println!("  Unknown Block:");
     println!("    Block Code: {}", uk.0);
     println!("    Block Data: {:?}", uk.1);
+}
+
+fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64, Box<dyn Error>> {
+    if sample_rate == 0 {
+        return Err("Sample rate is zero".into());
+    }
+
+    Ok(samples as f64 / sample_rate as f64)
+}
+
+fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String, Box<dyn Error>> {
+    let duration = calc_duration_seconds(samples, sample_rate)?;
+    let hours = (duration / 3600.0) as u32;
+    let minutes = (duration / 60.0) as u32;
+    let seconds = (duration % 60.0) as u32;
+    if hours > 0 {
+        return Ok(format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds));
+    }
+    Ok(format!("{:0>2}:{:0>2}", minutes, seconds))
 }
