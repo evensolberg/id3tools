@@ -18,3 +18,4 @@ fn test_read_cover() {
     assert!(!return_vec.is_empty());
     assert_eq!(return_vec.len(), 52_429);
 }
+
