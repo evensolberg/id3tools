@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.14.14"
+version = "0.14.15"
 edition = "2021"
 authors = ["Even Solberg <even.solberg@gmail.com>"]
 license = "MIT"
@@ -16,7 +16,7 @@ ape = { workspace = true }
 clap = { workspace = true }
 dsf = { workspace = true }
 id3 = { workspace = true }
-image = "0.24.7"
+image = { version = "0.25.0", features = ["jpeg", "png"] }
 itertools = "0.12.0"
 log = { workspace = true }
 metaflac = { workspace = true }

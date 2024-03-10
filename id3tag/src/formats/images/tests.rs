@@ -16,5 +16,5 @@ fn test_read_cover() {
     println!("Image size: {}", return_vec.len());
     assert!(!return_vec.is_empty());
     assert!(!return_vec.is_empty());
-    assert_eq!(return_vec.len(), 60_727);
+    assert_eq!(return_vec.len(), 52_429);
 }
