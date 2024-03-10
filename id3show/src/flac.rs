@@ -150,6 +150,7 @@ fn show_unknown(uk: &(u8, Vec<u8>)) {
     println!("    Block Data: {:?}", uk.1);
 }
 
+#[allow(clippy::cast_precision_loss, clippy::cast_lossless)]
 fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64, Box<dyn Error>> {
     if sample_rate == 0 {
         return Err("Sample rate is zero".into());
@@ -158,13 +159,14 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64, Box<dyn 
     Ok(samples as f64 / sample_rate as f64)
 }
 
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String, Box<dyn Error>> {
     let duration = calc_duration_seconds(samples, sample_rate)?;
     let hours = (duration / 3600.0) as u32;
     let minutes = (duration / 60.0) as u32;
     let seconds = (duration % 60.0) as u32;
     if hours > 0 {
-        return Ok(format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds));
+        return Ok(format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}"));
     }
-    Ok(format!("{:0>2}:{:0>2}", minutes, seconds))
+    Ok(format!("{minutes:0>2}:{seconds:0>2}"))
 }

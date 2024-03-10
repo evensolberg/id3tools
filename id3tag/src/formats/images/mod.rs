@@ -114,13 +114,12 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     let mut img_buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
     // Check if the image is too small
-    let min_size: u32 = max_size / 2;
-    if (img.width() < min_size && img.height() < min_size) && max_size > 0 {
+    if image_too_small(&img, max_size) {
         return Err(format!("Image {cover_file} is too small.").into());
     }
 
     // Resize the image if needed
-    if (img.width() > max_size || img.height() > max_size) && max_size > 0 {
+    if image_too_large(&img, max_size) {
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
         img_resized
             .write_to(&mut img_buffer, Jpeg)
@@ -130,4 +129,34 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     };
 
     Ok(img_buffer.into_inner())
+}
+
+/// Checks if the image is too small to be used as a cover.
+///
+/// # Arguments
+///
+/// `img: &image::DynamicImage` - the image to check.
+/// `max_size: u32` - the maximum size of the image, in pixels. If the image is smaller than half of this on both sides, it is considered too small.
+///
+/// # Returns
+///
+/// `bool` - true if the image is too small, false otherwise.
+fn image_too_small(img: &image::DynamicImage, max_size: u32) -> bool {
+    let min_size = max_size / 2;
+
+    (img.width() < min_size && img.height() < min_size) && max_size > 0
+}
+
+/// Checks if the image is too large to be used as a cover.
+///
+/// # Arguments
+///
+/// `img: &image::DynamicImage` - the image to check.
+/// `max_size: u32` - the maximum size of the image, in pixels. If the image is larger than this om either size, it is considered too large and needs to be resized down to this size.
+///
+/// # Returns
+///
+/// `bool` - true if the image is too large, false otherwise.
+fn image_too_large(img: &image::DynamicImage, max_size: u32) -> bool {
+    (img.width() > max_size || img.height() > max_size) && max_size > 0
 }
