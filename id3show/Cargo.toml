@@ -16,7 +16,7 @@ dsf = { workspace = true }
 id3 = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
-mp3-metadata = "0.3.4"
+mp3-metadata = { workspace = true }
 mp4ameta = { workspace = true }
 clap = { workspace = true }
 

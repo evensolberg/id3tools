@@ -18,7 +18,7 @@ path-guid = "DA054B79-BC09-48F5-B5C2-BC24DE91C4F3"
 [dependencies]
 # Our own package
 common = { path = "../common" }
-clap_complete = "4.4.4"
-clap_complete_fig = "4.4.2"
-clap_mangen = "0.2.15"
+clap_complete = { workspace = true }
+clap_complete_fig = { workspace = true }
+clap_mangen = { workspace = true }
 log = { workspace = true }

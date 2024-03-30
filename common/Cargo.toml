@@ -14,8 +14,8 @@ homepage = "https://github.com/evensolberg/id3tools/common/"
 clap = { workspace = true }
 log = { workspace = true }
 log4rs = { workspace = true }
-shellexpand = "3"
-infer = "0.15.0"
+shellexpand = { workspace = true }
+infer = { workspace = true }
 
 [dev-dependencies]
-assay = "0.1.1"
+assay = { workspace = true }

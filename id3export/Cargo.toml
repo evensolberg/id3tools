@@ -17,9 +17,9 @@ id3 = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
 mp4ameta = { workspace = true }
-serde = { version = "1.0.192", features = ["derive"] }
-serde_json = { version = "1.0.79" }
-csv = { version = "1.1.6" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+csv = { workspace = true }
 
 # Our own package
 common = { path = "../common" }

@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 #[derive(Serialize, Default, Debug)]
+#[allow(clippy::struct_field_names)]
 pub struct Track {
     /// album artist
     pub album_artist: Option<String>,
@@ -54,8 +55,8 @@ pub struct Track {
     pub track_comments: Option<String>,
 }
 
-impl Track {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
+// impl Track {
+//     pub fn new() -> Self {
+//         Self::default()
+//     }
+// }
