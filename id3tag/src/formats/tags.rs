@@ -141,6 +141,8 @@ pub fn get_tag_names(file_type: FileTypes) -> TagNames {
 }
 
 /// Returns a `HashMap` with the tag options and tag option aliases mapped to the right tag name based on file type.
+/// This is meant for use in file rename operations.
+///
 /// Eg: %album-artist or %aa --> ALBUMARTIST (FLAC), TPE2 (MP3) or `aART` (MP4)
 pub fn option_to_tag(file_type: FileTypes) -> HashMap<String, String> {
     let tag_names = get_tag_names(file_type);
@@ -350,6 +352,7 @@ mod tests {
     #[test]
     /// Ensure that the substitution values are being used properly.
     /// Note that values for description and front/back pictures aren't used. Obviously.
+    #[allow(clippy::too_many_lines)]
     fn test_option_to_tag() {
         let ape_tag = option_to_tag(FileTypes::Ape);
         assert_eq!(

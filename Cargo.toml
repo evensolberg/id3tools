@@ -2,6 +2,7 @@
 members = [
     "common",
     "id3cli-gen",
+    "id3export",
     "id3show",
     "id3tag",
 ]
@@ -32,13 +33,29 @@ split-debuginfo = "packed"
 
 [workspace.dependencies]
 ape = "0"
-clap = { version = "4.4.8", features = ["cargo", "wrap_help"] }
+clap = { version = "4.4.8", features = ["cargo"] }
 dsf = "0.2.2"
 log = "0.4.20"
-log4rs = { version = "1.2.0", features = ["console_appender", "file_appender", "threshold_filter"] }
+log4rs = "1.2.0"
 id3 = "1.10.0"
 metaflac = "0.2.5"
 mp4ameta = "0.11.0"
+assay = "0.1.1"
+clap_complete = "4.4.4"
+clap_complete_fig = "4.4.2"
+clap_mangen = "0.2.15"
+csv = "1.1.6"
+human-duration = "0.1.0"
+image = "0.25.0"
+infer = "0.15.0"
+itertools = "0.12.0"
+mp3-metadata = "0.3.4"
+rayon = "1.8.0"
+serde = "1.0.192"
+serde_json = "1.0.79"
+shellexpand = "3"
+thousands = "0.2.0"
+toml = "0"
 
 [workspace.package]
 edition = "2021"

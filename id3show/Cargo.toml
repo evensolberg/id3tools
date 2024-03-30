@@ -1,13 +1,13 @@
 [package]
 name = "id3show"
-edition = "2021"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 version = "0.2.4"
-authors = ["Even Solberg <even.solberg@gmail.com>"]
 description = "A simple application to display metadata (ID3) information in music files."
 homepage = "https://github.com/evensolberg/id3tools/id3show/"
 readme = "README.md"
 keywords = ["flac", "audio", "parser", "metadata", "display"]
-license = "MIT"
 repository = "https://github.com/evensolberg/id3tools"
 
 [dependencies]
@@ -16,7 +16,7 @@ dsf = { workspace = true }
 id3 = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
-mp3-metadata = "0.3.4"
+mp3-metadata = { workspace = true }
 mp4ameta = { workspace = true }
 clap = { workspace = true }
 

@@ -1,9 +1,9 @@
 [package]
 name = "common"
 version = "0.1.3"
-edition = "2021"
-authors = ["Even Solberg <even.solberg@gmail.com>"]
-license = "MIT"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
 readme = "README.md"
 description = "Shared utility functions and structures for the id3tools"
 homepage = "https://github.com/evensolberg/id3tools/common/"
@@ -14,8 +14,8 @@ homepage = "https://github.com/evensolberg/id3tools/common/"
 clap = { workspace = true }
 log = { workspace = true }
 log4rs = { workspace = true }
-shellexpand = "3"
-infer = "0.15.0"
+shellexpand = { workspace = true }
+infer = { workspace = true }
 
 [dev-dependencies]
-assay = "0.1.1"
+assay = { workspace = true }

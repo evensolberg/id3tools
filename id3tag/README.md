@@ -22,15 +22,15 @@ Examples:
 
 |Short|Long|Description|
 |-----|----|:---------|
-`-c`|`--config-file`|The name of the config file for this application. If not specified, the app will try `~/.id3tag-config.toml`.
-`-o`|`--detail-off`|Don't export detailed information about each file processed.
-`-r`|`--dry-run`|Iterate through the files and produce output without actually processing anything.
-`-1`|`--single-thread`|Use single-threaded execution when processing files. This is slower, but has less impact on your system. You may need to use this on systems with hard disks instead of SSDs.
-`-h`|`--help`|Prints help information
-`-p`|`--print-summary`|Print summary detail after all files are processed.
-`-s`|`--stop-on-error`|Stop on error. If this flag isn't set, the application will attempt to continue in case of error.
-`-V`|`--version`|Prints version information.
-`-l`|`--log`|Configures the logging to suit your requirements.
+|`-c`|`--config-file`|The name of the config file for this application. If not specified, the app will try `~/.id3tag-config.toml`.|
+|`-o`|`--detail-off`|Don't export detailed information about each file processed.|
+|`-r`|`--dry-run`|Iterate through the files and produce output without actually processing anything.|
+|`-1`|`--single-thread`|Use single-threaded execution when processing files. This is slower, but has less impact on your system. You may need to use this on systems with hard disks instead of SSDs.|
+|`-h`|`--help`|Prints help information|
+|`-p`|`--print-summary`|Print summary detail after all files are processed.|
+|`-s`|`--stop-on-error`|Stop on error. If this flag isn't set, the application will attempt to continue in case of error.|
+|`-V`|`--version`|Prints version information.|
+|`-l`|`--log`|Configures the logging to suit your requirements.|
 
 ### Options
 
@@ -83,6 +83,39 @@ If both `track_genre` and `track_genre_number` are present in a config file, the
 |--------|:----------|
 |`<FILE(S)>`|One or more file(s) to process. Wildcards and multiple files (e.g. 2019*.flac 2020*.mp3) are supported.|
 
+### Rename Patterns
+
+The tool can rename files based on ID3 tags. The tags follow the conventions for the options listed in the Options table above, but are repeated here for clarity. The following patterns are supported:
+
+| Long Form | Short Form | Description |
+|-----------|------------|-------------|
+|`%album-artist`|`%aa`|The album artist|
+|`%album-artist-sort`|`%aas`|The album artist sort|
+|`%album-title`|`%at`|The album title|
+|`%album-title-sort`|`%ats`|The album title sort|
+|`%disc-number`|`%dn`|The disc number|
+|`%disc-number-total`|`%dt`/`%dnt`|The total number of discs|
+|`%track-artist`|`%ta`|The track artist|
+|`%track-artist-sort`|`%tas`|The track artist sort|
+|`%track-title`|`%tt`|The track title|
+|`%track-title-sort`|`%tts`|The track title sort|
+|`%track-number`|`%tn`|The track number|
+|`%track-number-total`|`%to`/`%tnt`|The total number of tracks|
+|`%track-genre`|`%tg`|The track genre|
+|`%track-genre-number`|`%tgn`|The track genre number [^1]|
+|`%track-date`|`%td`|The release date for the album|
+|`%track-composer`|`%tc`|The track composer|
+|`%track-composer-sort`|`%tcs`|The track composer sort|
+|`%track-comment`|`%tm`|The comment(s) for the track|
+
+While there are tags for the front and back cover, these are not supported in the rename pattern.
+
+#### Examples
+
+- `--rename-file "%dn-%tn %tt"` will rename the file to "01-02 Bad Medicine".
+- `--rename-file "%disc-number-%track-number %track-name"` will rename the file to "01-02 Bad Medicine".
+- `--rename-file "%ta - %tn - %tt"` will rename the file to "Bon Jovi - 02 - Bad Medicine".
+
 ## Configuration File
 
 This file describes the configuration parameters found in the config file. You can specify a global config file at `~/.id3tag-config.toml` file or a specific version based on the location given:
@@ -92,42 +125,38 @@ This file describes the configuration parameters found in the config file. You c
 
 |Parameter|Possible Values|Default Value|Description|
 |:--------|:--------------|:------------|:----------|
-|`detail_off`|`true`/`false`|`false`|Don't export detailed information about each file processed.
-|`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.
-|`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.
-|`single_thread`|`true / false`|`false`|Use single-threaded execution.
-|`album_artist`|||The name of the album artist.
-|`album_artist_sort`|||The name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
-|`album_title`|||The title of the album.
-|`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.
-|`disc_number`|||The disc number, usually 1.
-|`disc_count|`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.
-|`disc_number_total`|||The total number of discs that comprise the album, usually 1.
-|`track_artist`|||The track's artist.
-|`track_album_artist`|||Set the track artist and album artist at the same time.
-|`track_artist_sort`|||The track's artist sort.
-|`track_title`|||The track's title.
-|`track_title_sort`|||The track's title sort. Not commonly used.
-|`track_number`|||The tracks on this disc.
-|`track_number_total`|||The total number of tracks on this disc.
-|`track_count`|`true`/`false`||Counts the number of tracks.
-|`track_genre`|Any text||The track genre. Will be applied to each track.
-|`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.
-|`track_date`|||The release date for the album
-|`track_composer`|Any text||The track composer. Will be applied to each track.
-|`track_composer_sort`|Any text||The track composer. Will be applied to each track.
-|`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.
-|`picture_front_candidate`|Any file name.||An array of names of files to look for. These are candidates for the front cover.
-|`picture_back_candidate`|Any file name.||An array of names of files to look for. These are candidates for the back cover.
-|`picture_search_folders`|Any folder name.|`.` & `..`|An array of folders in which to look for cover candidates. `.` and `..` are added automatically.
-|`picture_max_size`|Any positive number.|500|The maximum size (horizontally & vertically) of the cover. If the cover found is bigger, it will be resized to this size.
-|`rename_file`|||Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in the Options table above.
+|`detail_off`|`true`/`false`|`false`|Don't export detailed information about each file processed.|
+|`print_summary`|`true`/`false`|`false`|Print summary detail after all files are processed.|
+|`stop_on_error`|`true`/`false`|`false`|If this flag isn't set, the application will attempt to continue in case of error.|
+|`single_thread`|`true / false`|`false`|Use single-threaded execution.|
+|`album_artist`|||The name of the album artist.|
+|`album_artist_sort`|||The name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".|
+|`album_title`|||The title of the album.|
+|`album_title_sort`|||The sort title of the album. Example: 'The Wall' could be entered as 'Wall, The'. Not commonly used.|
+|`disc_number`|||The disc number, usually 1.|
+|`disc_count`|`true`/`false`||Tries to figure out the disc number based on the name of the parent folder. If it contains "CD", "DISC" or "PART" (case insensitive), we'll attempt to discern the disc number based on this. Otherwise this value is set to 1.|
+|`disc_number_total`|||The total number of discs that comprise the album, usually 1.|
+|`track_artist`|||The track's artist.|
+|`track_album_artist`|||Set the track artist and album artist at the same time.|
+|`track_artist_sort`|||The track's artist sort.|
+|`track_title`|||The track's title.|
+|`track_title_sort`|||The track's title sort. Not commonly used.|
+|`track_number`|||The tracks on this disc.|
+|`track_number_total`|||The total number of tracks on this disc.|
+|`track_count`|`true`/`false`||Counts the number of tracks.|
+|`track_genre`|Any text||The track genre. Will be applied to each track.|
+|`track_genre_number`|`1`-`191`||The track genre number as [defined by ID3](https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D). Will be applied to each track. Overwrites any `track_genre` entries.|
+|`track_date`|||The release date for the album|
+|`track_composer`|Any text||The track composer. Will be applied to each track.|
+|`track_composer_sort`|Any text||The track composer. Will be applied to each track.|
+|`track_comment`|Any text||The comment(s) for the track. Will be applied to each track.|
+|`picture_front_candidate`|Any file name.||An array of names of files to look for. These are candidates for the front cover.|
+|`picture_back_candidate`|Any file name.||An array of names of files to look for. These are candidates for the back cover.|
+|`picture_search_folders`|Any folder name.|`.` & `..`|An array of folders in which to look for cover candidates. `.` and `..` are added automatically.|
+|`picture_max_size`|Any positive number.|500|The maximum size (horizontally & vertically) of the cover. If the cover found is bigger, it will be resized to this size.|
+|`rename_file`|||Renames the music file based on a tag pattern provided. Example: "%dn-%tn %tt" or "%disc-number-%track-number %track-name" gives "01-02 Bad Medicine", The tags follow the convention for the tag options listed in the |Options table above.|
 
 Note that any flags or options provided via the command line will override the default from the config file.
-
-### Configuring Logs
-
-
 
 ### Sample Configuration File
 
@@ -149,7 +178,7 @@ rename_file="%dn-%tn %tt"
 
 ## Options and Tags
 
-These are the tags in various formats that are set using the different command line options:
+These are the tags in various formats that are set using the different command line options.
 
 |Option|Config File Value|FLAC Tag|MP3 Tag|MP4 Tag|
 |:-----|:-----|:---|:--|:--|
@@ -173,6 +202,50 @@ These are the tags in various formats that are set using the different command l
 |`--track-comment`|`track_comment`|`DESCRIPTION`|`COMM`|`©cmt`|
 |`--picture-front`|`picture_front`|`PICTUREFRONT`|`APIC` [^2]|`covr` [^3]|
 |`--picture-back`|`picture_back`|`PICTUREBACK`|`APIC` [^2]|NA [^3]|
+
+## Logging
+
+The application uses the [`log4rs`](https://crates.io/crates/log4rs) crate for logging. You can configure the logging using a YAML file. You can specify the location of the log file using the `-log`/`-l` flag or the `log_config_file` option in the configuration file. If the flag is used, it will override the value in the configuration file. Also, if the flag is used without a value, the default location is used.
+
+The default location is `~/.config/id3tag/logs.yml`. The file should look like this:
+
+```yaml
+# Sample log config file
+# Formatters: https://docs.rs/log4rs/latest/log4rs/encode/pattern/index.html
+
+# These decide how to treat logs
+appenders:
+
+  # Log information messages and above to stdout
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{highlight({level})} {message}{n}"
+    filters:
+        - kind: threshold
+          level: info
+
+  # Log warnings and errors to the local id3tag.log file
+  # If you need to debug, the threshold below may be useful. See also the Formatters link
+  # on how to add module information etc.
+  logfile:
+    kind: file
+    path: "id3tag.log"
+    encoder:
+      pattern: "{date(%Y-%m-%d %H:%M:%S)} {highlight({level})} {message}{n}"
+    filters:
+        - kind: threshold
+          level: warn
+
+# This is where we decide where things go. Right now everything from the root module of the
+# application and below go to the appenders defined above.
+root:
+  appenders:
+    - stdout
+    - logfile
+```
+
+---
 
 [^1]: This looks up a value which is then inserted into `track_genre`. See [Wikipedia](https://en.wikipedia.org/wiki/ID3) for details. The Winamp Extended List is supported.
 

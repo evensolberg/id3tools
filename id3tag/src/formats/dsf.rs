@@ -225,12 +225,4 @@ mod tests {
         assert_eq!(to_number("error", "some value", false).unwrap(), 1);
         assert_eq!(to_number("-1", "some value", false).unwrap(), 1);
     }
-
-    #[test]
-    /// Test the `rename_file` function.
-    fn test_rename_file() {
-        let _filename = "../testdata/sample.dsf";
-        let mut config = DefaultValues::default();
-        config.rename_file = Some("%dn-%tn %tt".to_string());
-    }
 }

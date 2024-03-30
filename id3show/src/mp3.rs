@@ -64,7 +64,7 @@ macro_rules! genre_vec {
 /// Performs the actual processing of MP3 files.
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
     let meta = open_mp3(filename)?;
-    let duration_string = calc_duration_string(meta.duration.as_secs_f64())?;
+    let duration_string = calc_duration_string(meta.duration.as_secs_f64());
     if show_detail {
         show_optional_audio_tags(&meta);
         show_frame_data(&meta);
@@ -596,12 +596,13 @@ fn url_to_string(u: &mp3_metadata::Url) -> String {
     u.0.clone()
 }
 
-fn calc_duration_string(duration: f64) -> Result<String, Box<dyn Error>> {
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn calc_duration_string(duration: f64) -> String {
     let hours = (duration / 3600.0) as u32;
     let minutes = (duration / 60.0) as u32;
     let seconds = (duration % 60.0) as u32;
     if hours > 0 {
-        return Ok(format!("{:0>2}:{:0>2}:{:0>2}", hours, minutes, seconds));
+        return format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}");
     }
-    Ok(format!("{:0>2}:{:0>2}", minutes, seconds))
+    format!("{minutes:0>2}:{seconds:0>2}")
 }

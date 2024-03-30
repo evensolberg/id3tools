@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- Initial coding
+
+### Refactor
+
+- Lint fixes
+
+### Testing
+
+- Test update for image resize result
+
+## [0.14.15] - 2024-03-10
+
 ### Bug Fixes
 
 - Id3tag CLI flags not set properly
@@ -67,6 +81,7 @@ All notable changes to this project will be documented in this file.
 - Clean up a bunch of code
 - Format default_values.rs
 - Clean up code further
+- Dependency update
 
 ### Security
 
