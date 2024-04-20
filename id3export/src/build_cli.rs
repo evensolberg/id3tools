@@ -21,8 +21,16 @@ pub fn build_cli() -> Command {
                 .action(clap::ArgAction::SetTrue)
         )
         .arg( // Don't export detail information
-            Arg::new("show-detail")
+            Arg::new("debug")
                 .short('d')
+                .long("debug")
+                .help("Show debug information.")
+                .num_args(0)
+                .action(clap::ArgAction::Count)
+        )
+        .arg( // Don't export detail information
+            Arg::new("show-detail")
+                .short('o')
                 .long("show-detail")
                 .help("Show detailed information about each file processed.")
                 .num_args(0)

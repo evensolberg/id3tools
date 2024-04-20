@@ -12,14 +12,17 @@ description = "Export ID3 tags to CSV and/or JSON. A file is generated for each 
 [dependencies]
 ape = { workspace = true }
 clap = { workspace = true }
+csv = { workspace = true }
 dsf = { workspace = true }
+env_logger = { workspace = true }
+glob = { workspace = true }
 id3 = { workspace = true }
+infer = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
 mp4ameta = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-csv = { workspace = true }
 
 # Our own package
 common = { path = "../common" }

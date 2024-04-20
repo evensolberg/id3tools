@@ -76,7 +76,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     for item in tag.frames() {
         match item.content() {
             Content::Text(t) => {
-                println!("  {} = {t} (Text)", item.id());
+                println!("  {} = {t} (Text)", item.name());
             }
             Content::ExtendedText(et) => {
                 println!("  {} = {et} (Extended Text)", item.id());
@@ -402,7 +402,7 @@ fn mp3_layer(l: mp3_metadata::Layer) -> String {
 fn mp3_crc(c: mp3_metadata::CRC) -> String {
     match c {
         mp3_metadata::CRC::Added => String::from("Added"),
-        mp3_metadata::CRC::NotAdded => String::from("Not Ndded"),
+        mp3_metadata::CRC::NotAdded => String::from("Not Added"),
     }
 }
 

@@ -43,7 +43,7 @@ pub fn get_extension(filename: &str) -> String {
 pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
     // return the file type
     let file_type = infer::get_from_path(filename)?;
-    log::debug!("File type = {:?}", file_type);
+    log::debug!("File type = {file_type:?}");
     let Some(file_type) = file_type else {
         return Err("File type not supported".into());
     };
