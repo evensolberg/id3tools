@@ -772,7 +772,7 @@ dependencies = [
 
 [[package]]
 name = "id3export"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ape",
  "clap",
@@ -785,6 +785,7 @@ dependencies = [
  "infer",
  "log",
  "metaflac",
+ "mp3-metadata",
  "mp4ameta",
  "serde",
  "serde_json",

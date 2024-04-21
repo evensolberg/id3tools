@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 - Initial coding
 - Read FLAC into Track
+- Export FLAC to CSV working
 
 ### Refactor
 

@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 mod file_types;
+mod genres;
 mod log;
 mod main_cli;
 mod shared;
@@ -29,3 +30,6 @@ pub use crate::shared::path_to_string;
 pub use crate::shared::roman_to_decimal;
 pub use crate::shared::split_val;
 pub use crate::shared::thousand_separated;
+
+// Define the genres supported by the id3tools family of programs.
+pub use crate::genres::Genre;

@@ -1,10 +1,39 @@
-// use id3::TagLike;
+use common::FileTypes;
+use id3::{Tag, TagLike};
 use metaflac::block;
 use serde::Serialize;
-
-use common::FileTypes;
 use std::error::Error;
 
+macro_rules! mp3_tags {
+    ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {
+        if let Some(field) = $tags.$field() {
+            $self_ref.$self_field = Some(field.join("; "));
+        }
+    };
+}
+
+macro_rules! mp3_tag {
+    ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {
+        if let Some(field) = $tags.$field() {
+            $self_ref.$self_field = Some(field.to_string());
+        }
+    };
+    ($tags:ident, $field:literal, $self_ref:ident, $self_field:ident) => {
+        if let Some(field) = $tags.get($field) {
+            $self_ref.$self_field = Some(field.to_string());
+        }
+    };
+}
+
+macro_rules! mp3_tag_string {
+    ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {
+        if let Some(field) = $tags.$field() {
+            $self_ref.$self_field = Some(field.to_string());
+        }
+    };
+}
+
+/// A struct to hold track information.
 #[derive(Serialize, Default, Debug)]
 #[allow(clippy::struct_field_names)]
 pub struct Track {
@@ -13,6 +42,9 @@ pub struct Track {
 
     /// File format.
     pub file_format: Option<FileTypes>,
+
+    /// File size in bytes
+    pub file_size: Option<u64>,
 
     /// album artist
     pub album_artist: Option<String>,
@@ -149,6 +181,9 @@ impl Reader for Track {
             return Err("No path provided".into());
         }
 
+        let metadata = std::fs::metadata(self.path.as_ref().unwrap_or(&String::new()));
+        self.file_size = Some(metadata.unwrap().len());
+
         let file_type = FileTypes::from_filename(self.path.as_ref().unwrap_or(&String::new()));
         log::debug!("File type: {file_type}");
         match file_type {
@@ -256,18 +291,56 @@ impl Reader for Track {
 
     /// Builds a `Track` struct from an MP3 file.
     fn read_mp3(&mut self) -> Result<(), Box<dyn Error>> {
-        let tags = if self.path.is_some() {
-            id3::Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?
-        } else {
-            return Err("No path provided".into());
+        let meta = match mp3_metadata::read_from_file(self.path.as_ref().unwrap_or(&String::new()))
+        {
+            Ok(m) => m,
+            Err(e) => {
+                let msg = format!("{:?}", e);
+                log::error!("Error reading MP3: {msg}");
+                return Err(msg.into());
+            }
         };
 
         self.file_format = Some(FileTypes::MP3);
+        self.duration_ms = Some(meta.duration.as_millis() as u64);
 
-        log::debug!("MP3 tags: {tags:?}");
+        let frames = meta.frames;
 
-        // mp3_tags!(self, artist, tags, artists);
-        // mp3_tag!(self, album_title, tags, album);
+        if frames.is_empty() {
+            return Err("No frames found".into());
+        }
+
+        self.bitrate = Some(frames[0].bitrate as u32);
+        self.channels = if frames[0].ms_stereo {
+            Some(2)
+        } else {
+            Some(1)
+        };
+
+        self.bits_per_sample = Some(16); // MP3 is always 16-bit
+
+        // This should probably be something like the mode of the sample rates, but this is fine for now.
+        self.sample_rate = Some(frames[0].sampling_freq as u32);
+
+        // Use a different crate to get the metadata
+        let tag = Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+        mp3_tag!(tag, "TPE2", self, album_artist);
+        mp3_tag!(tag, "TSO2", self, album_artist_sort);
+        mp3_tag!(tag, album, self, album_title);
+        mp3_tag!(tag, "TSOA", self, album_title_sort);
+        mp3_tag_string!(tag, disc, self, disc_number);
+        mp3_tag_string!(tag, total_discs, self, disc_count);
+        mp3_tags!(tag, artists, self, artist);
+        mp3_tag!(tag, "TSOP", self, artist_sort);
+        mp3_tag!(tag, title, self, title);
+        mp3_tag!(tag, "TSOT", self, title_sort);
+        mp3_tag_string!(tag, track, self, number);
+        mp3_tag_string!(tag, total_tracks, self, count);
+        mp3_tags!(tag, genres, self, genre);
+        mp3_tag!(tag, "TCOM", self, composer);
+        mp3_tag!(tag, "TSOC", self, composer_sort);
+        mp3_tag!(tag, "TDRL", self, date);
+        mp3_tag!(tag, "COMM", self, comments);
 
         Ok(())
     }
