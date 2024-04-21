@@ -1,9 +1,10 @@
 //! Defines an enum with the types of files we can process.
 
+use serde::Serialize;
 use std::fmt;
 
 /// The types of files we can process
-#[derive(Debug, Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub enum FileTypes {
     Ape,
     Dsf,

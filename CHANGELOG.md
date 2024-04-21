@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Initial coding
+- Read FLAC into Track
 
 ### Refactor
 

@@ -1,38 +1,9 @@
-use id3::TagLike;
+// use id3::TagLike;
 use metaflac::block;
 use serde::Serialize;
 
 use common::FileTypes;
-use std::{error::Error, time::Duration};
-
-macro_rules! mp3_tags {
-    ($self:ident, $field:ident, $tags:ident, $fields:ident) => {
-        let $field: Vec<String> = $tags
-            .$fields()
-            .unwrap_or_default()
-            .iter()
-            .map(|a| a.to_string())
-            .collect();
-        log::debug!("$field: {:?}", $field);
-        if $field.is_empty() {
-            $self.artist = None;
-        } else {
-            $self.$field = Some($field);
-        }
-    };
-}
-
-macro_rules! mp3_tag {
-    ($self:ident, $to_field:ident, $tags:ident, $from_field:ident) => {
-        let $to_field = $tags.$from_field().unwrap_or_default().to_string();
-        log::debug!("$field: {:?}", $to_field);
-        if $to_field.is_empty() {
-            $self.artist = None;
-        } else {
-            $self.$to_field = Some(vec![$to_field]);
-        }
-    };
-}
+use std::error::Error;
 
 #[derive(Serialize, Default, Debug)]
 #[allow(clippy::struct_field_names)]
@@ -40,59 +11,62 @@ pub struct Track {
     /// Path to the audio file.
     pub path: Option<String>,
 
+    /// File format.
+    pub file_format: Option<FileTypes>,
+
     /// album artist
-    pub album_artist: Option<Vec<String>>,
+    pub album_artist: Option<String>,
 
     /// default name on which album artist is sorted. Example: Artist is "Alicia Keys", but artist_sort may be "Keys, Alicia".
-    pub album_artist_sort: Option<Vec<String>>,
+    pub album_artist_sort: Option<String>,
 
     /// Album title.
-    pub album_title: Option<Vec<String>>,
+    pub album_title: Option<String>,
 
     /// Album title sort.
-    pub album_title_sort: Option<Vec<String>>,
+    pub album_title_sort: Option<String>,
 
     /// Disc number, usually 1.
-    pub disc_number: Option<Vec<String>>,
+    pub disc_number: Option<String>,
 
     /// Total number of discs that comprise album, usually 1.
-    pub disc_count: Option<Vec<String>>,
+    pub disc_count: Option<String>,
 
     /// Track artist.
-    pub artist: Option<Vec<String>>,
+    pub artist: Option<String>,
 
     /// Track artist sort.
-    pub artist_sort: Option<Vec<String>>,
+    pub artist_sort: Option<String>,
 
     /// Track title.
-    pub title: Option<Vec<String>>,
+    pub title: Option<String>,
 
     /// Track title sort.
-    pub title_sort: Option<Vec<String>>,
+    pub title_sort: Option<String>,
 
     /// Track number.
-    pub number: Option<Vec<String>>,
+    pub number: Option<String>,
 
     /// Total number of tracks.
-    pub count: Option<Vec<String>>,
+    pub count: Option<String>,
 
     /// Track's genre.
-    pub genre: Option<Vec<String>>,
+    pub genre: Option<String>,
 
     /// Track's composer(s).
-    pub composer: Option<Vec<String>>,
+    pub composer: Option<String>,
 
     /// Track's composer sort.
-    pub composer_sort: Option<Vec<String>>,
+    pub composer_sort: Option<String>,
 
     /// Track date(s).
-    pub date: Option<Vec<String>>,
+    pub date: Option<String>,
 
     /// Track comments.
-    pub comments: Option<Vec<String>>,
+    pub comments: Option<String>,
 
-    /// Duration.
-    pub duration: Option<Duration>,
+    /// Duration in milliseconds
+    pub duration_ms: Option<u64>,
 
     /// Bitrate.
     pub bitrate: Option<u32>,
@@ -111,6 +85,9 @@ pub struct Track {
 
     /// Track replaygain peak.
     pub replaygain_peak: Option<f32>,
+
+    /// Track MD5 sum.
+    pub md5: Option<String>,
 }
 
 impl Track {
@@ -193,6 +170,8 @@ impl Reader for Track {
             return Err("No path provided".into());
         };
 
+        self.file_format = Some(FileTypes::Flac);
+
         for block in tags.blocks() {
             match block {
                 block::Block::VorbisComment(vc) => {
@@ -202,33 +181,53 @@ impl Reader for Track {
                     // While there are native functions for some of these (e.g. vc.album_artist()),
                     // they don't return the values in the format expected, so they would need to be converted.
                     // It is just easier to do it this way. This may change in the future.
-                    self.album_artist = vcc.get("ALBUMARTIST").cloned();
-                    self.album_artist_sort = vcc.get("ALBUMARTISTSORT").cloned();
-                    self.album_title = vcc.get("ALBUM").cloned();
-                    self.album_title_sort = vcc.get("ALBUMSORT").cloned();
-                    self.disc_number = vcc.get("DISCNUMBER").cloned();
-                    self.disc_count = vcc.get("DISCTOTAL").cloned();
-                    self.artist = vcc.get("ARTIST").cloned();
-                    self.artist_sort = vcc.get("ARTISTSORT").cloned();
-                    self.title = vcc.get("TITLE").cloned();
-                    self.title_sort = vcc.get("TITLESORT").cloned();
-                    self.number = vcc.get("TRACKNUMBER").cloned();
-                    self.count = vcc.get("TRACKTOTAL").cloned();
-                    self.genre = vcc.get("GENRE").cloned();
-                    self.composer = vcc.get("COMPOSER").cloned();
-                    self.composer_sort = vcc.get("COMPOSERSORT").cloned();
-                    self.date = vcc.get("DATE").cloned();
-                    self.comments = vcc.get("COMMENT").cloned();
+                    self.album_artist =
+                        flatten_vec(vcc.get("ALBUMARTIST").cloned().unwrap_or_default());
+                    self.album_artist_sort =
+                        flatten_vec(vcc.get("ALBUMARTISTSORT").cloned().unwrap_or_default());
+                    self.album_title = flatten_vec(vcc.get("ALBUM").cloned().unwrap_or_default());
+                    self.album_title_sort =
+                        flatten_vec(vcc.get("ALBUMSORT").cloned().unwrap_or_default());
+                    self.disc_number =
+                        flatten_vec(vcc.get("DISCNUMBER").cloned().unwrap_or_default());
+                    self.disc_count =
+                        flatten_vec(vcc.get("DISCTOTAL").cloned().unwrap_or_default());
+                    self.artist = flatten_vec(vcc.get("ARTIST").cloned().unwrap_or_default());
+                    self.artist_sort =
+                        flatten_vec(vcc.get("ARTISTSORT").cloned().unwrap_or_default());
+                    self.title = flatten_vec(vcc.get("TITLE").cloned().unwrap_or_default());
+                    self.title_sort =
+                        flatten_vec(vcc.get("TITLESORT").cloned().unwrap_or_default());
+                    self.number = flatten_vec(vcc.get("TRACKNUMBER").cloned().unwrap_or_default());
+                    self.count = flatten_vec(vcc.get("TRACKTOTAL").cloned().unwrap_or_default());
+                    self.genre = flatten_vec(vcc.get("GENRE").cloned().unwrap_or_default());
+                    self.composer = flatten_vec(vcc.get("COMPOSER").cloned().unwrap_or_default());
+                    self.composer_sort =
+                        flatten_vec(vcc.get("COMPOSERSORT").cloned().unwrap_or_default());
+                    self.date = flatten_vec(vcc.get("DATE").cloned().unwrap_or_default());
+                    self.comments = flatten_vec(vcc.get("COMMENT").cloned().unwrap_or_default());
                     log::debug!("Track after comments: {self:?}");
                 }
                 block::Block::StreamInfo(si) => {
                     log::debug!("StreamInfo: {si:?}");
 
-                    self.duration = Some(duration_from_samples(si.total_samples, si.sample_rate));
+                    self.duration_ms =
+                        Some(duration_from_samples(si.total_samples, si.sample_rate));
 
                     self.bits_per_sample = Some(si.bits_per_sample);
                     self.channels = Some(si.num_channels);
                     self.sample_rate = Some(si.sample_rate);
+
+                    // For some reason, doing a straight "String::from_utf8(si.md5.clone())?"
+                    // results in "invalid utf-8 sequence of 1 bytes from index 0" in my tests.
+                    // This is a workaround. ¯\_(ツ)_/¯
+                    if let Err(e) = utf8_to_string(&si.md5) {
+                        log::error!("Error converting MD5: {e}");
+                        self.md5 = None;
+                    } else {
+                        self.md5 = Some(utf8_to_string(&si.md5)?);
+                        log::debug!("MD5: {:?}", self.md5);
+                    }
 
                     log::debug!("Track after StreamInfo: {self:?}");
                 }
@@ -263,16 +262,18 @@ impl Reader for Track {
             return Err("No path provided".into());
         };
 
+        self.file_format = Some(FileTypes::MP3);
+
         log::debug!("MP3 tags: {tags:?}");
 
-        mp3_tags!(self, artist, tags, artists);
-        mp3_tag!(self, album_title, tags, album);
+        // mp3_tags!(self, artist, tags, artists);
+        // mp3_tag!(self, album_title, tags, album);
 
         Ok(())
     }
 }
 
-/// Converts samples to a `Duration`.
+/// Converts samples to a duration in milliseconds using the sample rate.
 ///
 /// # Arguments
 ///
@@ -281,18 +282,77 @@ impl Reader for Track {
 ///
 /// # Returns
 ///
-/// A `Duration` representing the number of samples.
+/// An u64 representing the duration of the track in milliseconds.
+///
+///
+#[allow(clippy::cast_precision_loss)]
+fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
+    ((samples as f64 / f64::from(sample_rate)) * 1000.0).trunc() as u64
+}
+
+/// Converts an utf8 hex string to a `String`.
+///
+/// # Arguments
+///
+/// * `utf8` - A slice of bytes representing an utf8 hex string.
+///
+/// # Returns
+///
+/// A `Result` containing the `String` representation of the utf8 hex string.
 ///
 /// # Examples
 ///
 /// ```
-/// let duration = duration_from_samples(44100, 44100);
-/// assert_eq!(duration, Duration::from_secs(1));
+/// let utf8 = b"48656c6c6f2c20576f726c6421";
+/// let string = utf8_to_string(utf8).unwrap();
+/// assert_eq!(string, "Hello, World!");
 /// ```
 ///
-#[allow(clippy::cast_precision_loss)]
-fn duration_from_samples(samples: u64, sample_rate: u32) -> Duration {
-    Duration::from_secs_f64(samples as f64 / f64::from(sample_rate))
+/// # Errors
+///
+/// Returns an error if the utf8 hex string is invalid.
+fn utf8_to_string(utf8: &[u8]) -> Result<String, Box<dyn Error>> {
+    log::debug!("UTF8: {utf8:?}");
+
+    let hex: String = utf8
+        .iter()
+        .map(|b| format!("{:02x}", b).to_string())
+        .collect::<Vec<String>>()
+        .join("");
+
+    log::debug!("utf8 to string: {hex:?}");
+
+    Ok(hex)
+}
+
+/// Flatten a `Vec<String>` into a single `String`.
+/// The strings are separated by a semicolon and a space.
+///
+/// # Arguments
+///
+/// * `vec` - A `Vec<String>` to flatten.
+///
+/// # Returns
+///
+/// A `String` with the contents of the `Vec<String>`.
+///
+/// # Examples
+///
+/// ```
+/// let vec = vec!["One".to_string(), "Two".to_string(), "Three".to_string()];
+/// let string = flatten_vec(vec);
+/// assert_eq!(string, "One; Two; Three");
+/// ```
+///
+/// # Notes
+///
+/// The function trims the resulting string.
+fn flatten_vec(vec: Vec<String>) -> Option<String> {
+    if vec.is_empty() {
+        return None;
+    }
+
+    Some(vec.join("; "))
 }
 
 #[cfg(test)]
@@ -339,10 +399,7 @@ mod tests {
         let mut track = Track::from_path("../t_flac/CD 1 - Stuff/01-01 Slavonic Dances, Series II, Op 72 (B 147, 1886–87) No 7 in C major Presto.flac".to_string());
         track.read().expect("Uh oh...");
 
-        assert_eq!(
-            track.album_artist,
-            Some(vec!["Various Artists".to_string()])
-        );
+        assert_eq!(track.album_artist, Some("Various Artists".to_string()));
 
         // MP3
     }
@@ -354,41 +411,40 @@ mod tests {
             ..Track::default()
         };
 
-        assert!(track.read_flac().is_ok());
+        if let Err(err) = track.read_flac() {
+            panic!("Error reading FLAC: {err}");
+        }
 
         // Assert that the track fields are populated correctly
-        assert_eq!(
-            track.album_artist,
-            Some(vec!["Various Artists".to_string()])
-        );
+        assert_eq!(track.album_artist, Some("Various Artists".to_string()));
         assert_eq!(track.album_artist_sort, None);
         assert_eq!(
             track.album_title,
-            Some(vec!["The Many Loves of Antonín Dvořák (CD1)".to_string()])
+            Some("The Many Loves of Antonín Dvořák (CD1)".to_string())
         );
         assert_eq!(track.album_title_sort, None);
-        assert_eq!(track.disc_number, Some(vec!["01".to_string()]));
-        assert_eq!(track.disc_count, Some(vec!["03".to_string()]));
+        assert_eq!(track.disc_number, Some("01".to_string()));
+        assert_eq!(track.disc_count, Some("03".to_string()));
         assert_eq!(
             track.artist,
-            Some(vec!["Czech Philharmonic Orchestra, Karel Šejna".to_string()])
+            Some("Czech Philharmonic Orchestra, Karel Šejna".to_string())
         );
         assert_eq!(track.artist_sort, None);
         assert_eq!(
             track.title,
-            Some(vec![
+            Some(
                 "Slavonic Dances, Series II, Op. 72 (B 147, 1886–87) No. 7 in C major. Presto"
                     .to_string()
-            ])
+            )
         );
         assert_eq!(track.title_sort, None);
-        assert_eq!(track.number, Some(vec!["1".to_string()]));
-        assert_eq!(track.count, Some(vec!["05".to_string()]));
-        assert_eq!(track.genre, Some(vec!["Classical".to_string()]));
-        assert_eq!(track.composer, Some(vec!["Someone".to_string()]));
+        assert_eq!(track.number, Some("1".to_string()));
+        assert_eq!(track.count, Some("05".to_string()));
+        assert_eq!(track.genre, Some("Classical".to_string()));
+        assert_eq!(track.composer, Some("Someone".to_string()));
         assert_eq!(track.composer_sort, None);
-        assert_eq!(track.date, Some(vec!["1959".to_string()]));
-        assert_eq!(track.comments, Some(vec!["Recorded: 18th June 1959. The Dvořák Hall of Rudolfinum, Prague. First release: 1960".to_string()]));
+        assert_eq!(track.date, Some("1959".to_string()));
+        assert_eq!(track.comments, Some("Recorded: 18th June 1959. The Dvořák Hall of Rudolfinum, Prague. First release: 1960".to_string()));
     }
 
     #[test]

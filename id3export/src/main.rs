@@ -77,6 +77,12 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     log::debug!("Tracks: {tracks:?}");
 
+    let default_name = String::from("summary.csv");
+    let csv_file = cli_args
+        .get_one::<String>("csv-file")
+        .unwrap_or(&default_name);
+    write_csv(csv_file, tracks)?;
+
     if print_summary {
         println!("Files processed: {files_processed}");
         println!("Files skipped: {files_skipped}");
@@ -97,4 +103,17 @@ fn main() {
             1 // exit with a non-zero return code, indicating a problem
         }
     });
+}
+
+fn write_csv(filename: &str, tracks: Vec<tracks::Track>) -> Result<(), Box<dyn Error>> {
+    let mut wtr = csv::WriterBuilder::new().from_path(filename)?;
+
+    for track in tracks {
+        log::debug!("Writing track: {track:?}");
+        wtr.serialize(track)?;
+        // Since most fields can have more than one entry, we need to handle them separately.
+    }
+
+    wtr.flush()?;
+    Ok(())
 }

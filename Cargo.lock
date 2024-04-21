@@ -411,6 +411,7 @@ dependencies = [
  "infer",
  "log",
  "log4rs",
+ "serde",
  "shellexpand",
 ]
 

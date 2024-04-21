@@ -16,6 +16,7 @@ log = { workspace = true }
 log4rs = { workspace = true }
 shellexpand = { workspace = true }
 infer = { workspace = true }
+serde = { workspace = true }
 
 [dev-dependencies]
 assay = { workspace = true }
