@@ -4,7 +4,7 @@ use std::{error::Error, path::Path};
 
 /// Performs the actual processing of DSF files.
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
-    log::debug!("Filename: {}", &filename);
+    log::debug!("Filename: {filename}");
     let path = Path::new(&filename);
 
     if show_detail {
@@ -17,7 +17,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             }
         }
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {
-        log::debug!("Tag: {:?}", tag);
+        log::debug!("Tag: {tag:?}");
         for frame in tag.frames() {
             println!("  {} = {}", frame.id(), frame.content());
         }

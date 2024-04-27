@@ -58,7 +58,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         match proc_res {
             Ok(()) => files_processed += 1,
             Err(err) => {
-                log::error!("  Unable to process. Error: {}", err);
+                log::error!("  Unable to process. Error: {err}");
                 files_skipped += 1;
             }
         }

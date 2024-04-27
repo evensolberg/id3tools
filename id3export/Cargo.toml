@@ -1,25 +1,29 @@
 [package]
 name = "id3export"
-version = "0.1.0"
+version = "0.6.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 readme.workspace = true
-description = "Export ID3 tags to CSV and/or JSON. A file is generated for each directory processed."
+description = "Export ID3 tags to CSV for analysis."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 ape = { workspace = true }
 clap = { workspace = true }
+csv = { workspace = true }
 dsf = { workspace = true }
+env_logger = { workspace = true }
+glob = { workspace = true }
 id3 = { workspace = true }
+infer = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
+mp3-metadata = { workspace = true }
 mp4ameta = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-csv = { workspace = true }
 
 # Our own package
 common = { path = "../common" }

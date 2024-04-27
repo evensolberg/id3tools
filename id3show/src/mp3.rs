@@ -76,19 +76,19 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     for item in tag.frames() {
         match item.content() {
             Content::Text(t) => {
-                println!("  {} = {t} (Text)", item.id());
+                println!("  {} = {t} (Text)", item.name());
             }
             Content::ExtendedText(et) => {
-                println!("  {} = {et} (Extended Text)", item.id());
+                println!("  {} = {et} (Extended Text)", item.name());
             }
             Content::Link(l) => {
-                println!("  {} = {l} (Link)", item.id());
+                println!("  {} = {l} (Link)", item.name());
             }
             Content::ExtendedLink(el) => {
-                println!("  {} = {el} (Extended Link)", item.id());
+                println!("  {} = {el} (Extended Link)", item.name());
             }
             Content::Comment(co) => {
-                println!("  {} = {co} (Comment)", item.id());
+                println!("  {} = {co} (Comment)", item.name());
             }
             Content::Popularimeter(pm) => {
                 if show_detail {
@@ -402,7 +402,7 @@ fn mp3_layer(l: mp3_metadata::Layer) -> String {
 fn mp3_crc(c: mp3_metadata::CRC) -> String {
     match c {
         mp3_metadata::CRC::Added => String::from("Added"),
-        mp3_metadata::CRC::NotAdded => String::from("Not Ndded"),
+        mp3_metadata::CRC::NotAdded => String::from("Not Added"),
     }
 }
 

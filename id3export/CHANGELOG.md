@@ -4,16 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-### Feat
-
-- Export APE and DSF
-
-### Fix
-
-- Fixed all-zero MD5 in FLAC
-
-## [0.12.0] - 2024-04-22
-
 ### Chore
 
 - Autoinherit crates from workspace
@@ -21,14 +11,10 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Initial coding
-- Read FLAC into Track
-- Export FLAC to CSV working
-- MP3 parse working
 
 ### Refactor
 
 - Lint fixes
-- Id3export version bump
 
 ### Testing
 
