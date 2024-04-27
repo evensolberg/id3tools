@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.12.0] - 2024-04-22
 
 ### Chore
 
@@ -13,10 +13,12 @@ All notable changes to this project will be documented in this file.
 - Initial coding
 - Read FLAC into Track
 - Export FLAC to CSV working
+- MP3 parse working
 
 ### Refactor
 
 - Lint fixes
+- Id3export version bump
 
 ### Testing
 

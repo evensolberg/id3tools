@@ -203,10 +203,12 @@ pub enum Genre {
 }
 
 impl Genre {
+    #[allow(dead_code)]
     fn default() -> Self {
         Self::Other
     }
 
+    #[allow(dead_code)]
     fn new() -> Self {
         Self::default()
     }

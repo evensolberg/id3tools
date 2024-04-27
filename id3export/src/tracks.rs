@@ -1,4 +1,5 @@
-use common::FileTypes;
+use ape;
+use common::{need_split, FileTypes};
 use id3::{Tag, TagLike};
 use metaflac::block;
 use serde::Serialize;
@@ -29,6 +30,27 @@ macro_rules! mp3_tag_string {
     ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {
         if let Some(field) = $tags.$field() {
             $self_ref.$self_field = Some(field.to_string());
+        }
+    };
+}
+
+macro_rules! ape_tags {
+    ($tags:ident, $items:literal, $self_ref:ident, $self_field:ident) => {
+        let field = $tags.items($items);
+        if !field.is_empty() {
+            // Collect the values into a new vector and then flatten the vector.
+            let mut values = Vec::new();
+            for item in field {
+                match &item.value {
+                    ape::ItemValue::Text(value) => {
+                        values.push(value.to_string());
+                    }
+                    _ => {
+                        log::debug!("Unexpected item type for {}: {item:?}", $items);
+                    }
+                }
+            }
+            $self_ref.$self_field = flatten_vec(values);
         }
     };
 }
@@ -77,10 +99,10 @@ pub struct Track {
     pub title_sort: Option<String>,
 
     /// Track number.
-    pub number: Option<String>,
+    pub track_number: Option<String>,
 
     /// Total number of tracks.
-    pub count: Option<String>,
+    pub track_count: Option<String>,
 
     /// Track's genre.
     pub genre: Option<String>,
@@ -159,11 +181,21 @@ pub trait Reader {
     where
         Self: std::marker::Sized;
 
+    // May move the following functions out of the trait so the trait stays simple.
+
     fn read_flac(&mut self) -> Result<(), Box<dyn Error>>
     where
         Self: std::marker::Sized;
 
     fn read_mp3(&mut self) -> Result<(), Box<dyn Error>>
+    where
+        Self: std::marker::Sized;
+
+    fn read_ape(&mut self) -> Result<(), Box<dyn Error>>
+    where
+        Self: std::marker::Sized;
+
+    fn read_dsf(&mut self) -> Result<(), Box<dyn Error>>
     where
         Self: std::marker::Sized;
 }
@@ -190,8 +222,8 @@ impl Reader for Track {
             FileTypes::Flac => self.read_flac()?,
             FileTypes::MP3 => self.read_mp3()?,
             // FileTypes::Mp4 => self.read_mp4()?,
-            // FileTypes::Ape => self.read_ape()?,
-            // FileTypes::Dsf => self.read_dsf()?,
+            FileTypes::Ape => self.read_ape()?,
+            FileTypes::Dsf => self.read_dsf()?,
             _ => return Err("Unsupported file type".into()),
         }
         Ok(())
@@ -213,8 +245,8 @@ impl Reader for Track {
                     let vcc = &vc.comments;
                     log::debug!("Vorbis comments: {vcc:?}");
 
-                    // While there are native functions for some of these (e.g. vc.album_artist()),
-                    // they don't return the values in the format expected, so they would need to be converted.
+                    // While there are native functions for some of these (e.g. vc.album_artist()), they
+                    // don't return the values in the format expected, so the values would need to be converted.
                     // It is just easier to do it this way. This may change in the future.
                     self.album_artist =
                         flatten_vec(vcc.get("ALBUMARTIST").cloned().unwrap_or_default());
@@ -233,8 +265,10 @@ impl Reader for Track {
                     self.title = flatten_vec(vcc.get("TITLE").cloned().unwrap_or_default());
                     self.title_sort =
                         flatten_vec(vcc.get("TITLESORT").cloned().unwrap_or_default());
-                    self.number = flatten_vec(vcc.get("TRACKNUMBER").cloned().unwrap_or_default());
-                    self.count = flatten_vec(vcc.get("TRACKTOTAL").cloned().unwrap_or_default());
+                    self.track_number =
+                        flatten_vec(vcc.get("TRACKNUMBER").cloned().unwrap_or_default());
+                    self.track_count =
+                        flatten_vec(vcc.get("TRACKTOTAL").cloned().unwrap_or_default());
                     self.genre = flatten_vec(vcc.get("GENRE").cloned().unwrap_or_default());
                     self.composer = flatten_vec(vcc.get("COMPOSER").cloned().unwrap_or_default());
                     self.composer_sort =
@@ -334,13 +368,122 @@ impl Reader for Track {
         mp3_tag!(tag, "TSOP", self, artist_sort);
         mp3_tag!(tag, title, self, title);
         mp3_tag!(tag, "TSOT", self, title_sort);
-        mp3_tag_string!(tag, track, self, number);
-        mp3_tag_string!(tag, total_tracks, self, count);
+        mp3_tag_string!(tag, track, self, track_number);
+        mp3_tag_string!(tag, total_tracks, self, track_count);
         mp3_tags!(tag, genres, self, genre);
         mp3_tag!(tag, "TCOM", self, composer);
         mp3_tag!(tag, "TSOC", self, composer_sort);
         mp3_tag!(tag, "TDRL", self, date);
         mp3_tag!(tag, "COMM", self, comments);
+
+        Ok(())
+    }
+
+    /// Reads an APE file. Unfortunately, the `ape` crate currently does not provide a way to read the file's duration, bitrate, etc.
+    fn read_ape(&mut self) -> Result<(), Box<dyn Error>> {
+        let tags = ape::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+        log::debug!("APE tags: {tags:?}");
+
+        self.file_format = Some(FileTypes::Ape);
+
+        ape_tags!(tags, "ALBUMARTIST", self, album_artist);
+        ape_tags!(tags, "ALBUMARTISTSORT", self, album_artist_sort);
+        ape_tags!(tags, "ALBUM", self, album_title);
+        ape_tags!(tags, "ALBUMSORT", self, album_title_sort);
+        ape_tags!(tags, "DISCNUMBER", self, disc_number);
+        ape_tags!(tags, "DISCTOTAL", self, disc_count);
+        ape_tags!(tags, "ARTIST", self, artist);
+        ape_tags!(tags, "ARTISTSORT", self, artist_sort);
+        ape_tags!(tags, "TITLE", self, title);
+        ape_tags!(tags, "TITLESORT", self, title_sort);
+        ape_tags!(tags, "TRACKNUMBER", self, track_number);
+        ape_tags!(tags, "TRACKTOTAL", self, track_count);
+        ape_tags!(tags, "GENRE", self, genre);
+        ape_tags!(tags, "COMPOSER", self, composer);
+        ape_tags!(tags, "COMPOSERSORT", self, composer_sort);
+        ape_tags!(tags, "DATE", self, date);
+        ape_tags!(tags, "COMMENT", self, comments);
+        Ok(())
+    }
+
+    fn read_dsf(&mut self) -> Result<(), Box<dyn Error>> {
+        let newpath = String::new();
+        let filepath = std::path::Path::new(self.path.as_ref().unwrap_or(&newpath));
+        let dsf_file = dsf::DsfFile::open(filepath)?;
+        log::debug!("DSF file metadata: {dsf_file}");
+
+        self.file_format = Some(FileTypes::Dsf);
+
+        // Get the basic file information first.
+        let format = dsf_file.fmt_chunk();
+        self.sample_rate = Some(format.sampling_frequency());
+        self.channels = Some(format.channel_num() as u8);
+        self.bits_per_sample = Some(format.bits_per_sample() as u8);
+        self.duration_ms = Some(duration_from_samples(
+            format.sample_count(),
+            format.sampling_frequency(),
+        ));
+
+        // Get the ID3 tag.
+        let tag = if dsf_file.id3_tag().is_some() {
+            <std::option::Option<id3::Tag> as Clone>::clone(dsf_file.id3_tag()).unwrap()
+        } else {
+            log::warn!("No ID3 tag found");
+            return Err("No ID3 tag found".into());
+        };
+
+        log::debug!("Tag: {tag:?}");
+        for frame in tag.frames() {
+            log::debug!("  {} = {}", frame.id(), frame.content());
+        }
+
+        tag.frames().for_each(|frame| {
+            log::debug!("Frame: {frame:?}",);
+            match frame.id() {
+                "TPE2" => self.album_artist = Some(frame.content().to_string()),
+                "TSO2" => self.album_artist_sort = Some(frame.content().to_string()),
+                "TALB" => self.album_title = Some(frame.content().to_string()),
+                "TSOA" => self.album_title_sort = Some(frame.content().to_string()),
+                "TPOS" => {
+                    let pos = frame.content().to_string();
+                    if need_split(&pos) {
+                        if let Ok((disc_num, disc_count)) = common::split_val(&pos) {
+                            self.disc_number = Some(disc_num.to_string());
+                            self.disc_count = Some(disc_count.to_string());
+                        } else {
+                            self.disc_number = Some(pos);
+                        }
+                    } else {
+                        self.disc_number = Some(pos);
+                    }
+                }
+                "TPOS-T" => self.disc_count = Some(frame.content().to_string()),
+                "TPE1" => self.artist = Some(frame.content().to_string()),
+                "TSOP" => self.artist_sort = Some(frame.content().to_string()),
+                "TIT2" => self.title = Some(frame.content().to_string()),
+                "TSOT" => self.title_sort = Some(frame.content().to_string()),
+                "TRCK" => {
+                    let pos = frame.content().to_string();
+                    if need_split(&pos) {
+                        if let Ok((track_num, track_count)) = common::split_val(&pos) {
+                            self.track_number = Some(track_num.to_string());
+                            self.track_count = Some(track_count.to_string());
+                        } else {
+                            self.track_number = Some(pos);
+                        }
+                    } else {
+                        self.track_number = Some(pos);
+                    }
+                }
+                "TRCK-T" => self.track_count = Some(frame.content().to_string()),
+                "TCON" => self.genre = Some(frame.content().to_string()),
+                "TCOM" => self.composer = Some(frame.content().to_string()),
+                "TSOC" => self.composer_sort = Some(frame.content().to_string()),
+                "TDRC" => self.date = Some(frame.content().to_string()),
+                "COMM" => self.comments = Some(frame.content().to_string()),
+                _ => log::debug!("Unknown frame: {}", frame.id()),
+            }
+        });
 
         Ok(())
     }
@@ -447,8 +590,8 @@ mod tests {
         assert_eq!(track.artist_sort, None);
         assert_eq!(track.title, None);
         assert_eq!(track.title_sort, None);
-        assert_eq!(track.number, None);
-        assert_eq!(track.count, None);
+        assert_eq!(track.track_number, None);
+        assert_eq!(track.track_count, None);
         assert_eq!(track.genre, None);
         assert_eq!(track.composer, None);
         assert_eq!(track.composer_sort, None);
@@ -511,8 +654,8 @@ mod tests {
             )
         );
         assert_eq!(track.title_sort, None);
-        assert_eq!(track.number, Some("1".to_string()));
-        assert_eq!(track.count, Some("05".to_string()));
+        assert_eq!(track.track_number, Some("1".to_string()));
+        assert_eq!(track.track_count, Some("05".to_string()));
         assert_eq!(track.genre, Some("Classical".to_string()));
         assert_eq!(track.composer, Some("Someone".to_string()));
         assert_eq!(track.composer_sort, None);

@@ -13,14 +13,15 @@ alias br := buildr
 alias bra := buildra
 alias fmt := format
 alias r := release
-alias update := upgrade
 alias t := test
 alias tp := testp
+alias update := upgrade
 
 # SHORTCUTS AND COMMANDS
 
 # Builds and documents the project - Default; runs if nothing else is specified
-@default: check
+@default:
+    just --list
 
 # Check if it builds at all
 @check: format
@@ -70,6 +71,7 @@ alias tp := testp
     cargo lbuild --release  --color 'always'
     -cp {{invocation_directory()}}/target/release/id3tag /usr/local/bin/
     -cp {{invocation_directory()}}/target/release/id3show /usr/local/bin/
+    -cp {{invocation_directory()}}/target/release/id3export /usr/local/bin/
     -{{invocation_directory()}}/target/release/id3cli-gen
     echo "Moving Fig and man files."
     -mv {{invocation_directory()}}/id3tag.1 /usr/local/share/man/man1/
@@ -82,6 +84,7 @@ alias tp := testp
     cargo strip --target aarch64-apple-darwin
     cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3tag /usr/local/bin/
     cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3show /usr/local/bin/
+    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3export /usr/local/bin/
     cargo clean
 
 # Build the documentation

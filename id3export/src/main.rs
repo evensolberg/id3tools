@@ -43,38 +43,36 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut files_skipped = 0;
     let mut file_count = 0;
 
-    let files = cli_args.get_many::<String>("files").unwrap_or_default();
-    log::debug!("Files: {files:?}");
+    let mut filenames = Vec::<&str>::new();
+    for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
+        filenames.push(filename);
+    }
+    log::debug!("Files: {filenames:?}");
 
     let mut tracks = Vec::<tracks::Track>::new();
-
-    for filename in files {
+    for filename in filenames {
         log::debug!("Processing file: {filename}");
-        for track in glob::glob(filename)? {
-            let track_name = track?.to_string_lossy().to_string();
 
-            if show_detail {
-                log::info!("{track_name}");
-            }
-
-            log::debug!("Track: {track_name}");
-            let mut track_info = tracks::Track::from_path(track_name);
-
-            let res = track_info.read();
-            if let Err(err) = res {
-                log::error!("Error reading track: {err}");
-                files_skipped += 1;
-                continue;
-            } else {
-                files_processed += 1;
-                log::debug!("Track info: {track_info:?}");
-                tracks.push(track_info);
-            }
-
-            file_count += 1;
+        if show_detail {
+            log::info!("{filename}");
         }
-    }
 
+        log::debug!("Track: {filename}");
+        let mut track_info = tracks::Track::from_path(filename.to_owned());
+
+        let res = track_info.read();
+        if let Err(err) = res {
+            log::error!("Error reading track: {err}");
+            files_skipped += 1;
+            continue;
+        } else {
+            files_processed += 1;
+            log::debug!("Track info: {track_info:?}");
+            tracks.push(track_info);
+        }
+
+        file_count += 1;
+    }
     log::debug!("Tracks: {tracks:?}");
 
     let default_name = String::from("summary.csv");
@@ -84,9 +82,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     write_csv(csv_file, tracks)?;
 
     if print_summary {
-        println!("Files processed: {files_processed}");
-        println!("Files skipped: {files_skipped}");
-        println!("Total files: {file_count}");
+        println!("Total files     : {file_count:5}");
+        println!("Files processed : {files_processed:5}");
+        println!("Files skipped   : {files_skipped:5}");
     }
 
     // Everything is a-okay in the end
