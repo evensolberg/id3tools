@@ -1,0 +1,3 @@
+path,file_format,file_size,album_artist,album_artist_sort,album_title,album_title_sort,disc_number,disc_count,artist,artist_sort,title,title_sort,track_number,track_count,genre,composer,composer_sort,date,comments,duration_ms,bitrate,bits_per_sample,sample_rate,channels,replaygain,replaygain_peak,md5
+t_m4a/Dan Buettner - The Blue Zones.m4a,M4A,12455220,,,,,1,1,Dan Buettner,,The Blue Zones,,1,1,,,,,,754398,130690,16,44100,1,,,
+t_m4a/The Life of the Mind - Hannah Arendt.m4b,M4A,716673098,Hannah Arendt,,The Life of the Mind,,1,1,Hannah Arendt,,The Life of the Mind,,1,1,Audiobook,,,,Chapter 45,74768115,75986,16,22050,2,,,

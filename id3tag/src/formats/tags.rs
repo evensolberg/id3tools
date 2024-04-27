@@ -95,7 +95,7 @@ pub fn get_tag_names(file_type: FileTypes) -> TagNames {
             picture_front: "APIC-F".to_string(),
             picture_back: "APIC-B".to_string(),
         },
-        FileTypes::MP4 => TagNames {
+        FileTypes::M4A => TagNames {
             album_artist: "aART".to_string(),
             album_artist_sort: "soaa".to_string(),
             album_title: "©alb".to_string(),
@@ -306,7 +306,7 @@ mod tests {
         assert_eq!(mp3_tag.picture_front, "APIC-F".to_string());
         assert_eq!(mp3_tag.picture_back, "APIC-B".to_string());
 
-        let mp4_tag = get_tag_names(FileTypes::MP4);
+        let mp4_tag = get_tag_names(FileTypes::M4A);
         assert_eq!(mp4_tag.album_artist, "aART".to_string());
         assert_eq!(mp4_tag.album_artist_sort, "soaa".to_string());
         assert_eq!(mp4_tag.album_title, "©alb".to_string());
@@ -675,7 +675,7 @@ mod tests {
         );
         assert_eq!(mp3_tag.get("%td").unwrap().clone(), "TDRC".to_string());
 
-        let mp4_tag = option_to_tag(FileTypes::MP4);
+        let mp4_tag = option_to_tag(FileTypes::M4A);
         assert_eq!(
             mp4_tag.get("%album-artist").unwrap().clone(),
             "aART".to_string()
