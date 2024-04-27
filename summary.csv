@@ -1,2 +1,2 @@
-path,file_format,file_size,album_artist,album_artist_sort,album_title,album_title_sort,disc_number,disc_count,artist,artist_sort,title,title_sort,number,count,genre,composer,composer_sort,date,comments,duration_ms,bitrate,bits_per_sample,sample_rate,channels,replaygain,replaygain_peak,md5
-testdata/sample.dsf,,14116072,Sample,,Sample Audio,,1/1,,Sample,,Rising Audio Tone,,1/1,,Spoken,,,,,20003,,1,2822400,2,,,
+Type,File count,Total Duration (ms),Avg Duration (ms),Total Size (bytes),Avg Size (bytes)
+FLAC,15,5011501,334100,365836754,24389116
