@@ -9,7 +9,7 @@ id3export -c summary.csv **/*.flac
 cat summary.csv | qsv select title | sort
 ```
 
-A later version may also output data in JSON format and produce summaries.
+A later version may also output data in JSON format.
 
 ## Usage
 
