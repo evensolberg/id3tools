@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Doc
+
+- Changelog
+- README update
+
 ### Feat
 
 - Export APE and DSF
+- Output summary
+- Added M4A support
+- Added M4A support
 
 ### Fix
 

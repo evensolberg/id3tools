@@ -60,7 +60,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
         let mp4vec: [&str; 2] = ["mp4a", "mp4b"];
         let ext = file_type.extension().to_lowercase();
         if mp4vec.contains(&ext.as_str()) {
-            ft = FileTypes::MP4;
+            ft = FileTypes::M4A;
         } else {
             return Err("File type not supported".into());
         }
@@ -85,7 +85,7 @@ fn audio_file_type(ft: Type) -> FileTypes {
         "audio/x-dsf" => FileTypes::Dsf,
         "audio/x-flac" => FileTypes::Flac,
         "audio/mpeg" => FileTypes::MP3,
-        "audio/m4a" | "video/mp4" => FileTypes::MP4,
+        "audio/m4a" | "video/mp4" => FileTypes::M4A,
         _ => FileTypes::Unknown,
     }
 }
