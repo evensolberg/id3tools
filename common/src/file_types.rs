@@ -10,7 +10,7 @@ pub enum FileTypes {
     Dsf,
     Flac,
     MP3,
-    MP4,
+    M4A,
 
     #[default]
     Unknown,
@@ -31,8 +31,8 @@ impl FileTypes {
                     return Self::Flac;
                 } else if ft.mime_type() == "audio/mpeg" {
                     return Self::MP3;
-                } else if ft.mime_type() == "video/mp4" {
-                    return Self::MP4;
+                } else if ft.mime_type() == "video/mp4" || ft.mime_type() == "audio/m4a" {
+                    return Self::M4A;
                 }
                 return Self::Unknown;
             }
@@ -49,7 +49,7 @@ impl fmt::Display for FileTypes {
             Self::Dsf => "DSF",
             Self::Flac => "FLAC",
             Self::MP3 => "MP3",
-            Self::MP4 => "MP4",
+            Self::M4A => "M4A",
             Self::Unknown => "Unknown",
         })
         .to_string();
@@ -83,7 +83,7 @@ mod tests {
         );
         assert_eq!(
             FileTypes::from_filename("../testdata/sample.mp4"),
-            FileTypes::Unknown
+            FileTypes::M4A
         );
     }
 
@@ -94,7 +94,7 @@ mod tests {
         assert_eq!(format!("{}", FileTypes::Dsf), "DSF");
         assert_eq!(format!("{}", FileTypes::Flac), "FLAC");
         assert_eq!(format!("{}", FileTypes::MP3), "MP3");
-        assert_eq!(format!("{}", FileTypes::MP4), "MP4");
+        assert_eq!(format!("{}", FileTypes::M4A), "M4A");
         assert_eq!(format!("{}", FileTypes::Unknown), "Unknown");
     }
 }

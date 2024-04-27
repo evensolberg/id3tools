@@ -1,7 +1,7 @@
-use ape;
 use common::{need_split, FileTypes};
 use id3::{Tag, TagLike};
 use metaflac::block;
+use mp4ameta::{Data, Fourcc, Tag as Mp4Tag};
 use serde::Serialize;
 use std::error::Error;
 
@@ -52,6 +52,22 @@ macro_rules! ape_tags {
             }
             $self_ref.$self_field = flatten_vec(values);
         }
+    };
+}
+
+macro_rules! mp4_tags {
+    ($tags:ident, $binding:literal, $self_ref:ident, $self_field:ident) => {
+        let binding = Fourcc(*$binding);
+        let field = $tags.data_of(&binding);
+        let mut gather = Vec::new();
+        for value in field {
+            match value {
+                Data::Utf8(s) => gather.push(s.to_string()),
+                Data::Utf16(s) => gather.push(s.to_string()),
+                _ => (),
+            }
+        }
+        $self_ref.$self_field = Some(gather.join("; "));
     };
 }
 
@@ -191,6 +207,10 @@ pub trait Reader {
     where
         Self: std::marker::Sized;
 
+    fn read_mp4(&mut self) -> Result<(), Box<dyn Error>>
+    where
+        Self: std::marker::Sized;
+
     fn read_ape(&mut self) -> Result<(), Box<dyn Error>>
     where
         Self: std::marker::Sized;
@@ -221,7 +241,7 @@ impl Reader for Track {
         match file_type {
             FileTypes::Flac => self.read_flac()?,
             FileTypes::MP3 => self.read_mp3()?,
-            // FileTypes::Mp4 => self.read_mp4()?,
+            FileTypes::M4A => self.read_mp4()?,
             FileTypes::Ape => self.read_ape()?,
             FileTypes::Dsf => self.read_dsf()?,
             _ => {
@@ -383,6 +403,52 @@ impl Reader for Track {
         mp3_tag!(tag, "TDRL", self, date);
         mp3_tag!(tag, "COMM", self, comments);
 
+        Ok(())
+    }
+
+    /// Builds a `Track` struct from an MP4 file.
+    fn read_mp4(&mut self) -> Result<(), Box<dyn Error>> {
+        let tags = Mp4Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+        let audio = tags.audio_info();
+
+        self.file_format = Some(FileTypes::M4A);
+
+        self.duration_ms = Some(audio.duration.unwrap_or_default().as_millis() as u64);
+        self.channels = Some(
+            audio
+                .channel_config
+                .unwrap_or(mp4ameta::ChannelConfig::Stereo)
+                .channel_count(),
+        );
+        self.bits_per_sample = Some(16);
+        self.sample_rate = Some(
+            audio
+                .sample_rate
+                .unwrap_or(mp4ameta::SampleRate::Hz44100)
+                .hz(),
+        );
+        self.bitrate = Some(audio.avg_bitrate.unwrap_or(0));
+
+        // Gather all the Utf8 and Utf16 into a single string.
+        mp4_tags!(tags, b"aART", self, album_artist);
+        mp4_tags!(tags, b"soaa", self, album_artist_sort);
+        mp4_tags!(tags, b"\xa9alb", self, album_title);
+        mp4_tags!(tags, b"soal", self, album_title_sort);
+        mp4_tags!(tags, b"\xa9ART", self, artist);
+        mp4_tags!(tags, b"soar", self, artist_sort);
+        mp4_tags!(tags, b"\xa9nam", self, title);
+        mp4_tags!(tags, b"sonm", self, title_sort);
+        mp4_tags!(tags, b"\xa9gen", self, genre);
+        mp4_tags!(tags, b"\xa9wrt", self, composer);
+        mp4_tags!(tags, b"soco", self, composer_sort);
+        mp4_tags!(tags, b"\xa9day", self, date);
+        mp4_tags!(tags, b"\xa9cmt", self, comments);
+
+        let default_value = 0;
+        self.track_number = Some(tags.track_number().unwrap_or(default_value).to_string());
+        self.track_count = Some(tags.total_tracks().unwrap_or(default_value).to_string());
+        self.disc_number = Some(tags.disc_number().unwrap_or(default_value).to_string());
+        self.disc_count = Some(tags.total_discs().unwrap_or(default_value).to_string());
         Ok(())
     }
 

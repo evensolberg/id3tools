@@ -48,7 +48,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             common::FileTypes::Dsf => dsf::show_metadata(filename, show_detail),
             common::FileTypes::Flac => flac::show_metadata(filename, show_detail),
             common::FileTypes::MP3 => mp3::show_metadata(filename, show_detail),
-            common::FileTypes::MP4 => mp4::show_metadata(filename, show_detail),
+            common::FileTypes::M4A => mp4::show_metadata(filename, show_detail),
             common::FileTypes::Unknown => {
                 println!("  Unknown file type. Skipping.");
                 Ok(())

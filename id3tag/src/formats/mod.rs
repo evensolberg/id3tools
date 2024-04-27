@@ -72,7 +72,7 @@ pub fn process_file(
                 FileTypes::Dsf => dsf::process(filename, &new_tags, &config),
                 FileTypes::Flac => flac::process(filename, &mut new_tags, &config),
                 FileTypes::MP3 => mp3::process(filename, &new_tags, &config),
-                FileTypes::MP4 => mp4::process(filename, &new_tags, &config),
+                FileTypes::M4A => mp4::process(filename, &new_tags, &config),
                 FileTypes::Unknown => {
                     return Err(format!("{filename} is unknown file type.").into())
                 }
