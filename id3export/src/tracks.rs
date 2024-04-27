@@ -224,7 +224,9 @@ impl Reader for Track {
             // FileTypes::Mp4 => self.read_mp4()?,
             FileTypes::Ape => self.read_ape()?,
             FileTypes::Dsf => self.read_dsf()?,
-            _ => return Err("Unsupported file type".into()),
+            _ => {
+                self.file_format = Some(FileTypes::Unknown);
+            }
         }
         Ok(())
     }
@@ -294,7 +296,12 @@ impl Reader for Track {
                         log::error!("Error converting MD5: {e}");
                         self.md5 = None;
                     } else {
-                        self.md5 = Some(utf8_to_string(&si.md5)?);
+                        let md5 = utf8_to_string(&si.md5)?;
+                        if md5 == "00000000000000000000000000000000" {
+                            self.md5 = None;
+                        } else {
+                            self.md5 = Some(md5);
+                        }
                         log::debug!("MD5: {:?}", self.md5);
                     }
 

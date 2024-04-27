@@ -28,3 +28,9 @@ Options:
   -h, --help                                    Print help (see more with '--help')
   -V, --version                                 Print version
 ```
+
+To filter out Unknown files using [QSV](https://github.com/jqnatividad/qsv), use the following syntax:
+
+```sh
+qsv search -s "file_format" -v "Unknown" < summary.csv > filtered.csv
+```
