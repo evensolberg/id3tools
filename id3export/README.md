@@ -1,6 +1,6 @@
 # ID3Export
 
-This utilitiy is used to export ID3 tags from MP3 files to a CSV file for use in other applications. For example, the CSV file can be used to import the tags into a database or a spreadsheet. Other usages can be data analysis or wrangling using tools like [QSV](https://github.com/jqnatividad/qsv) or [topfew](https://github.com/timbray/topfew/tree/main).
+This utility exports ID3 tags from audio files to a CSV file for use in other applications. For example, the CSV file can be used to import the tags into a database or a spreadsheet. Other usages can be data analysis or wrangling using tools like [QSV](https://github.com/jqnatividad/qsv) or [topfew](https://github.com/timbray/topfew/tree/main).
 
 Example:
 
