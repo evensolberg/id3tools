@@ -102,7 +102,9 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
     let mut img_buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
     if image_too_small(&img, max_size) {
-        return Err(format!("Image {cover_file} is too small. (Less than 1/2 the cover size.)").into());
+        return Err(
+            format!("Image {cover_file} is too small. (Less than 1/2 the cover size.)").into(),
+        );
     }
 
     if image_too_large(&img, max_size) {

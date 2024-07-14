@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Changelog
 - README update
+- Changelog
 
 ### Feat
 
@@ -19,6 +20,10 @@ All notable changes to this project will be documented in this file.
 ### Fix
 
 - Fixed all-zero MD5 in FLAC
+
+### Style
+
+- Formatting
 
 ## [0.12.0] - 2024-04-22
 
@@ -345,7 +350,6 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
-- Lint and changelog
 - CHANGELOG
 - Clean up the code a bit
 - Changelog update
@@ -364,6 +368,7 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Changelog update
+- Lint and changelog
 
 ## [0.9.3] - 2022-02-11
 
@@ -399,24 +404,20 @@ All notable changes to this project will be documented in this file.
 
 ## [0.9.0] - 2022-01-30
 
-### Bug Fixes
-
-- Better handling of disc directories with names
-
 ### Features
 
 - Logging update
 
 ### Miscellaneous Tasks
 
-- Update changelog
 - Comments update
 
-## [0.8.4] - 2022-01-22
+## [0.8.4] - 2022-01-23
 
 ### Bug Fixes
 
 - Trim strings
+- Better handling of disc directories with names
 
 ### Miscellaneous Tasks
 
@@ -433,6 +434,7 @@ All notable changes to this project will be documented in this file.
 
 - Update CHNAGELOG
 - Moved from radix to parse in str --> number
+- Update changelog
 
 ## [0.8.1] - 2022-01-16
 
@@ -446,13 +448,6 @@ All notable changes to this project will be documented in this file.
 
 ## [0.8.0] - 2022-01-15
 
-### Miscellaneous Tasks
-
-- Crate version updates
-- Changelog update
-
-## [0.7.1] - 2022-01-15
-
 ### Features
 
 - File rename complete
@@ -460,6 +455,8 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - CHANGELOG update
+- Crate version updates
+- Changelog update
 
 ## [0.7.0] - 2022-01-14
 
@@ -515,6 +512,8 @@ All notable changes to this project will be documented in this file.
 ## [0.5.2] - 2022-01-01
 
 ## [0.5.0] - 2021-12-31
+
+## [0.4.2] - 2021-12-31
 
 ## [0.4.0] - 2021-12-29
 
