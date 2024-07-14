@@ -3,7 +3,6 @@
 
 # These decide how to treat logs
 appenders:
-
   # Log information messages and above to stdout
   stdout:
     kind: console

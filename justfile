@@ -118,7 +118,7 @@ alias update := upgrade
 
 # Formats the project source files
 @format:
-    cargo fmt -- --emit=files
+    treefmt --config-file="~/CloudStation/source/_Templates/treefmt.toml"
 
 # Tests the project
 @test:

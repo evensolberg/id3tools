@@ -1,141 +1,141 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "type": "object",
-    "properties": {
-        "musicbrainz_disc_id": {
-            "type": "string"
-        },
-        "album_artist": {
-            "type": "string"
-        },
-        "album_name": {
-            "type": "string"
-        },
-        "track_count": {
-            "type": "integer"
-        },
-        "disc_count": {
-            "type": "integer"
-        },
-        "total_duration_sec": {
-            "type": "integer"
-        },
-        "last_updated": {
-            "type": "string"
-        },
-        "album_gain_db": {
-            "type": "number"
-        },
-        "album_peak_gain_db": {
-            "type": "number"
-        },
-        "album_dynamic_range_r128": {
-            "type": "number"
-        },
-        "reference_loudness_db": {
-            "type": "integer"
-        },
-        "tracks": {
-            "type": "array",
-            "items": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "musicbrainz_track_id": {
-                            "type": "string"
-                        },
-                        "ISRC": {
-                            "type": "string"
-                        },
-                        "disc_number": {
-                            "type": "integer"
-                        },
-                        "track_number": {
-                            "type": "integer"
-                        },
-                        "disc_count": {
-                            "type": "integer"
-                        },
-                        "track_count": {
-                            "type": "integer"
-                        },
-                        "album_artist": {
-                            "type": "string"
-                        },
-                        "track_artist": {
-                            "type": "string"
-                        },
-                        "album_name": {
-                            "type": "string"
-                        },
-                        "track_name": {
-                            "type": "string"
-                        },
-                        "duration_sec": {
-                            "type": "integer"
-                        },
-                        "file_format": {
-                            "type": "string"
-                        },
-                        "bit_depth": {
-                            "type": "integer"
-                        },
-                        "sample_frequency_hz": {
-                            "type": "integer"
-                        },
-                        "channels": {
-                            "type": "integer"
-                        },
-                        "bit_rate_kbps": {
-                            "type": "integer"
-                        },
-                        "dynamic_range_db": {
-                            "type": "number"
-                        },
-                        "track_gain_db": {
-                            "type": "number"
-                        },
-                        "track_peak": {
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "musicbrainz_track_id",
-                        "ISRC",
-                        "disc_number",
-                        "track_number",
-                        "disc_count",
-                        "track_count",
-                        "album_artist",
-                        "track_artist",
-                        "album_name",
-                        "track_name",
-                        "duration_sec",
-                        "file_format",
-                        "bit_depth",
-                        "sample_frequency_hz",
-                        "channels",
-                        "bit_rate_kbps",
-                        "dynamic_range_db",
-                        "track_gain_db",
-                        "track_peak"
-                    ]
-                }
-            ]
-        }
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "musicbrainz_disc_id": {
+      "type": "string"
     },
-    "required": [
-        "musicbrainz_disc_id",
-        "album_artist",
-        "album_name",
-        "track_count",
-        "disc_count",
-        "total_duration_sec",
-        "last_updated",
-        "album_gain_db",
-        "album_peak_gain_db",
-        "album_dynamic_range_r128",
-        "reference_loudness_db",
-        "tracks"
-    ]
+    "album_artist": {
+      "type": "string"
+    },
+    "album_name": {
+      "type": "string"
+    },
+    "track_count": {
+      "type": "integer"
+    },
+    "disc_count": {
+      "type": "integer"
+    },
+    "total_duration_sec": {
+      "type": "integer"
+    },
+    "last_updated": {
+      "type": "string"
+    },
+    "album_gain_db": {
+      "type": "number"
+    },
+    "album_peak_gain_db": {
+      "type": "number"
+    },
+    "album_dynamic_range_r128": {
+      "type": "number"
+    },
+    "reference_loudness_db": {
+      "type": "integer"
+    },
+    "tracks": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "musicbrainz_track_id": {
+              "type": "string"
+            },
+            "ISRC": {
+              "type": "string"
+            },
+            "disc_number": {
+              "type": "integer"
+            },
+            "track_number": {
+              "type": "integer"
+            },
+            "disc_count": {
+              "type": "integer"
+            },
+            "track_count": {
+              "type": "integer"
+            },
+            "album_artist": {
+              "type": "string"
+            },
+            "track_artist": {
+              "type": "string"
+            },
+            "album_name": {
+              "type": "string"
+            },
+            "track_name": {
+              "type": "string"
+            },
+            "duration_sec": {
+              "type": "integer"
+            },
+            "file_format": {
+              "type": "string"
+            },
+            "bit_depth": {
+              "type": "integer"
+            },
+            "sample_frequency_hz": {
+              "type": "integer"
+            },
+            "channels": {
+              "type": "integer"
+            },
+            "bit_rate_kbps": {
+              "type": "integer"
+            },
+            "dynamic_range_db": {
+              "type": "number"
+            },
+            "track_gain_db": {
+              "type": "number"
+            },
+            "track_peak": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "musicbrainz_track_id",
+            "ISRC",
+            "disc_number",
+            "track_number",
+            "disc_count",
+            "track_count",
+            "album_artist",
+            "track_artist",
+            "album_name",
+            "track_name",
+            "duration_sec",
+            "file_format",
+            "bit_depth",
+            "sample_frequency_hz",
+            "channels",
+            "bit_rate_kbps",
+            "dynamic_range_db",
+            "track_gain_db",
+            "track_peak"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "musicbrainz_disc_id",
+    "album_artist",
+    "album_name",
+    "track_count",
+    "disc_count",
+    "total_duration_sec",
+    "last_updated",
+    "album_gain_db",
+    "album_peak_gain_db",
+    "album_dynamic_range_r128",
+    "reference_loudness_db",
+    "tracks"
+  ]
 }
