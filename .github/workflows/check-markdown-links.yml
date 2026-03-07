@@ -13,6 +13,6 @@ jobs:
     name: Markup Link Checker (mlc)
     runs-on: ubuntu-latest
     steps:
-      - uses: becheran/mlc@v0.16.0
+      - uses: becheran/mlc@v1.2.0
         # with:
         #   args: ./README.md
