@@ -41,13 +41,10 @@ macro_rules! ape_tags {
             // Collect the values into a new vector and then flatten the vector.
             let mut values = Vec::new();
             for item in field {
-                match &item.value {
-                    ape::ItemValue::Text(value) => {
-                        values.push(value.to_string());
-                    }
-                    _ => {
-                        log::debug!("Unexpected item type for {}: {item:?}", $items);
-                    }
+                if let Ok(s) = <&str>::try_from(item) {
+                    values.push(s.to_string());
+                } else {
+                    log::debug!("Unexpected item type for {}: {item:?}", $items);
                 }
             }
             $self_ref.$self_field = flatten_vec(values);
@@ -67,7 +64,11 @@ macro_rules! mp4_tags {
                 _ => (),
             }
         }
-        $self_ref.$self_field = if gather.is_empty() { None } else { Some(gather.join("; ")) };
+        $self_ref.$self_field = if gather.is_empty() {
+            None
+        } else {
+            Some(gather.join("; "))
+        };
     };
 }
 

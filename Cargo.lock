@@ -117,9 +117,9 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 
 [[package]]
 name = "ape"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cdc864958f3a41f67f998dd2fe9635a525d2f232787d0268690b5e0876a2262"
+checksum = "8fb0a5091f05526b27cd637f680c0b20ecc3af600bc74bbf1069fef11d323ab5"
 dependencies = [
  "byteorder",
 ]

@@ -1,6 +1,6 @@
 //! Read the contents of an APE file and show the metadata.
 
-use ape::{self, ItemValue};
+use ape::{self, ItemType};
 use std::error::Error;
 
 /// Show the metadata of an APE file.
@@ -27,23 +27,24 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
     let tags = ape::read_from_path(filename)?;
 
     for item in tags.iter() {
-        match &item.value {
-            // "Regular" metadata
-            ItemValue::Text(ref s) => {
-                println!("  {} = {s}", item.key);
-            }
-            // Pictures and such
-            ItemValue::Binary(ref b) => {
-                if show_detail {
-                    println!("  Binary:");
-                    println!("    {} = {} bytes", item.key, b.len());
+        match item.get_type() {
+            ItemType::Text | ItemType::Locator => {
+                if let Ok(s) = <&str>::try_from(item) {
+                    if item.get_type() == ItemType::Locator {
+                        if show_detail {
+                            println!("  Locator:");
+                            println!("    {} = {s}", item.key);
+                        }
+                    } else {
+                        println!("  {} = {s}", item.key);
+                    }
                 }
             }
-            // Locator is an UTF-8 string contains a link to external information.
-            ItemValue::Locator(l) => {
+            ItemType::Binary => {
                 if show_detail {
-                    println!("  Locator:");
-                    println!("    {} = {l}", item.key);
+                    let bytes: Vec<u8> = item.into();
+                    println!("  Binary:");
+                    println!("    {} = {} bytes", item.key, bytes.len());
                 }
             }
         }

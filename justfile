@@ -68,23 +68,18 @@ alias update := upgrade
 
 # Documents the project, lints it, builds and installs the release version, and cleans up
 @release: format changelog
-    cargo lbuild --release  --color 'always'
-    -cp {{invocation_directory()}}/target/release/id3tag /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/id3show /usr/local/bin/
-    -cp {{invocation_directory()}}/target/release/id3export /usr/local/bin/
-    -{{invocation_directory()}}/target/release/id3cli-gen
-    echo "Moving Fig and man files."
-    -mv {{invocation_directory()}}/id3tag.1 /usr/local/share/man/man1/
-    -mv {{invocation_directory()}}/id3tag.js ~/.fig/autocomplete/
+    cargo install --path id3tag
+    cargo install --path id3show
+    cargo install --path id3export
+    cargo install --path id3cli-gen
     cargo clean
 
-# Documents the project, builds and installs the release version, and cleans up
+# Documents the project, builds and installs the release version for Apple ARM64, and cleans up
 @releasea: format changelog
-    cargo lbuild --release  --color 'always' --target aarch64-apple-darwin
-    cargo strip --target aarch64-apple-darwin
-    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3tag /usr/local/bin/
-    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3show /usr/local/bin/
-    cp {{invocation_directory()}}/target/aarch64-apple-darwin/release/id3export /usr/local/bin/
+    cargo install --path id3tag --target aarch64-apple-darwin
+    cargo install --path id3show --target aarch64-apple-darwin
+    cargo install --path id3export --target aarch64-apple-darwin
+    cargo install --path id3cli-gen --target aarch64-apple-darwin
     cargo clean
 
 # Build the documentation

@@ -3,7 +3,7 @@
 
 use crate::default_values::DefaultValues;
 // use crate shared; // for add_pictures
-use ape::{self, Item};
+use ape::{self, Item, ItemType};
 use std::{collections::HashMap, error::Error, fs::File};
 
 /// Performs the actual processing of APE files.
@@ -32,7 +32,11 @@ pub fn process(
             }
 
             _ => {
-                let item = Item::from_text(key, value.trim());
+                let item = Item::new(
+                    key.as_str(),
+                    ItemType::Text,
+                    value.trim().as_bytes().to_vec(),
+                );
                 match item {
                     Ok(item) => {
                         tags.set_item(item);
