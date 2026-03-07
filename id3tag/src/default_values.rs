@@ -217,7 +217,9 @@ impl DefaultValues {
         // Read the config file
         if cli.contains_id("config-file") {
             let default_config = String::from("~/.config/id3tag/config.toml");
-            let config_path = cli.get_one::<String>("config-file").unwrap_or(&default_config);
+            let config_path = cli
+                .get_one::<String>("config-file")
+                .unwrap_or(&default_config);
             let config_filename = shellexpand::tilde(config_path).to_string();
             cfg = Self::load_config(&config_filename)?;
         }

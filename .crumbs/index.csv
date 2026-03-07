@@ -45,7 +45,7 @@ id3-iva,Look into replacing the TOML file with argfile for easier processing.,cl
 id3-ix6,common: FileTypes::from_filename swallows I/O errors,closed,bug,2,common|medium,2026-03-06,2026-03-07,,
 id3-jc9,id3tag: invalid picture_max_size silently disables resizing,closed,bug,3,id3tag|medium,2026-03-06,2026-03-07,,
 id3-k0e,Add images to APE files.,closed,feature,1,,2026-03-07,2026-03-07,,
-id3-kur,Add DSF tag editing when the DSF crate supports it.,open,feature,2,,2026-03-07,2026-03-07,,
+id3-kur,Add DSF tag editing when the DSF crate supports it.,deferred,feature,2,,2026-03-07,2026-03-07,,
 id3-l2m,Align variable names across format crate handlers,open,task,3,,2026-03-07,2026-03-07,,
 id3-l3x,"Add ability to capitalize fields (Artist, Album Artist, Album Title, Track Title)",open,feature,2,,2026-03-07,2026-03-07,,
 id3-lg1,dep: mp3-metadata is unsound (RUSTSEC-2025-0027),closed,bug,2,dependency|security|id3show|id3export,2026-03-06,2026-03-07,,

@@ -9,6 +9,10 @@ created: 2026-03-07
 updated: 2026-03-07
 closed_reason: ''
 dependencies: []
+description: |
+  Freedb maybe
 ---
 
 # Look into using Discorgs or similar to get track information
+
+Freedb maybe

@@ -152,7 +152,10 @@ fn set_picture(
 ) -> Result<(), Box<dyn Error>> {
     tags.remove_picture_type(cover_type);
     let (img, mime_type) = read_cover(img_file, max_size)?;
-    log::debug!("set_picture::Image {img_file} read. Length = {}, mime = {mime_type}", img.len());
+    log::debug!(
+        "set_picture::Image {img_file} read. Length = {}, mime = {mime_type}",
+        img.len()
+    );
 
     tags.add_picture(&mime_type, cover_type, img);
 

@@ -506,7 +506,8 @@ impl Reader for Track {
 
         // Get the ID3 tag.
         let tag = if dsf_file.id3_tag().is_some() {
-            <std::option::Option<id3::Tag> as Clone>::clone(dsf_file.id3_tag()).expect("ID3 tag should exist")
+            <std::option::Option<id3::Tag> as Clone>::clone(dsf_file.id3_tag())
+                .expect("ID3 tag should exist")
         } else {
             log::warn!("No ID3 tag found");
             return Err("No ID3 tag found".into());
@@ -581,7 +582,11 @@ impl Reader for Track {
 /// An u64 representing the duration of the track in milliseconds.
 ///
 ///
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
     if sample_rate == 0 {
         return 0;

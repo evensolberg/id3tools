@@ -131,7 +131,15 @@ fn parse_options(
         false
     );
     tag!(cli, dv.tags, nt, ot, "album-title", album_title, false);
-    tag!(cli, dv.tags, nt, ot, "album-title-sort", album_title_sort, false);
+    tag!(
+        cli,
+        dv.tags,
+        nt,
+        ot,
+        "album-title-sort",
+        album_title_sort,
+        false
+    );
     tag!(cli, dv.tags, nt, ot, "disc-number", disc_number, true);
     tag!(cli, dv.tags, nt, ot, "disc-total", disc_number_total, true);
     tag!(
@@ -144,11 +152,35 @@ fn parse_options(
         false
     );
     tag!(cli, dv.tags, nt, ot, "track-title", track_title, false);
-    tag!(cli, dv.tags, nt, ot, "track-title-sort", track_title_sort, false);
+    tag!(
+        cli,
+        dv.tags,
+        nt,
+        ot,
+        "track-title-sort",
+        track_title_sort,
+        false
+    );
     tag!(cli, dv.tags, nt, ot, "track-number", track_number, false);
-    tag!(cli, dv.tags, nt, ot, "track-total", track_number_total, true);
+    tag!(
+        cli,
+        dv.tags,
+        nt,
+        ot,
+        "track-total",
+        track_number_total,
+        true
+    );
     tag!(cli, dv.tags, nt, ot, "track-genre", track_genre, true);
-    tag!(cli, dv.tags, nt, ot, "track-composer", track_composer, false);
+    tag!(
+        cli,
+        dv.tags,
+        nt,
+        ot,
+        "track-composer",
+        track_composer,
+        false
+    );
     tag!(
         cli,
         dv.tags,
@@ -159,7 +191,15 @@ fn parse_options(
         false
     );
     tag!(cli, dv.tags, nt, ot, "track-date", track_date, false);
-    tag!(cli, dv.tags, nt, ot, "track-comments", track_comments, false);
+    tag!(
+        cli,
+        dv.tags,
+        nt,
+        ot,
+        "track-comments",
+        track_comments,
+        false
+    );
 
     disc_number_count!(cli, dv.tags, nt, ot, filename);
     track_number_count!(cli, dv.tags, nt, ot, filename);

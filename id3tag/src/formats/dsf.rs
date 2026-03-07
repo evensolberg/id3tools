@@ -43,29 +43,41 @@ pub fn process(
 
                 // Disc number
                 "TPOS" => {
-                    let num =
-                        to_number(value, "disc number", config.execution.stop_on_error.unwrap_or(false))?;
+                    let num = to_number(
+                        value,
+                        "disc number",
+                        config.execution.stop_on_error.unwrap_or(false),
+                    )?;
                     tag.set_disc(num);
                 }
 
                 // Disc count
                 "TPOS-T" => {
-                    let num =
-                        to_number(value, "total discs", config.execution.stop_on_error.unwrap_or(false))?;
+                    let num = to_number(
+                        value,
+                        "total discs",
+                        config.execution.stop_on_error.unwrap_or(false),
+                    )?;
                     tag.set_total_discs(num);
                 }
 
                 // Track number
                 "TRCK" => {
-                    let num =
-                        to_number(value, "track number", config.execution.stop_on_error.unwrap_or(false))?;
+                    let num = to_number(
+                        value,
+                        "track number",
+                        config.execution.stop_on_error.unwrap_or(false),
+                    )?;
                     tag.set_track(num);
                 }
 
                 // Track count
                 "TRCK-T" => {
-                    let num =
-                        to_number(value, "total tracks", config.execution.stop_on_error.unwrap_or(false))?;
+                    let num = to_number(
+                        value,
+                        "total tracks",
+                        config.execution.stop_on_error.unwrap_or(false),
+                    )?;
                     tag.set_total_tracks(num);
                 }
 

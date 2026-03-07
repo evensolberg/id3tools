@@ -155,7 +155,8 @@ mod tests {
             "Album Art.jpg".to_string(),
             "Cover Image.png".to_string(),
         ]);
-        cfg.pictures.picture_search_folders = Some(vec![".".to_string(), "Artwork Folder".to_string()]);
+        cfg.pictures.picture_search_folders =
+            Some(vec![".".to_string(), "Artwork Folder".to_string()]);
 
         let res = gather_cover_candidates(CoverType::Front, &cfg);
         assert!(res.contains(&"./Album Art.jpg".to_string()));
