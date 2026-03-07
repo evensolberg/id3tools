@@ -29,7 +29,7 @@ dsf = "0.2.2"
 log = "0.4.29"
 log4rs = "1.4.0"
 id3 = "1.16.4"
-metaflac = {path = "../_crates/rust-metaflac", version = "0.2.6"}
+metaflac = "0.2.8"
 mp4ameta = "0.13.0"
 assay = "0.1.1"
 clap_complete = "4.5.66"
