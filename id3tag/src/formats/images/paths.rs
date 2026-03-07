@@ -134,6 +134,37 @@ mod tests {
     }
 
     #[test]
+    fn test_complete_path_with_spaces() {
+        assert_eq!(
+            complete_path(Path::new("/my/path"), &"Album Art.jpg".to_string()),
+            "/my/path/Album Art.jpg".to_string()
+        );
+        assert_eq!(
+            complete_path(
+                Path::new("/my/path with spaces"),
+                &"Cover Image.png".to_string()
+            ),
+            "/my/path with spaces/Cover Image.png".to_string()
+        );
+    }
+
+    #[test]
+    fn test_gather_cover_candidates_with_spaces() {
+        let mut cfg = DefaultValues::new();
+        cfg.picture_front_candidates = Some(vec![
+            "Album Art.jpg".to_string(),
+            "Cover Image.png".to_string(),
+        ]);
+        cfg.picture_search_folders = Some(vec![".".to_string(), "Artwork Folder".to_string()]);
+
+        let res = gather_cover_candidates(CoverType::Front, &cfg);
+        assert!(res.contains(&"./Album Art.jpg".to_string()));
+        assert!(res.contains(&"./Cover Image.png".to_string()));
+        assert!(res.contains(&"Artwork Folder/Album Art.jpg".to_string()));
+        assert!(res.contains(&"Artwork Folder/Cover Image.png".to_string()));
+    }
+
+    #[test]
     /// Tests the `gather_cover_paths` function
     fn test_gather_cover_paths() {
         let mut cfg = DefaultValues::new();

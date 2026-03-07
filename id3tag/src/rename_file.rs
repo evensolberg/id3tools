@@ -36,6 +36,16 @@ pub fn rename_file(
         return Err("No filename pattern presented. Unable to continue.".into());
     };
 
+    // Check if any tag used in the pattern is empty. If so, skip the rename.
+    for (key, value) in tags {
+        if new_filename.contains(key.as_str()) && value.trim().is_empty() {
+            log::warn!(
+                "Tag '{key}' is used in rename pattern but has no value. Skipping rename for '{filename}'."
+            );
+            return Ok(filename.to_string());
+        }
+    }
+
     // These tags (may) need to be padded with leading zeros.
     let pad_tags: [&str; 8] = [
         "%dn",
@@ -50,27 +60,13 @@ pub fn rename_file(
 
     // replace any options (eg. %aa, %tg) with the corresponding tag
     for (key, value) in tags {
-        let mut fixed_value = value.clone();
-        fixed_value = fixed_value.trim().to_string();
+        let mut fixed_value = value.trim().to_string();
 
-        // Make sure to pad disc and track numbers with leading zeros
-        // or fill them in with "00" if empty.
+        // Make sure to pad disc and track numbers with leading zeros.
         if pad_tags.contains(&key.as_str()) {
-            if value.is_empty() {
-                log::warn!("'{key}' has no value. Setting to '00'.");
-                fixed_value = "00".to_string();
-            } else {
-                fixed_value = format!("{:0>2}", value.trim());
-            }
+            fixed_value = format!("{:0>2}", fixed_value);
         }
 
-        // Do the actual filename replacement
-        if fixed_value.is_empty() {
-            // We can safely replace the tag with "unknown" if it's empty
-            // becauee numerical values are handled above.
-            log::warn!("'{key}' is empty. Setting to 'unknown'.");
-            fixed_value = "unknown".to_string();
-        }
         new_filename = new_filename.replace(key, &fixed_value);
     }
 
@@ -129,10 +125,20 @@ pub fn rename_file(
 
 fn clean_filename(filename: &str) -> String {
     let mut new_filename = filename.to_string();
+    // Replace characters that have reasonable substitutions
     new_filename = new_filename.replace('/', "-");
     new_filename = new_filename.replace('\\', "-");
     new_filename = new_filename.replace(':', " -");
-    new_filename = new_filename.replace('\0', "");
+    new_filename = new_filename.replace('|', "-");
+    new_filename = new_filename.replace('\t', " ");
+    // Remove characters that have no good substitution
+    for ch in ['\0', '?', '*', '"', '<', '>', '\n', '\r'] {
+        new_filename = new_filename.replace(ch, "");
+    }
+    // Collapse multiple spaces into one
+    while new_filename.contains("  ") {
+        new_filename = new_filename.replace("  ", " ");
+    }
     new_filename = new_filename.trim_matches('.').to_string();
     new_filename = new_filename.trim().to_string();
     new_filename
@@ -154,6 +160,15 @@ mod tests {
         assert_eq!(clean_filename(".hidden."), "hidden");
         assert_eq!(clean_filename("back\\slash"), "back-slash");
         assert_eq!(clean_filename("null\0byte"), "nullbyte");
+        assert_eq!(clean_filename("what?"), "what");
+        assert_eq!(clean_filename("wild*card"), "wildcard");
+        assert_eq!(clean_filename("say\"hello\""), "sayhello");
+        assert_eq!(clean_filename("<tag>"), "tag");
+        assert_eq!(clean_filename("pipe|line"), "pipe-line");
+        assert_eq!(clean_filename("tab\there"), "tab here");
+        assert_eq!(clean_filename("new\nline"), "newline");
+        assert_eq!(clean_filename("cr\rreturn"), "crreturn");
+        assert_eq!(clean_filename("too   many  spaces"), "too many spaces");
     }
 
     #[test]
@@ -169,6 +184,60 @@ mod tests {
         assert_eq!(
             rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
             "../testdata/AlbumArtist - AlbumTitle.flac"
+        );
+    }
+
+    #[test]
+    fn test_rename_skip_blank_text_tag() {
+        let mut config = DefaultValues::new();
+        config.rename_file = Some("%aa - %at".to_string());
+        config.dry_run = Some(true);
+
+        let mut tags = HashMap::new();
+        tags.insert("%aa".to_string(), String::new()); // blank
+        tags.insert("%at".to_string(), "AlbumTitle".to_string());
+
+        // Should return original filename since %aa is blank and used in pattern
+        assert_eq!(
+            rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
+            "../testdata/sample.flac"
+        );
+    }
+
+    #[test]
+    fn test_rename_skip_blank_numeric_tag() {
+        let mut config = DefaultValues::new();
+        config.rename_file = Some("%dn-%tn %tt".to_string());
+        config.dry_run = Some(true);
+
+        let mut tags = HashMap::new();
+        tags.insert("%dn".to_string(), "1".to_string());
+        tags.insert("%tn".to_string(), String::new()); // blank
+        tags.insert("%tt".to_string(), "Track Title".to_string());
+
+        // Should return original filename since %tn is blank and used in pattern
+        assert_eq!(
+            rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
+            "../testdata/sample.flac"
+        );
+    }
+
+    #[test]
+    fn test_rename_ok_unused_blank_tag() {
+        let mut config = DefaultValues::new();
+        config.rename_file = Some("%dn-%tn %tt".to_string());
+        config.dry_run = Some(true);
+
+        let mut tags = HashMap::new();
+        tags.insert("%dn".to_string(), "1".to_string());
+        tags.insert("%tn".to_string(), "3".to_string());
+        tags.insert("%tt".to_string(), "Track Title".to_string());
+        tags.insert("%aa".to_string(), String::new()); // blank but not in pattern
+
+        // Should proceed with rename since %aa is not used in the pattern
+        assert_eq!(
+            rename_file("../testdata/sample.flac", &tags, &config).unwrap(),
+            "../testdata/01-03 Track Title.flac"
         );
     }
 }

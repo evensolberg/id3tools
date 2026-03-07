@@ -4,51 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
-### Doc
-
-- Changelog
-- README update
-- Changelog
-
-### Feat
-
-- Export APE and DSF
-- Output summary
-- Added M4A support
-- Added M4A support
-
-### Fix
-
-- Fixed all-zero MD5 in FLAC
-
-### Style
-
-- Formatting
-
-## [0.12.0] - 2024-04-22
-
-### Chore
-
-- Autoinherit crates from workspace
-
-### Features
-
-- Initial coding
-- Read FLAC into Track
-- Export FLAC to CSV working
-- MP3 parse working
-
-### Refactor
-
-- Lint fixes
-- Id3export version bump
-
-### Testing
-
-- Test update for image resize result
-
-## [0.14.15] - 2024-03-10
-
 ### Bug Fixes
 
 - Id3tag CLI flags not set properly
@@ -64,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Dependencies update
 - Fix lints
 - Mergify autoupdates
+- Autoinherit crates from workspace
 
 ### Doc
 
@@ -71,6 +27,9 @@ All notable changes to this project will be documented in this file.
 - Update changelog
 - Add some documentation
 - Update macro documentation
+- Changelog
+- README update
+- Changelog
 
 ### Documentation
 
@@ -80,17 +39,27 @@ All notable changes to this project will be documented in this file.
 ### Feat
 
 - Add the track_number function
+- Export APE and DSF
+- Output summary
+- Added M4A support
+- Added M4A support
 
 ### Features
 
 - ID3Show updated with more detail
 - Check for empty tags before renaming
 - Show duration for FLAC and MP3
+- Initial coding
+- Read FLAC into Track
+- Export FLAC to CSV working
+- MP3 parse working
 
 ### Fix
 
 - Fixed seconds output
 - Fixed the elapsed time output
+- Fixed all-zero MD5 in FLAC
+- More detail to Cover Too Small message
 
 ### Miscellaneous Tasks
 
@@ -101,6 +70,7 @@ All notable changes to this project will be documented in this file.
 - Version updates
 - Bump rustix from 0.37.19 to 0.37.25
 - Maintenance and dependencies update
+- Bump actions/download-artifact in /.github/workflows (#34)
 
 ### Refactor
 
@@ -113,15 +83,34 @@ All notable changes to this project will be documented in this file.
 - Format default_values.rs
 - Clean up code further
 - Dependency update
+- Lint fixes
+- Id3export version bump
 
 ### Security
 
 - Update Dependabot settings
 
+### Style
+
+- Formatting
+
+### Testing
+
+- Test update for image resize result
+
 ## [0.14.4] - 2023-02-26
 
 ### Bug Fixes
 
+- Disc count 0
+- --dnc didn't include disc number
+- Flags not working correctly
+- Trying to figure out a bug
+- Disc count bug
+- Bug fixes
+- Disc count bug fixed. Hopefully
+- Trackinfo not set correctly for FLAC
+- Image assignment fixed - hopefully
 - Disc number bug
 - Config not loading picture candidates
 
@@ -131,59 +120,17 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- Updated docs to reflect changes
 - README update
-
-### Miscellaneous Tasks
-
-- Remove unused debugs
-- Changelog
-- Changelog
-- Components update and debug removal
-
-## [0.14.2] - 2023-02-20
-
-### Refactor
-
-- Imaging and tagging rewrite
-
-## [0.14.1] - 2023-02-20
-
-### Bug Fixes
-
-- Image assignment fixed - hopefully
-
-### Refactor
-
-- Don't save resized images
-- Simplify cover search
-
-## [0.13.2] - 2023-02-18
-
-### Miscellaneous Tasks
-
-- CHANGELOG update
-- Bump tokio from 1.18.2 to 1.24.1
-- Bump tokio from 1.24.1 to 1.25.0
-- Lockfile rebuild and Changelog Update
-
-### Refactor
-
-- Simplify FLAC processing code
-
-## [0.13.1] - 2023-02-18
-
-### Refactor
-
-- Update parse_options
-
-## [0.13.0] - 2023-02-18
-
-### Bug Fixes
-
-- Trackinfo not set correctly for FLAC
 
 ### Features
 
+- Multi-threading
+- Multithreading
+- Add --taa flag
+- -taa sets both track and album artist
+- Check if filename is unchanged
+- Add DSF (rename) support
 - Create id3show application
 - Imaging cont
 - Image search and resize
@@ -196,6 +143,23 @@ All notable changes to this project will be documented in this file.
 
 ### Miscellaneous Tasks
 
+- CHANGELOG
+- Clean up the code a bit
+- Changelog update
+- Changelog update
+- Tidy up the code a little
+- Code maintenance
+- Changelog
+- GH Action and code cleanup
+- Cargo.lock
+- Changelog update
+- Clean up lints
+- Update changelog
+- CHANGELOG
+- Tidy up
+- CHANGELOG update
+- Changelog update
+- Changelog update
 - Changelog update
 - Changelog update
 - Changelog Update
@@ -212,9 +176,21 @@ All notable changes to this project will be documented in this file.
 - Update Justfile
 - Justfile update
 - Update CHANGELOG
+- CHANGELOG update
+- Bump tokio from 1.18.2 to 1.24.1
+- Bump tokio from 1.24.1 to 1.25.0
+- Lockfile rebuild and Changelog Update
+- Remove unused debugs
+- Changelog
+- Changelog
+- Components update and debug removal
 
 ### Refactor
 
+- Separated tags, moved funcs
+- Simplified the config CLI check
+- Minor changes
+- Minor updates
 - Cleaned up pedantic lints
 - Move id3tag to a sub-project
 - Reduce FLAC processing fn size
@@ -229,6 +205,11 @@ All notable changes to this project will be documented in this file.
 - Simplify complex functions
 - Change the images module
 - Move out more functions
+- Update parse_options
+- Simplify FLAC processing code
+- Don't save resized images
+- Simplify cover search
+- Imaging and tagging rewrite
 
 ### Testing
 
@@ -241,176 +222,29 @@ All notable changes to this project will be documented in this file.
 
 - Refactor and clean functions
 
-## [0.11.1] - 2022-03-20
-
-### Features
-
-- Add DSF (rename) support
-
-## [0.11.0] - 2022-03-19
-
-### Miscellaneous Tasks
-
-- Changelog update
-
-### Refactor
-
-- Minor updates
-
-## [0.10.8] - 2022-03-14
-
-### Features
-
-- Check if filename is unchanged
-
-### Miscellaneous Tasks
-
-- Changelog update
-
-## [0.10.7] - 2022-03-14
-
-### Documentation
-
-- Updated docs to reflect changes
-
-### Miscellaneous Tasks
-
-- CHANGELOG update
-
-### Refactor
-
-- Minor changes
-
-## [0.10.6] - 2022-03-11
-
-### Features
-
-- Add --taa flag
-- -taa sets both track and album artist
-
-### Miscellaneous Tasks
-
-- CHANGELOG
-- Tidy up
-
-## [0.10.4] - 2022-03-06
-
-### Bug Fixes
-
-- Disc count bug fixed. Hopefully
-
-### Miscellaneous Tasks
-
-- Clean up lints
-- Update changelog
-
-## [0.10.2] - 2022-03-05
-
-### Miscellaneous Tasks
-
-- Cargo.lock
-- Changelog update
-
-## [0.10.1] - 2022-03-05
-
-### Bug Fixes
-
-- Bug fixes
-
-### Features
-
-- Multi-threading
-- Multithreading
-
-### Miscellaneous Tasks
-
-- Code maintenance
-- Changelog
-- GH Action and code cleanup
-
-## [0.9.8] - 2022-02-19
-
-### Bug Fixes
-
-- Flags not working correctly
-- Trying to figure out a bug
-- Disc count bug
-
-### Miscellaneous Tasks
-
-- Changelog update
-- Tidy up the code a little
-
-## [0.9.5] - 2022-02-13
-
-### Bug Fixes
-
-- Disc count 0
-- --dnc didn't include disc number
-
-### Miscellaneous Tasks
-
-- CHANGELOG
-- Clean up the code a bit
-- Changelog update
-
-### Refactor
-
-- Separated tags, moved funcs
-- Simplified the config CLI check
-
 ## [0.9.4] - 2022-02-12
-
-### Features
-
-- Set total number of discs automagically
-
-### Miscellaneous Tasks
-
-- Changelog update
-- Lint and changelog
-
-## [0.9.3] - 2022-02-11
-
-### Features
-
-- Rename ensure unique names
-
-### Miscellaneous Tasks
-
-- CHANGELOG update
-- README update
-
-## [0.9.2] - 2022-01-30
-
-### Features
-
-- Disc numbering upgrade
-
-### Miscellaneous Tasks
-
-- Update CHANGELOG
-- Clean up some lint
-
-## [0.9.1] - 2022-01-30
 
 ### Bug Fixes
 
 - Handle the case where no log config is specified
 
-### Miscellaneous Tasks
-
-- CHANGELOG update
-
-## [0.9.0] - 2022-01-30
-
 ### Features
 
 - Logging update
+- Disc numbering upgrade
+- Rename ensure unique names
+- Set total number of discs automagically
 
 ### Miscellaneous Tasks
 
 - Comments update
+- CHANGELOG update
+- Update CHANGELOG
+- Clean up some lint
+- CHANGELOG update
+- README update
+- Changelog update
+- Lint and changelog
 
 ## [0.8.4] - 2022-01-23
 
@@ -430,14 +264,6 @@ All notable changes to this project will be documented in this file.
 - Rename bug
 - Replace `.` with nothing in file rename
 
-### Miscellaneous Tasks
-
-- Update CHNAGELOG
-- Moved from radix to parse in str --> number
-- Update changelog
-
-## [0.8.1] - 2022-01-16
-
 ### Features
 
 - Discover disc number
@@ -445,20 +271,15 @@ All notable changes to this project will be documented in this file.
 ### Miscellaneous Tasks
 
 - Update changelog
+- Update CHNAGELOG
+- Moved from radix to parse in str --> number
+- Update changelog
 
-## [0.8.0] - 2022-01-15
+## [0.7.1] - 2022-01-15
 
-### Features
+### Bug Fixes
 
-- File rename complete
-
-### Miscellaneous Tasks
-
-- CHANGELOG update
-- Crate version updates
-- Changelog update
-
-## [0.7.0] - 2022-01-14
+- Crashed if unknown file found on `--tnc`
 
 ### Features
 
@@ -467,29 +288,16 @@ All notable changes to this project will be documented in this file.
 - File rename for FLAC
 - Rename FLAC works
 - MP4 rename
-
-## [0.6.3] - 2022-01-07
-
-### Bug Fixes
-
-- Crashed if unknown file found on `--tnc`
+- File rename complete
 
 ### Miscellaneous Tasks
 
 - Update changelog
+- CHANGELOG update
+- Crate version updates
+- Changelog update
 
 ## [0.6.1] - 2022-01-07
-
-### Features
-
-- Added `--track-number-count` option
-- Add config file support for file count
-
-### Miscellaneous Tasks
-
-- Update changelog
-
-## [0.6.0] - 2022-01-03
 
 ### Chore
 
@@ -500,10 +308,16 @@ All notable changes to this project will be documented in this file.
 
 - Documentation update
 
+### Features
+
+- Added `--track-number-count` option
+- Add config file support for file count
+
 ### Miscellaneous Tasks
 
 - Added git cliff and conventional commits
 - Repo update
+- Update changelog
 
 ### Refactor
 

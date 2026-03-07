@@ -2,7 +2,7 @@
 id: id3-spo
 title: Refactor big functions into smaller ones that can be tested independently.
 status: open
-type: feature
+type: task
 priority: 2
 tags: []
 created: 2026-03-07

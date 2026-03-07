@@ -2,7 +2,7 @@
 id: id3-cns
 title: Update README with file type support and image manipulation info
 status: open
-type: feature
+type: task
 priority: 1
 tags: []
 created: 2026-03-07

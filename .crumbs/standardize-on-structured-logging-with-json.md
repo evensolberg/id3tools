@@ -2,7 +2,7 @@
 id: id3-c8s
 title: Standardize on structured logging with JSON.
 status: open
-type: feature
+type: task
 priority: 3
 tags: []
 created: 2026-03-07

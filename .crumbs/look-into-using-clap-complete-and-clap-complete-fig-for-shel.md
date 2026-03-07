@@ -2,7 +2,7 @@
 id: id3-5fw
 title: Look into using clap_complete and clap_complete_fig for shell completion.
 status: open
-type: feature
+type: idea
 priority: 3
 tags: []
 created: 2026-03-07

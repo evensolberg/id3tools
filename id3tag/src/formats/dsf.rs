@@ -76,9 +76,7 @@ pub fn process(
         }
 
         // Write tags to file
-        log::debug!(
-            "Writing to DSF files is currently not supported. Not writing {filename}"
-        );
+        log::debug!("Writing to DSF files is currently not supported. Not writing {filename}");
 
         // Rename file
         if config.rename_file.is_some() {

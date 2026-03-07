@@ -2,7 +2,7 @@
 id: id3-chf
 title: Improve error handling by using a proper error `struct`.
 status: open
-type: feature
+type: task
 priority: 2
 tags: []
 created: 2026-03-07

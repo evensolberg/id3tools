@@ -2,7 +2,7 @@
 id: id3-1db
 title: Look into using Discorgs or similar to get track information
 status: open
-type: feature
+type: idea
 priority: 3
 tags: []
 created: 2026-03-07

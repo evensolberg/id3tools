@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(gh api repos/evensolberg/id3tools/contents/id3tag/src/main.rs --jq '.content')"
+      "Bash(gh api repos/evensolberg/id3tools/contents/id3tag/src/main.rs --jq '.content')",
+      "Bash(git add common/src/genres.rs id3cli-gen/src/main.rs id3export/src/main.rs id3export/src/stats.rs id3export/src/tracks.rs id3show/src/main.rs id3tag/src/default_values.rs id3tag/src/formats/dsf.rs id3tag/src/formats/images/mod.rs id3tag/src/formats/mp3.rs id3tag/src/main.rs .crumbs/)"
     ]
   }
 }

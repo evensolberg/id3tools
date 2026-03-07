@@ -2,7 +2,7 @@
 id: id3-9jh
 title: Create tests.
 status: open
-type: feature
+type: task
 priority: 1
 tags: []
 created: 2026-03-07

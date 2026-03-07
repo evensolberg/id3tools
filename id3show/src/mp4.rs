@@ -41,7 +41,10 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             }
             mp4ameta::Data::Unknown { code, data } => {
                 if show_detail {
-                    println!("  {data_ident} = {len} bytes (Unknown, code={code})", len = data.len());
+                    println!(
+                        "  {data_ident} = {len} bytes (Unknown, code={code})",
+                        len = data.len()
+                    );
                 }
             }
         }

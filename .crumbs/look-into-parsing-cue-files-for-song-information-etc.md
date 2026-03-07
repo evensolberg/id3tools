@@ -2,7 +2,7 @@
 id: id3-m5n
 title: Look into parsing CUE files for song information etc.
 status: open
-type: feature
+type: idea
 priority: 3
 tags: []
 created: 2026-03-07
