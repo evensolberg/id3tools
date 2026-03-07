@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.14.16"
+version = "0.14.17"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -30,3 +30,7 @@ thousands = { workspace = true }
 
 # Our own package
 common = { path = "../common" }
+
+[[bin]]
+name = "id3tag"
+path = "src/main.rs"
