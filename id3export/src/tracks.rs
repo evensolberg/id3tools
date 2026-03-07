@@ -413,7 +413,7 @@ impl Reader for Track {
 
         self.file_format = Some(FileTypes::M4A);
 
-        self.duration_ms = Some(audio.duration.unwrap_or_default().as_millis() as u64);
+        self.duration_ms = Some(audio.duration.as_millis() as u64);
         self.channels = Some(
             audio
                 .channel_config

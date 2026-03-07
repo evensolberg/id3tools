@@ -19,7 +19,7 @@ id3-gdi,id3export: mp4_tags macro sets empty string instead of None,open,bug,3,i
 id3-i0m,id3tag: rename errors silently discarded in mp3/dsf,open,bug,3,id3tag|low,2026-03-06,2026-03-06,,
 id3-ix6,common: FileTypes::from_filename swallows I/O errors,closed,bug,2,common|medium,2026-03-06,2026-03-07,,
 id3-jc9,id3tag: invalid picture_max_size silently disables resizing,open,bug,3,id3tag|medium,2026-03-06,2026-03-06,,
-id3-lg1,dep: mp3-metadata is unsound (RUSTSEC-2025-0027),open,bug,2,dependency|security|id3show|id3export,2026-03-06,2026-03-06,,
+id3-lg1,dep: mp3-metadata is unsound (RUSTSEC-2025-0027),closed,bug,2,dependency|security|id3show|id3export,2026-03-06,2026-03-07,,
 id3-ncs,id3tag: clean_filename strips all dots from filenames,closed,bug,2,id3tag|medium,2026-03-06,2026-03-07,,
 id3-pc0,id3export: clippy warnings in stats.rs,closed,task,3,id3export|clippy,2026-03-06,2026-03-07,,
 id3-ptn,id3show: missing mp3.rs module prevents compilation,closed,bug,1,id3show|critical,2026-03-06,2026-03-07,,
