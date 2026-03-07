@@ -204,17 +204,18 @@ pub enum Genre {
 
 impl Genre {
     #[allow(dead_code)]
-    fn default() -> Self {
+    const fn default() -> Self {
         Self::Other
     }
 
     #[allow(dead_code)]
-    fn new() -> Self {
+    const fn new() -> Self {
         Self::default()
     }
 }
 
 impl Display for Genre {
+    #[allow(clippy::too_many_lines)]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let disp = match self {
             Self::Blues => "Blues",
@@ -417,6 +418,7 @@ impl Display for Genre {
 impl FromStr for Genre {
     type Err = ();
 
+    #[allow(clippy::too_many_lines)]
     fn from_str(s: &str) -> Result<Self, ()> {
         match s {
             "Blues" => Ok(Self::Blues),
@@ -619,6 +621,7 @@ impl FromStr for Genre {
 impl TryFrom<u32> for Genre {
     type Error = ();
 
+    #[allow(clippy::too_many_lines)]
     fn try_from(v: u32) -> Result<Self, Self::Error> {
         match v {
             0 => Ok(Self::Blues),

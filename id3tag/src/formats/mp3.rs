@@ -198,10 +198,9 @@ fn set_picture(
         "Back Cover".to_string()
     };
 
-    // Read the file and check the mime type
+    // Read the file and detect the mime type
     log::debug!("Reading image file {img_file}");
-    let img = read_cover(img_file, max_size)?;
-    let mime_type = String::from("image/jpeg");
+    let (img, mime_type) = read_cover(img_file, max_size)?;
     log::debug!("Image format: {mime_type}");
 
     log::debug!("Setting picture to {img_file}");

@@ -9,7 +9,7 @@ A set of command-line tools for viewing, editing, exporting, and renaming music 
 | FLAC   | Yes  | Yes       | Yes    | Yes        | Yes    |
 | MP3    | Yes  | Yes       | Yes    | Yes        | Yes    |
 | MP4/M4A| Yes  | Yes       | Yes    | Yes [^1]   | Yes    |
-| APE    | Yes  | Yes       | Yes    | No         | Yes    |
+| APE    | Yes  | Yes       | Yes    | Yes        | Yes    |
 | DSF    | Yes  | No [^2]   | Yes    | No         | Yes    |
 
 [^1]: MP4 only supports front cover images (no back cover due to iTunes limitations).
@@ -56,10 +56,11 @@ id3export -c detail.csv **/*.flac
 
 id3tag can automatically find and embed cover art:
 
+- **Supported image formats**: JPEG, PNG, and WebP input files (WebP is converted to JPEG for MP4)
 - **Candidate search**: looks for images by filename (e.g., `cover.jpg`, `front.jpg`, `folder.jpg`) in configurable directories
 - **Automatic resizing**: images larger than the configured maximum (default 500px) are resized with Lanczos3 filtering
 - **Aspect ratio validation**: rejects images with extreme aspect ratios (outside 1:1.5 to 1.5:1)
-- **Front and back covers**: both supported for FLAC and MP3; front only for MP4
+- **Front and back covers**: both supported for FLAC, MP3, and APE; front only for MP4
 
 Configure via CLI flags (`--pfc`, `--pbc`, `--psf`, `--pms`) or the TOML config file.
 

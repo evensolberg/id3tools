@@ -103,7 +103,14 @@ pub fn process(
 /// Sets the front or back cover
 fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
     let fmt = ImgFmt::Jpeg;
-    let data = images::read_cover(filename, 0)?;
+    let (raw_data, mime_type) = images::read_cover(filename, 0)?;
+    // MP4 only supports JPEG — convert if needed
+    let data = if mime_type == "image/jpeg" {
+        raw_data
+    } else {
+        log::debug!("Converting {mime_type} to JPEG for MP4 embedding.");
+        images::to_jpeg(&raw_data)?
+    };
     tags.set_artwork(mp4ameta::Img { fmt, data });
 
     // Return safely

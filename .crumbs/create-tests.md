@@ -1,6 +1,6 @@
 ---
 id: id3-9jh
-title: Create tests.
+title: Create tests
 status: open
 type: task
 priority: 1

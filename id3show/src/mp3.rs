@@ -591,7 +591,7 @@ fn genre(g: &mp3_metadata::Genre) -> String {
         mp3_metadata::Genre::ACapela => String::from("A Capela"),
         mp3_metadata::Genre::EuroHouse => String::from("Euro House"),
         mp3_metadata::Genre::DanceHall => String::from("Dance Hall"),
-        mp3_metadata::Genre::Something(s) => s.to_string(),
+        mp3_metadata::Genre::Something(s) => s.clone(),
         mp3_metadata::Genre::Unknown => String::from("Unknown"),
     }
 }

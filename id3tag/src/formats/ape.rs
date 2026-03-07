@@ -108,8 +108,8 @@ fn set_picture(
     // Remove existing cover art with this key
     let _ = tags.remove_items(ape_key);
 
-    let img = read_cover(img_file, max_size)?;
-    log::debug!("set_picture::Image {img_file} read. Length = {}", img.len());
+    let (img, mime_type) = read_cover(img_file, max_size)?;
+    log::debug!("set_picture::Image {img_file} read. Length = {}, mime = {mime_type}", img.len());
 
     // APE binary cover format: "description\0" prefix followed by raw image bytes
     let mut binary_data = Vec::new();

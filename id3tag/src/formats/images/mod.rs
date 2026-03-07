@@ -1,8 +1,9 @@
 //! Image processing module. Contains functions for finding and reading cover images.
 
-use image::{self, imageops::FilterType, ImageFormat::Jpeg, ImageReader};
+use image::{self, imageops::FilterType, ImageFormat, ImageReader};
 use std::error::Error;
 use std::io::Cursor;
+use std::path::Path;
 
 // Homegrown stuff
 mod covertype;
@@ -77,8 +78,9 @@ fn find_cover(
     Ok(None)
 } // fn find_cover()
 
-/// Reads the image file and resizes it if needed. Returns the resized image as a vector of bytes.
+/// Reads the image file and resizes it if needed. Returns the image bytes and mime type.
 /// Set `max_size` to 0 to disable resizing.
+/// The original image format is preserved (JPEG, PNG, WebP). Unknown formats fall back to JPEG.
 ///
 /// # Arguments
 ///
@@ -87,20 +89,18 @@ fn find_cover(
 ///
 /// # Returns
 ///
-/// `Result<Vec<u8>, Box<dyn Error>>` - a vector of bytes with the image data.
+/// `Result<(Vec<u8>, String), Box<dyn Error>>` - a tuple of image bytes and mime type string.
 ///
 /// # Errors
 ///
 /// Returns an error if the image cannot be read or if the aspect ratio is not within the expected range.
 /// The expected aspect ratio is within 1.5:1 and 1:1.5 (eg. 300x200, 200x300, 300x300, 200x200)
-pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn read_cover(cover_file: &str, max_size: u32) -> Result<(Vec<u8>, String), Box<dyn Error>> {
     let img = ImageReader::open(cover_file)?.decode()?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {
         return Err(format!("Image {cover_file} is outside the expected ratio.").into());
     }
-
-    let mut img_buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
 
     if image_too_small(&img, max_size) {
         return Err(
@@ -108,14 +108,40 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
         );
     }
 
+    let output_format = detect_format(cover_file);
+    let mime_type = format_to_mime(output_format);
+    let mut img_buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+
     if image_too_large(&img, max_size) {
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
-        img_resized.write_to(&mut img_buffer, Jpeg)?;
+        img_resized.write_to(&mut img_buffer, output_format)?;
     } else {
-        img.write_to(&mut img_buffer, Jpeg)?;
+        img.write_to(&mut img_buffer, output_format)?;
     }
 
-    Ok(img_buffer.into_inner())
+    Ok((img_buffer.into_inner(), mime_type))
+}
+
+/// Converts image bytes to JPEG format. Used by formats that only support JPEG (e.g. MP4).
+pub fn to_jpeg(data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
+    let img = image::load_from_memory(data)?;
+    let mut buf: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+    img.write_to(&mut buf, ImageFormat::Jpeg)?;
+    Ok(buf.into_inner())
+}
+
+/// Detects the image format from the file extension, falling back to JPEG.
+fn detect_format(cover_file: &str) -> ImageFormat {
+    ImageFormat::from_path(Path::new(cover_file)).unwrap_or(ImageFormat::Jpeg)
+}
+
+/// Returns the MIME type string for the given image format.
+fn format_to_mime(format: ImageFormat) -> String {
+    match format {
+        ImageFormat::Png => "image/png".to_string(),
+        ImageFormat::WebP => "image/webp".to_string(),
+        _ => "image/jpeg".to_string(),
+    }
 }
 
 /// Checks if the image is too small to be used as a cover.

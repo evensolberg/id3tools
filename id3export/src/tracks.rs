@@ -47,7 +47,7 @@ macro_rules! ape_tags {
                     log::debug!("Unexpected item type for {}: {item:?}", $items);
                 }
             }
-            $self_ref.$self_field = flatten_vec(values);
+            $self_ref.$self_field = flatten_vec(&values);
         }
     };
 }
@@ -88,7 +88,7 @@ pub struct Track {
     /// album artist
     pub album_artist: Option<String>,
 
-    /// default name on which album artist is sorted. Example: Artist is "Alicia Keys", but artist_sort may be "Keys, Alicia".
+    /// default name on which album artist is sorted. Example: Artist is "Alicia Keys", but `artist_sort` may be "Keys, Alicia".
     pub album_artist_sort: Option<String>,
 
     /// Album title.
@@ -245,7 +245,7 @@ impl Reader for Track {
             FileTypes::M4A => self.read_mp4()?,
             FileTypes::Ape => self.read_ape()?,
             FileTypes::Dsf => self.read_dsf()?,
-            _ => {
+            FileTypes::Unknown => {
                 self.file_format = Some(FileTypes::Unknown);
             }
         }
@@ -272,32 +272,32 @@ impl Reader for Track {
                     // don't return the values in the format expected, so the values would need to be converted.
                     // It is just easier to do it this way. This may change in the future.
                     self.album_artist =
-                        flatten_vec(vcc.get("ALBUMARTIST").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("ALBUMARTIST").cloned().unwrap_or_default());
                     self.album_artist_sort =
-                        flatten_vec(vcc.get("ALBUMARTISTSORT").cloned().unwrap_or_default());
-                    self.album_title = flatten_vec(vcc.get("ALBUM").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("ALBUMARTISTSORT").cloned().unwrap_or_default());
+                    self.album_title = flatten_vec(&vcc.get("ALBUM").cloned().unwrap_or_default());
                     self.album_title_sort =
-                        flatten_vec(vcc.get("ALBUMSORT").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("ALBUMSORT").cloned().unwrap_or_default());
                     self.disc_number =
-                        flatten_vec(vcc.get("DISCNUMBER").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("DISCNUMBER").cloned().unwrap_or_default());
                     self.disc_count =
-                        flatten_vec(vcc.get("DISCTOTAL").cloned().unwrap_or_default());
-                    self.artist = flatten_vec(vcc.get("ARTIST").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("DISCTOTAL").cloned().unwrap_or_default());
+                    self.artist = flatten_vec(&vcc.get("ARTIST").cloned().unwrap_or_default());
                     self.artist_sort =
-                        flatten_vec(vcc.get("ARTISTSORT").cloned().unwrap_or_default());
-                    self.title = flatten_vec(vcc.get("TITLE").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("ARTISTSORT").cloned().unwrap_or_default());
+                    self.title = flatten_vec(&vcc.get("TITLE").cloned().unwrap_or_default());
                     self.title_sort =
-                        flatten_vec(vcc.get("TITLESORT").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("TITLESORT").cloned().unwrap_or_default());
                     self.track_number =
-                        flatten_vec(vcc.get("TRACKNUMBER").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("TRACKNUMBER").cloned().unwrap_or_default());
                     self.track_count =
-                        flatten_vec(vcc.get("TRACKTOTAL").cloned().unwrap_or_default());
-                    self.genre = flatten_vec(vcc.get("GENRE").cloned().unwrap_or_default());
-                    self.composer = flatten_vec(vcc.get("COMPOSER").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("TRACKTOTAL").cloned().unwrap_or_default());
+                    self.genre = flatten_vec(&vcc.get("GENRE").cloned().unwrap_or_default());
+                    self.composer = flatten_vec(&vcc.get("COMPOSER").cloned().unwrap_or_default());
                     self.composer_sort =
-                        flatten_vec(vcc.get("COMPOSERSORT").cloned().unwrap_or_default());
-                    self.date = flatten_vec(vcc.get("DATE").cloned().unwrap_or_default());
-                    self.comments = flatten_vec(vcc.get("COMMENT").cloned().unwrap_or_default());
+                        flatten_vec(&vcc.get("COMPOSERSORT").cloned().unwrap_or_default());
+                    self.date = flatten_vec(&vcc.get("DATE").cloned().unwrap_or_default());
+                    self.comments = flatten_vec(&vcc.get("COMMENT").cloned().unwrap_or_default());
                     log::debug!("Track after comments: {self:?}");
                 }
                 block::Block::StreamInfo(si) => {
@@ -313,11 +313,8 @@ impl Reader for Track {
                     // For some reason, doing a straight "String::from_utf8(si.md5.clone())?"
                     // results in "invalid utf-8 sequence of 1 bytes from index 0" in my tests.
                     // This is a workaround. ¯\_(ツ)_/¯
-                    if let Err(e) = utf8_to_string(&si.md5) {
-                        log::error!("Error converting MD5: {e}");
-                        self.md5 = None;
-                    } else {
-                        let md5 = utf8_to_string(&si.md5)?;
+                    {
+                        let md5 = utf8_to_string(&si.md5);
                         if md5 == "00000000000000000000000000000000" {
                             self.md5 = None;
                         } else {
@@ -357,14 +354,17 @@ impl Reader for Track {
         {
             Ok(m) => m,
             Err(e) => {
-                let msg = format!("{:?}", e);
+                let msg = format!("{e:?}");
                 log::error!("Error reading MP3: {msg}");
                 return Err(msg.into());
             }
         };
 
         self.file_format = Some(FileTypes::MP3);
-        self.duration_ms = Some(meta.duration.as_millis() as u64);
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            self.duration_ms = Some(meta.duration.as_millis() as u64);
+        }
 
         let frames = meta.frames;
 
@@ -372,7 +372,7 @@ impl Reader for Track {
             return Err("No frames found".into());
         }
 
-        self.bitrate = Some(frames[0].bitrate as u32);
+        self.bitrate = Some(u32::from(frames[0].bitrate));
         self.channels = if frames[0].ms_stereo {
             Some(2)
         } else {
@@ -382,7 +382,7 @@ impl Reader for Track {
         self.bits_per_sample = Some(16); // MP3 is always 16-bit
 
         // This should probably be something like the mode of the sample rates, but this is fine for now.
-        self.sample_rate = Some(frames[0].sampling_freq as u32);
+        self.sample_rate = Some(u32::from(frames[0].sampling_freq));
 
         // Use a different crate to get the metadata
         let tag = Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
@@ -414,7 +414,10 @@ impl Reader for Track {
 
         self.file_format = Some(FileTypes::M4A);
 
-        self.duration_ms = Some(audio.duration.as_millis() as u64);
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            self.duration_ms = Some(audio.duration.as_millis() as u64);
+        }
         self.channels = Some(
             audio
                 .channel_config
@@ -491,8 +494,11 @@ impl Reader for Track {
         // Get the basic file information first.
         let format = dsf_file.fmt_chunk();
         self.sample_rate = Some(format.sampling_frequency());
-        self.channels = Some(format.channel_num() as u8);
-        self.bits_per_sample = Some(format.bits_per_sample() as u8);
+        #[allow(clippy::cast_possible_truncation)]
+        {
+            self.channels = Some(format.channel_num() as u8);
+            self.bits_per_sample = Some(format.bits_per_sample() as u8);
+        }
         self.duration_ms = Some(duration_from_samples(
             format.sample_count(),
             format.sampling_frequency(),
@@ -500,7 +506,7 @@ impl Reader for Track {
 
         // Get the ID3 tag.
         let tag = if dsf_file.id3_tag().is_some() {
-            <std::option::Option<id3::Tag> as Clone>::clone(dsf_file.id3_tag()).unwrap()
+            <std::option::Option<id3::Tag> as Clone>::clone(dsf_file.id3_tag()).expect("ID3 tag should exist")
         } else {
             log::warn!("No ID3 tag found");
             return Err("No ID3 tag found".into());
@@ -575,7 +581,7 @@ impl Reader for Track {
 /// An u64 representing the duration of the track in milliseconds.
 ///
 ///
-#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
     if sample_rate == 0 {
         return 0;
@@ -596,21 +602,21 @@ fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
 ///
 /// ```ignore
 /// let bytes = &[0x48, 0x65, 0x6c, 0x6c, 0x6f];
-/// let hex = utf8_to_string(bytes).unwrap();
+/// let hex = utf8_to_string(bytes);
 /// assert_eq!(hex, "48656c6c6f");
 /// ```
-fn utf8_to_string(utf8: &[u8]) -> Result<String, Box<dyn Error>> {
+fn utf8_to_string(utf8: &[u8]) -> String {
     log::debug!("UTF8: {utf8:?}");
 
-    let hex: String = utf8
-        .iter()
-        .map(|b| format!("{:02x}", b).to_string())
-        .collect::<Vec<String>>()
-        .join("");
+    let hex = utf8.iter().fold(String::new(), |mut acc, b| {
+        use std::fmt::Write;
+        let _ = write!(acc, "{b:02x}");
+        acc
+    });
 
     log::debug!("utf8 to string: {hex:?}");
 
-    Ok(hex)
+    hex
 }
 
 /// Flatten a `Vec<String>` into a single `String`.
@@ -635,7 +641,7 @@ fn utf8_to_string(utf8: &[u8]) -> Result<String, Box<dyn Error>> {
 /// # Notes
 ///
 /// The function trims the resulting string.
-fn flatten_vec(vec: Vec<String>) -> Option<String> {
+fn flatten_vec(vec: &[String]) -> Option<String> {
     if vec.is_empty() {
         return None;
     }

@@ -138,6 +138,7 @@ fn audio_file_type(ft: Type) -> FileTypes {
 }
 
 /// Checks that the new filename pattern results in a unique file.
+///
 /// Not perfect since the track title can occur multiple times on the same album.
 /// TODO: Make this better. Include a check for the disc number and track title combo, for example.
 ///
@@ -307,7 +308,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     // return safely with the number of files found
     log::debug!("file_list = {:?}", &file_list);
     let count = file_list.count();
-    log::debug!("count = {}", count);
+    log::debug!("count = {count}");
 
     // Format the file count
     let file_count = if count < 100 {
@@ -321,6 +322,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 }
 
 /// Gets the microsecond part of the current duration since `UNIX_EPOCH` and modulate to a 4-digit number.
+///
 /// This is used to ensure uniqueness of file names.
 /// This can be changed to something else later without impacting the main application.
 /// For example, one could switch to a random number generator or something.
@@ -386,7 +388,7 @@ pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
         .parent()
         .unwrap_or_else(|| Path::new("."))
         .to_path_buf();
-    log::debug!("music_file_path = {:?}", music_file_path);
+    log::debug!("music_file_path = {}", music_file_path.display());
 
     Ok(music_file_path)
 }

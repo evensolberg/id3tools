@@ -60,6 +60,7 @@ pub struct ExecutionConfig {
 
 /// Picture/cover art configuration.
 #[derive(Debug, Default, Clone, Deserialize)]
+#[allow(clippy::struct_field_names)]
 pub struct PictureConfig {
     /// Default value for the albums front cover.
     pub picture_front: Option<String>,
@@ -83,36 +84,28 @@ pub struct PictureConfig {
 impl PictureConfig {
     /// Gathers the list of folder candidates into a vector. Uses "." and ".." if nothing is found.
     pub fn search_folders(&self) -> Vec<String> {
-        if let Some(f) = &self.picture_search_folders {
-            if !f.is_empty() {
-                return self
-                    .picture_search_folders
-                    .as_ref()
-                    .unwrap_or(&vec![".".to_string(), "..".to_string()])
-                    .clone();
-            }
+        match &self.picture_search_folders {
+            Some(f) if !f.is_empty() => f.clone(),
+            _ => vec![".".to_string(), "..".to_string()],
         }
-        vec![".".to_string(), "..".to_string()]
     }
 
     /// Get the list of front cover candidates
     pub fn picture_front_candidates(&self) -> Vec<String> {
-        self.picture_front_candidates
-            .as_ref()
-            .unwrap_or(&vec![
+        self.picture_front_candidates.clone().unwrap_or_else(|| {
+            vec![
                 "front.jpg".to_string(),
                 "cover.jpg".to_string(),
                 "folder.jpg".to_string(),
-            ])
-            .clone()
+            ]
+        })
     }
 
     /// Get the list of back cover candidates
     pub fn picture_back_candidates(&self) -> Vec<String> {
         self.picture_back_candidates
-            .as_ref()
-            .unwrap_or(&vec!["back.jpg".to_string()])
             .clone()
+            .unwrap_or_else(|| vec!["back.jpg".to_string()])
     }
 }
 
@@ -223,11 +216,9 @@ impl DefaultValues {
 
         // Read the config file
         if cli.contains_id("config-file") {
-            let config_filename = shellexpand::tilde(
-                cli.get_one::<String>("config-file")
-                    .unwrap_or(&String::from("~/.config/id3tag/config.toml")),
-            )
-            .to_string();
+            let default_config = String::from("~/.config/id3tag/config.toml");
+            let config_path = cli.get_one::<String>("config-file").unwrap_or(&default_config);
+            let config_filename = shellexpand::tilde(config_path).to_string();
             cfg = Self::load_config(&config_filename)?;
         }
 

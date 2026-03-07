@@ -64,7 +64,7 @@ pub fn rename_file(
 
         // Make sure to pad disc and track numbers with leading zeros.
         if pad_tags.contains(&key.as_str()) {
-            fixed_value = format!("{:0>2}", fixed_value);
+            fixed_value = format!("{fixed_value:0>2}");
         }
 
         new_filename = new_filename.replace(key, &fixed_value);

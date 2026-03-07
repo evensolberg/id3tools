@@ -59,12 +59,11 @@ fn run() -> Result<(), Box<dyn Error>> {
     // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
     // Expand glob patterns and create a list of files to process
-    let raw_args: Vec<&str> = cli
-        .get_many::<String>("files")
-        .unwrap_or_default()
-        .map(String::as_str)
-        .collect();
-    let filenames = common::expand_file_args(raw_args.into_iter());
+    let filenames = common::expand_file_args(
+        cli.get_many::<String>("files")
+            .unwrap_or_default()
+            .map(String::as_str),
+    );
     let file_count = filenames.len();
 
     for file in &filenames {

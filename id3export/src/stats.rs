@@ -67,13 +67,13 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    pub fn add(&mut self, ms: u64, size: u64) {
+    pub const fn add(&mut self, ms: u64, size: u64) {
         self.file_count += 1;
         self.total_ms += ms;
         self.total_size += size;
     }
 
-    pub fn calc_avg_ms(&mut self) {
+    pub const fn calc_avg_ms(&mut self) {
         self.avg_ms = if self.file_count > 0 {
             self.total_ms / self.file_count
         } else {
@@ -81,7 +81,7 @@ impl Statistics {
         }
     }
 
-    pub fn calc_avg_size(&mut self) {
+    pub const fn calc_avg_size(&mut self) {
         self.avg_size = if self.file_count > 0 {
             self.total_size / self.file_count
         } else {

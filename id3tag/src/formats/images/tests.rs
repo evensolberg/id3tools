@@ -12,9 +12,10 @@ fn test_read_cover() {
 
     // Read the file without resizing.
     let max_size = 0;
-    let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
-    println!("Image size: {}", return_vec.len());
+    let (return_vec, mime_type) = read_cover(cover_file, max_size).unwrap();
+    println!("Image size: {}, mime: {mime_type}", return_vec.len());
     assert!(!return_vec.is_empty());
+    assert_eq!(mime_type, "image/jpeg");
     // Allow for slight variation in JPEG encoder output across versions
     assert!(
         (50_000..=55_000).contains(&return_vec.len()),
@@ -31,7 +32,7 @@ fn test_image_resizing() {
 
     // Read the file without resizing.
     let max_size = 0;
-    let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
+    let (return_vec, _) = read_cover(cover_file, max_size).unwrap();
     println!("Image size: {}", return_vec.len());
     assert!(!return_vec.is_empty());
     assert!(
@@ -42,7 +43,7 @@ fn test_image_resizing() {
 
     // Read the file with resizing.
     let max_size = 300;
-    let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
+    let (return_vec, _) = read_cover(cover_file, max_size).unwrap();
     println!("Image size: {}", return_vec.len());
     assert!(!return_vec.is_empty());
     assert!(
@@ -53,7 +54,6 @@ fn test_image_resizing() {
 
     // Read the file with resizing.
     let max_size = 2500;
-    let return_vec = read_cover(cover_file, max_size).unwrap_or_default();
-    println!("Image size: {}", return_vec.len());
-    assert!(return_vec.is_empty());
+    let result = read_cover(cover_file, max_size);
+    assert!(result.is_err());
 }

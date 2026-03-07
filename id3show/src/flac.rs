@@ -42,12 +42,12 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             metaflac::Block::CueSheet(cs) => {
                 if show_detail {
                     show_cuesheet(cs);
-                };
+                }
             }
             metaflac::Block::Padding(pad) => {
                 if show_detail {
                     show_padding(*pad);
-                };
+                }
             }
             metaflac::Block::Picture(pic) => {
                 if show_detail {

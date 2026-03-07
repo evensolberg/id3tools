@@ -1,6 +1,6 @@
 [package]
 name = "id3tag"
-version = "0.15.1"
+version = "0.16.0"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -16,7 +16,7 @@ ape = { workspace = true }
 clap = { workspace = true }
 dsf = { workspace = true }
 id3 = { workspace = true }
-image = { workspace = true, features = ["jpeg", "png"] }
+image = { workspace = true, features = ["jpeg", "png", "webp"] }
 itertools = { workspace = true }
 log = { workspace = true }
 metaflac = { workspace = true }
