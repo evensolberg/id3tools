@@ -13,7 +13,7 @@ id3-5fw,Look into using clap_complete and clap_complete_fig for shell completion
 id3-5tj,id3export: non-deterministic HashMap output order in stats,closed,task,3,id3export|low,2026-03-06,2026-03-07,,
 id3-6ot,common: Genre::from_str silently accepts typos as Other,closed,task,3,common|medium|usability,2026-03-06,2026-03-07,,
 id3-6ux,Add the ability to read values from a CSV.,open,feature,3,,2026-03-07,2026-03-07,,
-id3-7nb,Add in-application globbing instead of relying on the OS.,open,feature,1,,2026-03-07,2026-03-07,,
+id3-7nb,Add in-application globbing instead of relying on the OS.,closed,feature,1,,2026-03-07,2026-03-07,"Added expand_file_args in common crate using glob crate. All three tools (id3tag, id3show, id3export) now expand glob patterns in-app before processing.",
 id3-8ga,"Refactor `DefaultValues` to have separate structs for settings and values, at the very least.",open,task,1,,2026-03-07,2026-03-07,,
 id3-8i4,Add counter to tracks - eg Track %n,open,feature,2,,2026-03-07,2026-03-07,,
 id3-8ln,Add basic metadata manipulation for various formats,open,feature,2,,2026-03-07,2026-03-07,,

@@ -1,6 +1,6 @@
 [package]
 name = "common"
-version = "0.1.5"
+version = "0.1.6"
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
@@ -17,6 +17,7 @@ log4rs = { workspace = true }
 shellexpand = { workspace = true }
 infer = { workspace = true }
 serde = { workspace = true }
+glob = { workspace = true }
 
 [dev-dependencies]
 assay = { workspace = true }

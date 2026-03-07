@@ -32,18 +32,19 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut files_processed = 0;
     let mut files_skipped = 0;
 
-    let mut filenames = Vec::<&str>::new();
-    let mut file_count = 0;
-
-    for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
-        filenames.push(filename);
-        file_count += 1;
-    }
+    // Expand glob patterns and create a list of files to process
+    let raw_args: Vec<&str> = cli_args
+        .get_many::<String>("files")
+        .unwrap_or_default()
+        .map(String::as_str)
+        .collect();
+    let filenames = common::expand_file_args(raw_args.into_iter());
+    let file_count = filenames.len();
 
     let show_detail = cli_args.get_flag("show-detail");
     let print_summary = cli_args.get_flag("print-summary");
 
-    for filename in filenames {
+    for filename in &filenames {
         println!("{filename}");
         let proc_res = match common::get_file_type(filename)? {
             common::FileTypes::Ape => ape::show_metadata(filename, show_detail),

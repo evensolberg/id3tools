@@ -58,29 +58,29 @@ fn run() -> Result<(), Box<dyn Error>> {
     // Initialize counters for total files, skipped and processed.
     // let counts = Arc::new(Mutex::new(shared::Counts::default()));
 
-    // create a list of the files to gather
-    for file in cli.get_many::<String>("files").unwrap_or_default() {
+    // Expand glob patterns and create a list of files to process
+    let raw_args: Vec<&str> = cli
+        .get_many::<String>("files")
+        .unwrap_or_default()
+        .map(String::as_str)
+        .collect();
+    let filenames = common::expand_file_args(raw_args.into_iter());
+    let file_count = filenames.len();
+
+    for file in &filenames {
         log::trace!("file: {file:?}");
-    }
-
-    let mut filenames = Vec::<&str>::new();
-    let mut file_count = 0;
-
-    for filename in cli.get_many::<String>("files").unwrap_or_default() {
-        filenames.push(filename);
-        file_count += 1;
     }
 
     // Process things - uses single threaded mode if we can't figure it out. Better safe than sorry.
     let res_vec: Vec<bool> = if config.single_thread.unwrap_or(true) {
         filenames
             .iter()
-            .map(|&filename| process_file(filename, &cli, &config))
+            .map(|filename| process_file(filename, &cli, &config))
             .collect()
     } else {
         filenames
             .par_iter()
-            .map(|&filename| process_file(filename, &cli, &config))
+            .map(|filename| process_file(filename, &cli, &config))
             .collect()
     };
 

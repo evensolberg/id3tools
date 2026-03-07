@@ -410,10 +410,11 @@ checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 
 [[package]]
 name = "common"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "assay",
  "clap",
+ "glob",
  "infer",
  "log",
  "log4rs",
@@ -832,7 +833,7 @@ dependencies = [
 
 [[package]]
 name = "id3export"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "ape",
  "clap",
@@ -853,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "id3show"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "ape",
  "clap",
@@ -868,7 +869,7 @@ dependencies = [
 
 [[package]]
 name = "id3tag"
-version = "0.14.18"
+version = "0.14.19"
 dependencies = [
  "ape",
  "clap",

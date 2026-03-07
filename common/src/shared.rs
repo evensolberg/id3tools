@@ -9,6 +9,53 @@ use infer::{MatcherType, Type};
 
 use crate::file_types::FileTypes;
 
+/// Expand glob patterns in a list of file arguments into actual file paths.
+/// Non-glob strings that don't match any files are kept as-is (so clap/downstream can report the error).
+///
+/// # Arguments
+///
+/// * `args` - An iterator of string references from CLI arguments
+///
+/// # Returns
+///
+/// A `Vec<String>` containing all expanded file paths.
+pub fn expand_file_args<'a, I>(args: I) -> Vec<String>
+where
+    I: Iterator<Item = &'a str>,
+{
+    let mut result = Vec::new();
+    for arg in args {
+        if arg.contains('*') || arg.contains('?') || arg.contains('[') {
+            match glob::glob(arg) {
+                Ok(paths) => {
+                    let mut matched = false;
+                    for entry in paths {
+                        match entry {
+                            Ok(path) => {
+                                if let Some(s) = path.to_str() {
+                                    result.push(s.to_string());
+                                    matched = true;
+                                }
+                            }
+                            Err(e) => log::warn!("Glob error for pattern '{arg}': {e}"),
+                        }
+                    }
+                    if !matched {
+                        log::warn!("No files matched pattern '{arg}'");
+                    }
+                }
+                Err(e) => {
+                    log::warn!("Invalid glob pattern '{arg}': {e}");
+                    result.push(arg.to_string());
+                }
+            }
+        } else {
+            result.push(arg.to_string());
+        }
+    }
+    result
+}
+
 /// Find the MIME type (ie. `image/[bmp|gif|jpeg|png|tiff`) based on the file extension. Not perfect, but it'll do for now.
 ///
 /// # Errors
@@ -544,5 +591,31 @@ mod tests {
         assert_eq!(thousand_separated(1000), "1,000".to_string());
         assert_eq!(thousand_separated(1_000_000), "1,000,000".to_string());
         assert_eq!(thousand_separated(1000.01), "1,000.01".to_string());
+    }
+
+    #[test]
+    fn test_expand_file_args() {
+        // Non-glob args are passed through as-is
+        let args = vec!["file1.txt", "file2.txt"];
+        let result = expand_file_args(args.into_iter());
+        assert_eq!(result, vec!["file1.txt", "file2.txt"]);
+
+        // Glob patterns that match files should expand
+        let args = vec!["../testdata/sample.*"];
+        let result = expand_file_args(args.into_iter());
+        assert!(result.len() > 1);
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+        assert!(result.iter().any(|f| f.ends_with(".mp3")));
+
+        // Glob patterns that match nothing produce no entries
+        let args = vec!["../testdata/nonexistent_*.xyz"];
+        let result = expand_file_args(args.into_iter());
+        assert!(result.is_empty());
+
+        // Mixed glob and non-glob args
+        let args = vec!["plain.txt", "../testdata/sample.*"];
+        let result = expand_file_args(args.into_iter());
+        assert_eq!(result[0], "plain.txt");
+        assert!(result.len() > 2);
     }
 }

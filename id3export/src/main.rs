@@ -50,14 +50,17 @@ fn run() -> Result<(), Box<dyn Error>> {
     let mut file_count = 0;
     let mut stats = stats::StatsMap::new();
 
-    let mut filenames = Vec::<&str>::new();
-    for filename in cli_args.get_many::<String>("files").unwrap_or_default() {
-        filenames.push(filename);
-    }
+    // Expand glob patterns and create a list of files to process
+    let raw_args: Vec<&str> = cli_args
+        .get_many::<String>("files")
+        .unwrap_or_default()
+        .map(String::as_str)
+        .collect();
+    let filenames = common::expand_file_args(raw_args.into_iter());
     log::debug!("Files: {filenames:?}");
 
     let mut tracks = Vec::<tracks::Track>::new();
-    for filename in filenames {
+    for filename in &filenames {
         log::debug!("Processing file: {filename}");
 
         if show_detail {
