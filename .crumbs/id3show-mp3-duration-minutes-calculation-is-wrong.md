@@ -1,7 +1,7 @@
 ---
 id: id3-d9z
 title: 'id3show: MP3 duration minutes calculation is wrong'
-status: open
+status: closed
 type: bug
 priority: 2
 tags:

@@ -200,8 +200,14 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
         return Err("Split pattern not found.".into());
     }
 
-    let count = split_str[0].trim().parse::<u16>().unwrap_or(1);
-    let total = split_str[1].trim().parse::<u16>().unwrap_or(1);
+    let count = split_str[0]
+        .trim()
+        .parse::<u16>()
+        .map_err(|e| format!("Unable to parse count '{}': {e}", split_str[0].trim()))?;
+    let total = split_str[1]
+        .trim()
+        .parse::<u16>()
+        .map_err(|e| format!("Unable to parse total '{}': {e}", split_str[1].trim()))?;
 
     // return the values (i.e., 1 of 2)
     Ok((count, total))

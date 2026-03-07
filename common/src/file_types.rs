@@ -21,24 +21,21 @@ impl FileTypes {
     #[must_use]
     pub fn from_filename(filename: &str) -> Self {
         let file_type = infer::get_from_path(filename);
-        if let Ok(ft_ok) = file_type {
-            if let Some(ft) = ft_ok {
-                if ft.mime_type() == "audio/x-ape" {
-                    return Self::Ape;
-                } else if ft.mime_type() == "audio/x-dsf" {
-                    return Self::Dsf;
-                } else if ft.mime_type() == "audio/x-flac" {
-                    return Self::Flac;
-                } else if ft.mime_type() == "audio/mpeg" {
-                    return Self::MP3;
-                } else if ft.mime_type() == "video/mp4" || ft.mime_type() == "audio/m4a" {
-                    return Self::M4A;
-                }
-                return Self::Unknown;
+        match file_type {
+            Ok(Some(ft)) => match ft.mime_type() {
+                "audio/x-ape" => Self::Ape,
+                "audio/x-dsf" => Self::Dsf,
+                "audio/x-flac" => Self::Flac,
+                "audio/mpeg" => Self::MP3,
+                "video/mp4" | "audio/m4a" => Self::M4A,
+                _ => Self::Unknown,
+            },
+            Ok(None) => Self::Unknown,
+            Err(e) => {
+                log::warn!("Unable to read {filename}: {e}");
+                Self::Unknown
             }
-            return Self::Unknown;
         }
-        Self::Unknown
     }
 }
 

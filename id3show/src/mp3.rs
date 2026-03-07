@@ -235,6 +235,11 @@ fn show_frame_data(meta: &MP3Metadata) {
     println!("  Duration: {:.1} seconds", meta.duration.as_secs_f64());
     println!("  Number of Frames: {}", meta.frames.len());
 
+    if meta.frames.is_empty() {
+        println!("  No frames found.");
+        return;
+    }
+
     let f = &meta.frames[0];
     println!("  Frame #0:");
     println!("    Size: {}", f.size);
@@ -599,7 +604,7 @@ fn url_to_string(u: &mp3_metadata::Url) -> String {
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn calc_duration_string(duration: f64) -> String {
     let hours = (duration / 3600.0) as u32;
-    let minutes = (duration / 60.0) as u32;
+    let minutes = ((duration % 3600.0) / 60.0) as u32;
     let seconds = (duration % 60.0) as u32;
     if hours > 0 {
         return format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}");

@@ -163,7 +163,7 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64, Box<dyn 
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String, Box<dyn Error>> {
     let duration = calc_duration_seconds(samples, sample_rate)?;
     let hours = (duration / 3600.0) as u32;
-    let minutes = (duration / 60.0) as u32;
+    let minutes = ((duration % 3600.0) / 60.0) as u32;
     let seconds = (duration % 60.0) as u32;
     if hours > 0 {
         return Ok(format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}"));

@@ -1,7 +1,7 @@
 ---
 id: id3-4oa
 title: 'id3show: unchecked frames[0] index in show_frame_data'
-status: open
+status: closed
 type: bug
 priority: 2
 tags:

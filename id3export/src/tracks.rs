@@ -576,6 +576,9 @@ impl Reader for Track {
 ///
 #[allow(clippy::cast_precision_loss)]
 fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
+    if sample_rate == 0 {
+        return 0;
+    }
     ((samples as f64 / f64::from(sample_rate)) * 1000.0).trunc() as u64
 }
 

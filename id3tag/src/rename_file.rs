@@ -92,8 +92,9 @@ pub fn rename_file(
         return Ok(np);
     }
 
-    // Check if a file with the new filename already exists - make the filename unique if it does.
-    if Path::new(&new_path).exists() {
+    // If the target already exists, append a unique suffix to avoid collisions.
+    // Loop to handle the unlikely case where the suffixed name also exists.
+    while Path::new(&new_path).exists() {
         let unique_val = common::get_unique_value();
 
         log::warn!("{new_filename} already exists. Appending unique identifier ({unique_val}).");
@@ -129,8 +130,10 @@ pub fn rename_file(
 fn clean_filename(filename: &str) -> String {
     let mut new_filename = filename.to_string();
     new_filename = new_filename.replace('/', "-");
+    new_filename = new_filename.replace('\\', "-");
     new_filename = new_filename.replace(':', " -");
-    new_filename = new_filename.replace('.', "");
+    new_filename = new_filename.replace('\0', "");
+    new_filename = new_filename.trim_matches('.').to_string();
     new_filename = new_filename.trim().to_string();
     new_filename
 }
@@ -146,7 +149,11 @@ mod tests {
 
     #[test]
     fn test_clean_filename() {
-        assert_eq!(clean_filename("my/long.file:name"), "my-longfile -name");
+        assert_eq!(clean_filename("my/long.file:name"), "my-long.file -name");
+        assert_eq!(clean_filename("Dr. Dre"), "Dr. Dre");
+        assert_eq!(clean_filename(".hidden."), "hidden");
+        assert_eq!(clean_filename("back\\slash"), "back-slash");
+        assert_eq!(clean_filename("null\0byte"), "nullbyte");
     }
 
     #[test]
