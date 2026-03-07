@@ -280,9 +280,15 @@ impl DefaultValues {
     /// Set the maximum picture size from the CLI to the config.
     fn check_for_picture_max_size(&mut self, args: &clap::ArgMatches) {
         if let Some(size) = args.get_one::<String>("picture-max-size") {
-            let pms: u32 = size.parse::<u32>().unwrap_or(0);
-            self.picture_max_size = Some(pms);
-            log::debug!("picture-max-size = {pms:?}");
+            match size.parse::<u32>() {
+                Ok(pms) => {
+                    self.picture_max_size = Some(pms);
+                    log::debug!("picture-max-size = {pms:?}");
+                }
+                Err(e) => {
+                    log::warn!("Invalid picture-max-size '{size}': {e}. Using default.");
+                }
+            }
         }
     }
 

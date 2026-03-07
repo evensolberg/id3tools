@@ -8,6 +8,7 @@ use std::io::Cursor;
 mod covertype;
 mod ops;
 mod paths;
+#[cfg(test)]
 mod tests;
 
 use crate::default_values::DefaultValues;

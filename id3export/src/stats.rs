@@ -1,8 +1,8 @@
 use common::thousand_separated;
 use serde::Serialize;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-pub type StatsMap = HashMap<String, Statistics>;
+pub type StatsMap = BTreeMap<String, Statistics>;
 
 pub fn update_stats(stats: &mut StatsMap, key: &str, ms: u64, size: u64) {
     let stats_entry = stats.entry(key.to_string()).or_default();
@@ -59,7 +59,7 @@ pub fn export_summary_csv(
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize)]
 pub struct Statistics {
-    pub file_count: i32,
+    pub file_count: u64,
     pub total_ms: u64,
     pub avg_ms: u64,
     pub total_size: u64,
@@ -75,7 +75,7 @@ impl Statistics {
 
     pub fn calc_avg_ms(&mut self) {
         self.avg_ms = if self.file_count > 0 {
-            self.total_ms / self.file_count as u64
+            self.total_ms / self.file_count
         } else {
             0
         }
@@ -83,7 +83,7 @@ impl Statistics {
 
     pub fn calc_avg_size(&mut self) {
         self.avg_size = if self.file_count > 0 {
-            self.total_size / self.file_count as u64
+            self.total_size / self.file_count
         } else {
             0
         }

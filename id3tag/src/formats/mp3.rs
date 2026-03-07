@@ -169,7 +169,13 @@ pub fn process(
 
     // Rename file
     if cfg.rename_file.is_some() {
-        processed_ok = rename_file(filename, cfg, &tag).is_ok();
+        match rename_file(filename, cfg, &tag) {
+            Ok(()) => {}
+            Err(err) => {
+                log::error!("Failed to rename {filename}: {err}");
+                processed_ok = false;
+            }
+        }
     }
 
     // return safely
@@ -291,7 +297,7 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
     match rename_result {
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
-            if cfg.stop_on_error.unwrap_or(true) {
+            if cfg.stop_on_error.unwrap_or(false) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )

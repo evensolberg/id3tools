@@ -67,7 +67,7 @@ macro_rules! mp4_tags {
                 _ => (),
             }
         }
-        $self_ref.$self_field = Some(gather.join("; "));
+        $self_ref.$self_field = if gather.is_empty() { None } else { Some(gather.join("; ")) };
     };
 }
 
@@ -582,27 +582,22 @@ fn duration_from_samples(samples: u64, sample_rate: u32) -> u64 {
     ((samples as f64 / f64::from(sample_rate)) * 1000.0).trunc() as u64
 }
 
-/// Converts an utf8 hex string to a `String`.
+/// Converts a byte slice to its hexadecimal string representation.
+///
+/// Each byte is formatted as a two-character lowercase hex value
+/// and concatenated into a single string (e.g., `[0x48, 0x65]` → `"4865"`).
 ///
 /// # Arguments
 ///
-/// * `utf8` - A slice of bytes representing an utf8 hex string.
-///
-/// # Returns
-///
-/// A `Result` containing the `String` representation of the utf8 hex string.
+/// * `utf8` - A slice of bytes to convert.
 ///
 /// # Examples
 ///
+/// ```ignore
+/// let bytes = &[0x48, 0x65, 0x6c, 0x6c, 0x6f];
+/// let hex = utf8_to_string(bytes).unwrap();
+/// assert_eq!(hex, "48656c6c6f");
 /// ```
-/// let utf8 = b"48656c6c6f2c20576f726c6421";
-/// let string = utf8_to_string(utf8).unwrap();
-/// assert_eq!(string, "Hello, World!");
-/// ```
-///
-/// # Errors
-///
-/// Returns an error if the utf8 hex string is invalid.
 fn utf8_to_string(utf8: &[u8]) -> Result<String, Box<dyn Error>> {
     log::debug!("UTF8: {utf8:?}");
 

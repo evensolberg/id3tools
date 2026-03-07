@@ -611,7 +611,7 @@ impl FromStr for Genre {
             "Dubstep" => Ok(Self::Dubstep),
             "Garage Rock" => Ok(Self::GarageRock),
             "Psybient" => Ok(Self::Psybient),
-            _ => Ok(Self::Other),
+            _ => Err(()),
         }
     }
 }

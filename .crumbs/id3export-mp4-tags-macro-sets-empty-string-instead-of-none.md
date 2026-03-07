@@ -1,7 +1,7 @@
 ---
 id: id3-gdi
 title: 'id3export: mp4_tags macro sets empty string instead of None'
-status: open
+status: closed
 type: bug
 priority: 3
 tags:
@@ -9,7 +9,7 @@ tags:
 - low
 - consistency
 created: 2026-03-06
-updated: 2026-03-06
+updated: 2026-03-07
 closed_reason: ''
 dependencies: []
 description: id3export/src/tracks.rs:70 — mp4_tags! macro sets Some("") for missing fields instead of None. Inconsistent CSV output vs FLAC/APE handling.

@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 // use clap_mangen;
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,7 +28,9 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{}", err.to_string().replace('\"', ""));
+            let msg = err.to_string().replace('\"', "");
+            log::error!("{msg}");
+            eprintln!("Error: {msg}");
             1 // exit with a non-zero return code, indicating a problem
         }
     });
