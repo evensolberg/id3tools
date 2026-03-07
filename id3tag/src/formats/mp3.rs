@@ -155,9 +155,16 @@ pub fn process(
     // Write tags to file - unless we're on a dry run.
     if cfg.dry_run.unwrap_or(true) {
         processed_ok = true;
-    } else if tag.write_to_path(filename, Version::Id3v24).is_ok() {
-        processed_ok = true;
-        log::info!("{filename}  ✓");
+    } else {
+        match tag.write_to_path(filename, Version::Id3v24) {
+            Ok(()) => {
+                processed_ok = true;
+                log::info!("{filename}  ✓");
+            }
+            Err(e) => {
+                log::error!("{filename}: Failed to write MP3 tags: {e}");
+            }
+        }
     }
 
     // Rename file
@@ -229,7 +236,7 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
 
     let mut pattern = String::new();
     if let Some(p) = &cfg.rename_file {
-        pattern = p.clone();
+        pattern.clone_from(p);
     }
 
     // get the mappings of %aa --> ALBUMARTIST --> Madonna

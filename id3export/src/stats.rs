@@ -5,12 +5,12 @@ use std::collections::HashMap;
 pub type StatsMap = HashMap<String, Statistics>;
 
 pub fn update_stats(stats: &mut StatsMap, key: &str, ms: u64, size: u64) {
-    let stats_entry = stats.entry(key.to_string()).or_insert(Statistics::new());
+    let stats_entry = stats.entry(key.to_string()).or_default();
     stats_entry.add(ms, size);
 }
 
 pub fn calc_avg(stats: &mut StatsMap) {
-    for (_, stats) in stats {
+    for stats in stats.values_mut() {
         stats.calc_avg_ms();
         stats.calc_avg_size();
     }
@@ -67,10 +67,6 @@ pub struct Statistics {
 }
 
 impl Statistics {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn add(&mut self, ms: u64, size: u64) {
         self.file_count += 1;
         self.total_ms += ms;

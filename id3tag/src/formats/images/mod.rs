@@ -1,6 +1,6 @@
 //! Image processing module. Contains functions for finding and reading cover images.
 
-use image::{self, imageops::FilterType, io::Reader as ImageReader, ImageFormat::Jpeg};
+use image::{self, imageops::FilterType, ImageFormat::Jpeg, ImageReader};
 use std::error::Error;
 use std::io::Cursor;
 
@@ -109,12 +109,10 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<Vec<u8>, Box<dyn Er
 
     if image_too_large(&img, max_size) {
         let img_resized = img.resize(max_size, max_size, FilterType::Lanczos3);
-        img_resized
-            .write_to(&mut img_buffer, Jpeg)
-            .unwrap_or_default();
+        img_resized.write_to(&mut img_buffer, Jpeg)?;
     } else {
-        img.write_to(&mut img_buffer, Jpeg).unwrap_or_default();
-    };
+        img.write_to(&mut img_buffer, Jpeg)?;
+    }
 
     Ok(img_buffer.into_inner())
 }

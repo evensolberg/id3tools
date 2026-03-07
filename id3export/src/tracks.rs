@@ -233,8 +233,8 @@ impl Reader for Track {
             return Err("No path provided".into());
         }
 
-        let metadata = std::fs::metadata(self.path.as_ref().unwrap_or(&String::new()));
-        self.file_size = Some(metadata.unwrap().len());
+        let metadata = std::fs::metadata(self.path.as_ref().unwrap_or(&String::new()))?;
+        self.file_size = Some(metadata.len());
 
         let file_type = FileTypes::from_filename(self.path.as_ref().unwrap_or(&String::new()));
         log::debug!("File type: {file_type}");

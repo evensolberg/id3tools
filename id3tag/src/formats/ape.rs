@@ -53,11 +53,15 @@ pub fn process(
 
     // Try to save
     if !config.dry_run.unwrap_or(true) {
-        let mut file = File::open(filename)?;
-        let res = ape::write_to(&tags, &mut file);
-        if res.is_ok() {
-            processed_ok = true;
-            log::info!("{filename}  ✓");
+        let mut file = File::options().read(true).write(true).open(filename)?;
+        match ape::write_to(&tags, &mut file) {
+            Ok(()) => {
+                processed_ok = true;
+                log::info!("{filename}  ✓");
+            }
+            Err(e) => {
+                log::error!("{filename}: Failed to write APE tags: {e}");
+            }
         }
     }
 

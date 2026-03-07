@@ -170,7 +170,7 @@ fn rename_file(
     let mut replace_map = HashMap::new();
     let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
-        pattern = p.clone();
+        pattern.clone_from(p);
     }
 
     // get the mappings of %aa --> ALBUMARTIST --> Madonna

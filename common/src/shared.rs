@@ -241,7 +241,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
 
     // Get the list of (music) files in the directory
     let file_list = std::fs::read_dir(Path::new(dir))?
-        .map(std::result::Result::unwrap)
+        .filter_map(std::result::Result::ok)
         .filter(|x| {
             x.path()
                 .extension()

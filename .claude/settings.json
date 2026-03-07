@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api repos/evensolberg/id3tools/contents/id3tag/src/main.rs --jq '.content')"
+    ]
+  }
+}

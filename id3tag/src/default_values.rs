@@ -67,7 +67,7 @@ pub struct DefaultValues {
     /// The default album artist.
     pub album_artist: Option<String>,
 
-    /// The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the artist_sort may be "Keys, Alicia".
+    /// The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the `artist_sort` may be "Keys, Alicia".
     pub album_artist_sort: Option<String>,
 
     /// Album title.
@@ -208,8 +208,7 @@ impl DefaultValues {
             Ok(config) => config,
             Err(err) => {
                 log::warn!(
-                    "Unable to read config from {filename}. Using defaults. Error message: {}",
-                    err.to_string()
+                    "Unable to read config from {filename}. Using defaults. Error message: {err}"
                 );
                 Self::new()
             }
@@ -239,7 +238,7 @@ impl DefaultValues {
         let binding = String::new();
 
         if let Some(pat) = &self.rename_file {
-            pattern = Some(pat.to_string());
+            pattern = Some(pat.clone());
         }
 
         // Even if we have something from the config file, CLI takes presedence
@@ -247,7 +246,7 @@ impl DefaultValues {
             pattern = Some(
                 args.get_one::<String>("rename-file")
                     .unwrap_or(&binding)
-                    .to_string(),
+                    .clone(),
             );
         }
 
@@ -270,7 +269,7 @@ impl DefaultValues {
         let mut candidate_list: Vec<String> = Vec::new();
         if let Some(folders) = args.get_many::<String>("picture-search-folder") {
             for folder in folders {
-                candidate_list.push(folder.to_string());
+                candidate_list.push(folder.clone());
             }
             candidate_list.push(".".to_string());
             candidate_list.push("..".to_string());
@@ -292,7 +291,7 @@ impl DefaultValues {
         let mut candidate_list: Vec<String> = Vec::new();
         if let Some(candidates) = args.get_many::<String>("picture-front-candidate") {
             for candidate in candidates {
-                candidate_list.push(candidate.to_string());
+                candidate_list.push(candidate.clone());
             }
         }
         if !candidate_list.is_empty() && self.picture_front_candidates.is_none() {
@@ -305,7 +304,7 @@ impl DefaultValues {
         let mut candidate_list: Vec<String> = Vec::new();
         if let Some(candidates) = args.get_many::<String>("picture-back-candidate") {
             for candidate in candidates {
-                candidate_list.push(candidate.to_string());
+                candidate_list.push(candidate.clone());
             }
         }
         if !candidate_list.is_empty() && self.picture_back_candidates.is_none() {

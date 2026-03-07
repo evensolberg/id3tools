@@ -77,8 +77,7 @@ pub fn process(
 
         // Write tags to file
         log::debug!(
-            "Writing to DSF files is currently not supported. Not writing {}",
-            filename
+            "Writing to DSF files is currently not supported. Not writing {filename}"
         );
 
         // Rename file
@@ -101,7 +100,7 @@ fn rename_file(
 
     let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
-        pattern = p.clone();
+        pattern.clone_from(p);
     }
 
     // get the mappings of %aa --> ALBUMARTIST --> Madonna

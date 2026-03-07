@@ -170,7 +170,7 @@ fn get_logging_config_filename(
         cli_args
             .get_one::<String>("log-config-file")
             .unwrap_or(&default)
-            .to_string()
+            .clone()
     } else if config.log_config_file.is_some() {
         config.log_config_file.as_ref().unwrap_or(&default).clone()
     } else {

@@ -31,7 +31,7 @@ pub fn rename_file(
 ) -> Result<String, Box<dyn Error>> {
     // Check if there is a rename pattern
     let mut new_filename = if let Some(nfn) = &config.rename_file {
-        nfn.to_string()
+        nfn.clone()
     } else {
         return Err("No filename pattern presented. Unable to continue.".into());
     };

@@ -121,7 +121,7 @@ fn rename_file(
 
     let mut pattern = String::new();
     if let Some(p) = &config.rename_file {
-        pattern = p.clone();
+        pattern.clone_from(p);
     }
 
     let rename_result = rename_file::rename_file(filename, &tags_map, config);
