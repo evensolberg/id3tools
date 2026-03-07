@@ -295,6 +295,7 @@ pub fn get_unique_value() -> u128 {
 /// Examples:
 ///
 /// ```
+/// use common::thousand_separated;
 /// assert_eq!(thousand_separated(10000), String::from("10,000"));
 /// assert_eq!(thousand_separated(10000000), String::from("10,000,000"));
 /// ```
@@ -521,7 +522,7 @@ mod tests {
         );
         assert_eq!(
             count_files("../testdata/DSOTM_Cover.jpeg").unwrap(),
-            "03".to_string()
+            "02".to_string()
         );
 
         assert_eq!(

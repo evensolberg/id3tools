@@ -26,6 +26,7 @@ id3-ptn,id3show: missing mp3.rs module prevents compilation,closed,bug,1,id3show
 id3-q2n,all crates: add forbid(unsafe_code) to all crate roots,open,task,3,all-crates|low|hardening,2026-03-06,2026-03-06,,
 id3-rtf,dep: paste crate unmaintained (RUSTSEC-2024-0436),open,task,3,dependency,2026-03-06,2026-03-06,,
 id3-sd4,id3export: panicking unwrap on fs::metadata in tracks.rs,closed,bug,1,id3export|critical|panic,2026-03-06,2026-03-07,,
+id3-syj,common: tests fail due to missing sample audio files in testdata/,closed,bug,2,common|tests,2026-03-07,2026-03-07,,
 id3-uqb,dep: tokio unsound broadcast channel (RUSTSEC-2025-0023),open,bug,3,dependency|security,2026-03-06,2026-03-06,,
 id3-vd2,id3tag: TOCTOU race condition in rename_file with rayon,closed,bug,2,id3tag|medium|race-condition,2026-03-06,2026-03-07,,
 id3-vde,id3export: file_count should be unsigned type,open,task,3,id3export|low,2026-03-06,2026-03-06,,
