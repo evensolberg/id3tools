@@ -27,7 +27,7 @@
 /// ```
 #[macro_export]
 macro_rules! tag {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, false) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, $arg:expr, $name:ident, false) => {
         if $cli.contains_id($arg) {
             $nt.insert(
                 $t.$name,
@@ -41,7 +41,7 @@ macro_rules! tag {
             }
         }
     };
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $arg:expr, $name:ident, true) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, $arg:expr, $name:ident, true) => {
         if $cli.contains_id($arg) {
             $nt.insert(
                 $t.$name.clone(),
@@ -73,7 +73,7 @@ macro_rules! tag {
 /// - `front|back` - Indicate which cover we're inserting
 #[macro_export]
 macro_rules! pic {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, front) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, front) => {
         if $cli.contains_id("picture-front-candidate") {
             $nt.insert(
                 $t.picture_front.clone(),
@@ -88,7 +88,7 @@ macro_rules! pic {
             }
         }
     };
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, back) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, back) => {
         if $cli.contains_id("picture-back-candidate") {
             $nt.insert(
                 $t.picture_back.clone(),
@@ -121,7 +121,7 @@ macro_rules! pic {
 /// - `$t:ident` - The name of the variable that contains the existing tags `HashSet`
 #[macro_export]
 macro_rules! track_album_artist {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident) => {
         if $cli.contains_id("track-album-artist") {
             let taa = $cli
                 .get_one::<String>("track-album-artist")
@@ -154,7 +154,7 @@ macro_rules! track_album_artist {
 /// - `$fname:ident` - The name of the variable containing the music file name
 #[macro_export]
 macro_rules! disc_number_count {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $fname:ident) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, $fname:ident) => {
         if $cli.value_source("disc-number-count") == Some(clap::parser::ValueSource::CommandLine)
             || ($cli.contains_id("config-file") && $cfg.disc_count.unwrap_or(false))
         {
@@ -197,7 +197,7 @@ macro_rules! disc_number_count {
 /// ```
 #[macro_export]
 macro_rules! track_number_count {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident, $fname:ident) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident, $fname:ident) => {
         if $cli.contains_id("track-count")
             || ($cli.contains_id("config-file") && $cfg.track_count.unwrap_or(false))
         {
@@ -235,7 +235,7 @@ macro_rules! track_number_count {
 ///
 #[macro_export]
 macro_rules! track_genre_num {
-    ($cli:ident, $cfg:ident, $nt:ident, $t:ident) => {
+    ($cli:ident, $cfg:expr, $nt:ident, $t:ident) => {
         if $cli.contains_id("track-genre-number") {
             $nt.insert(
                 $t.track_genre.clone(),

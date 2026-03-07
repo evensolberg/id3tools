@@ -33,13 +33,13 @@ pub fn get_cover_filenames(
     music_file: &str,
     cfg: &DefaultValues,
 ) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
-    let front_cover_path = if cfg.picture_front_candidates.is_some() {
+    let front_cover_path = if cfg.pictures.picture_front_candidates.is_some() {
         find_cover(CoverType::Front, music_file, cfg)?
     } else {
         None
     };
 
-    let back_cover_path = if cfg.picture_back_candidates.is_some() {
+    let back_cover_path = if cfg.pictures.picture_back_candidates.is_some() {
         find_cover(CoverType::Back, music_file, cfg)?
     } else {
         None

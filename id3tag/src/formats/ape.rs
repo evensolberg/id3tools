@@ -2,7 +2,7 @@
 //! KEY: <https://wiki.hydrogenaud.io/index.php?title=APE_key>
 
 use crate::default_values::DefaultValues;
-// use crate shared; // for add_pictures
+use crate::formats::images::read_cover;
 use ape::{self, Item, ItemType};
 use std::{collections::HashMap, error::Error, fs::File};
 
@@ -17,9 +17,9 @@ pub fn process(
 
     // Set new tags
     for (key, value) in new_tags {
-        if config.detail_off.unwrap_or(false) {
+        if config.execution.detail_off.unwrap_or(false) {
             log::debug!("{filename} :: New {key} = {value}",);
-        } else if config.dry_run.unwrap_or(false) {
+        } else if config.execution.dry_run.unwrap_or(false) {
             log::info!("{filename} :: New {key} = {value}");
         } else {
             log::debug!("{filename} :: New {key} = {value}");
@@ -28,7 +28,25 @@ pub fn process(
         // Process the tags
         match key.as_ref() {
             "PICTUREFRONT" | "PICTUREBACK" => {
-                log::warn!("Setting covers in APE files is currently not supported.");
+                let ape_key = if key == "PICTUREFRONT" {
+                    "Cover Art (Front)"
+                } else {
+                    "Cover Art (Back)"
+                };
+
+                let max_size = config.pictures.picture_max_size.unwrap_or(0);
+                match set_picture(&mut tags, value.trim(), ape_key, max_size) {
+                    Ok(()) => log::debug!("{ape_key} set for {filename}."),
+                    Err(err) => {
+                        if config.execution.stop_on_error.unwrap_or(true) {
+                            return Err(format!(
+                                "Unable to set {ape_key} to {value}. Error: {err}"
+                            )
+                            .into());
+                        }
+                        log::error!("Unable to set {ape_key} to {value}. Continuing. Error: {err}");
+                    }
+                }
             }
 
             _ => {
@@ -42,7 +60,7 @@ pub fn process(
                         tags.set_item(item);
                     }
                     Err(err) => {
-                        if config.stop_on_error.unwrap_or(true) {
+                        if config.execution.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set {key} to {value}. Error message: {err}"
                             )
@@ -56,7 +74,7 @@ pub fn process(
     }
 
     // Try to save
-    if !config.dry_run.unwrap_or(true) {
+    if !config.execution.dry_run.unwrap_or(true) {
         let mut file = File::options().read(true).write(true).open(filename)?;
         match ape::write_to(&tags, &mut file) {
             Ok(()) => {
@@ -76,6 +94,32 @@ pub fn process(
 
     // return safely
     Ok(processed_ok)
+}
+
+/// Sets the front or back cover art in an APE tag.
+/// APE cover art convention: key is "Cover Art (Front)" or "Cover Art (Back)",
+/// value is a binary item with format: `description\0` + raw image bytes.
+fn set_picture(
+    tags: &mut ape::Tag,
+    img_file: &str,
+    ape_key: &str,
+    max_size: u32,
+) -> Result<(), Box<dyn Error>> {
+    // Remove existing cover art with this key
+    let _ = tags.remove_items(ape_key);
+
+    let img = read_cover(img_file, max_size)?;
+    log::debug!("set_picture::Image {img_file} read. Length = {}", img.len());
+
+    // APE binary cover format: "description\0" prefix followed by raw image bytes
+    let mut binary_data = Vec::new();
+    binary_data.extend_from_slice(b"\0"); // empty description + null terminator
+    binary_data.extend_from_slice(&img);
+
+    let item = Item::new(ape_key, ItemType::Binary, binary_data)?;
+    tags.set_item(item);
+
+    Ok(())
 }
 
 /// Renames the APE file based on the tags

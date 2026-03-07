@@ -102,14 +102,14 @@ pub fn rename_file(
     let npl = new_path.to_string_lossy();
 
     // Perform the actual rename and check the outcome
-    if config.dry_run.unwrap_or(true) {
+    if config.execution.dry_run.unwrap_or(true) {
         log::debug!("dr: {filename} --> {}", new_path.display());
     } else {
         // Get parent dir
         match std::fs::rename(filename, &new_path) {
             Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
-                if config.stop_on_error.unwrap_or(true) {
+                if config.execution.stop_on_error.unwrap_or(true) {
                     return Err(
                         format!("Unable to rename {filename} to {npl}. Error: {err}").into(),
                     );
@@ -175,7 +175,7 @@ mod tests {
     fn test_rename_file() {
         let mut config = DefaultValues::new();
         config.rename_file = Some("%aa - %at".to_string());
-        config.dry_run = Some(true);
+        config.execution.dry_run = Some(true);
 
         let mut tags = HashMap::new();
         tags.insert("%aa".to_string(), "AlbumArtist".to_string());
@@ -191,7 +191,7 @@ mod tests {
     fn test_rename_skip_blank_text_tag() {
         let mut config = DefaultValues::new();
         config.rename_file = Some("%aa - %at".to_string());
-        config.dry_run = Some(true);
+        config.execution.dry_run = Some(true);
 
         let mut tags = HashMap::new();
         tags.insert("%aa".to_string(), String::new()); // blank
@@ -208,7 +208,7 @@ mod tests {
     fn test_rename_skip_blank_numeric_tag() {
         let mut config = DefaultValues::new();
         config.rename_file = Some("%dn-%tn %tt".to_string());
-        config.dry_run = Some(true);
+        config.execution.dry_run = Some(true);
 
         let mut tags = HashMap::new();
         tags.insert("%dn".to_string(), "1".to_string());
@@ -226,7 +226,7 @@ mod tests {
     fn test_rename_ok_unused_blank_tag() {
         let mut config = DefaultValues::new();
         config.rename_file = Some("%dn-%tn %tt".to_string());
-        config.dry_run = Some(true);
+        config.execution.dry_run = Some(true);
 
         let mut tags = HashMap::new();
         tags.insert("%dn".to_string(), "1".to_string());

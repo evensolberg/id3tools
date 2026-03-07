@@ -19,7 +19,7 @@ pub fn process(
 ) -> Result<bool, Box<dyn Error>> {
     log::debug!("Filename: {filename}");
     let mut processed_ok = false;
-    let max_size = cfg.picture_max_size.unwrap_or(500);
+    let max_size = cfg.pictures.picture_max_size.unwrap_or(500);
 
     // Reat the tag - bomb out if it doesn't work.
     let mut tag = Tag::read_from_path(filename)?;
@@ -27,7 +27,7 @@ pub fn process(
     // Print new tags
     for (key, value) in nt {
         // Output information about tags getting changed
-        if cfg.dry_run.unwrap_or(false) {
+        if cfg.execution.dry_run.unwrap_or(false) {
             log::info!("{filename} :: New {key} = {value}");
         }
 
@@ -39,7 +39,7 @@ pub fn process(
                 match set_picture(&mut tag, value.trim(), PictureType::CoverFront, max_size) {
                     Ok(()) => (),
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(false) {
+                        if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set front cover for {filename}. Error: {err}"
                             )
@@ -55,7 +55,7 @@ pub fn process(
             {
                 Ok(()) => (),
                 Err(err) => {
-                    if cfg.stop_on_error.unwrap_or(false) {
+                    if cfg.execution.stop_on_error.unwrap_or(false) {
                         return Err(format!(
                             "Unable to set back cover for {filename}. Error: {err}"
                         )
@@ -73,7 +73,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(false) {
+                        if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set disc number to {value}. Error: {err}"
                             )
@@ -93,7 +93,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(false) {
+                        if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total discs to {value}. Error: {err}"
                             )
@@ -112,7 +112,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(false) {
+                        if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set track number to {value}. Error: {err}"
                             )
@@ -132,7 +132,7 @@ pub fn process(
                 let num = match value.parse::<u32>() {
                     Ok(n) => n,
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(false) {
+                        if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(format!(
                                 "Unable to set total tracks to {value}. Error: {err}",
                             )
@@ -153,7 +153,7 @@ pub fn process(
     }
 
     // Write tags to file - unless we're on a dry run.
-    if cfg.dry_run.unwrap_or(true) {
+    if cfg.execution.dry_run.unwrap_or(true) {
         processed_ok = true;
     } else {
         match tag.write_to_path(filename, Version::Id3v24) {
@@ -297,7 +297,7 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
     match rename_result {
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
-            if cfg.stop_on_error.unwrap_or(false) {
+            if cfg.execution.stop_on_error.unwrap_or(false) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )

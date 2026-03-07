@@ -31,9 +31,9 @@ pub fn process(
     // Process tags
     for (key, value) in new_tags {
         // Let the user know what we're processing
-        if !(config.detail_off.unwrap_or(false)) {
+        if !(config.execution.detail_off.unwrap_or(false)) {
             log::debug!("{filename} :: New {key} = {value}");
-        } else if config.dry_run.unwrap_or(false) {
+        } else if config.execution.dry_run.unwrap_or(false) {
             log::info!("{filename} :: New {key} = {value}");
         } else {
             log::debug!("{filename} :: New {key} = {value}");
@@ -68,14 +68,14 @@ pub fn process(
     }
 
     // Write to file
-    if config.dry_run.unwrap_or(true) {
+    if config.execution.dry_run.unwrap_or(true) {
         processed_ok = true;
         log::debug!("Not writing {filename}");
     } else {
         match tag.write_to_path(filename) {
             Ok(()) => processed_ok = true,
             Err(err) => {
-                if config.stop_on_error.unwrap_or(true) {
+                if config.execution.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to save tags to {filename}. Error: {err}").into());
                 }
                 log::warn!("Unable to save tags to {filename}. Error: {err}");
@@ -88,7 +88,7 @@ pub fn process(
         match rename_file(filename, config, &tag) {
             Ok(()) => processed_ok = true,
             Err(err) => {
-                if config.stop_on_error.unwrap_or(true) {
+                if config.execution.stop_on_error.unwrap_or(true) {
                     return Err(format!("Unable to rename {filename}. Error: {err}").into());
                 }
                 log::warn!("Unable to rename {filename}. Error: {err}");
@@ -128,7 +128,7 @@ fn rename_file(
     match rename_result {
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
+            if config.execution.stop_on_error.unwrap_or(true) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )

@@ -51,7 +51,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::debug!("config = {config:?}");
 
     // let show_detail_info = !cli_args.is_present("detail-off");
-    if config.dry_run.unwrap_or(true) {
+    if config.execution.dry_run.unwrap_or(true) {
         log::info!("Dry-run starting.");
     }
 
@@ -72,7 +72,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     }
 
     // Process things - uses single threaded mode if we can't figure it out. Better safe than sorry.
-    let res_vec: Vec<bool> = if config.single_thread.unwrap_or(true) {
+    let res_vec: Vec<bool> = if config.execution.single_thread.unwrap_or(true) {
         filenames
             .iter()
             .map(|filename| process_file(filename, &cli, &config))
@@ -87,7 +87,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     log::trace!("res_vec = {res_vec:?}");
 
     // Print summary information
-    if config.print_summary.unwrap_or(false) {
+    if config.execution.print_summary.unwrap_or(false) {
         let mut processed = 0;
         let mut skipped = 0;
 

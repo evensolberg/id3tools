@@ -1,4 +1,4 @@
-//! Contains the struct and functions to maintain the confiuration state.
+//! Contains the struct and functions to maintain the configuration state.
 
 // Read default values from config file
 use serde::Deserialize;
@@ -15,7 +15,7 @@ use clap::{parser::ValueSource, ArgMatches};
 /// - `$args:ident`: the `ArgMatches` we're checking.
 /// - `$par:literal`: the name of the argument as specified in the `Command` CLI specification (e.g. "detail-off")
 /// - `$var:ident`: The name of the `DefaultValues` instance to be updated
-/// - `$val:ident`: The `DefaultValues` variable to be set (e.g. `detail_off`)
+/// - `$val:ident`: The `ExecutionConfig` variable to be set (e.g. `detail_off`)
 ///
 /// # Example
 ///
@@ -32,19 +32,16 @@ macro_rules! check_flag {
         if $args.value_source($par) == Some(ValueSource::CommandLine)
             || $args.value_source($par) == Some(ValueSource::EnvVariable)
         {
-            $var.$val = Some(true);
-        } else if $var.$val.is_none() {
-            $var.$val = Some(false);
+            $var.execution.$val = Some(true);
+        } else if $var.execution.$val.is_none() {
+            $var.execution.$val = Some(false);
         }
     };
 }
 
-//~ spec:startcode
-/// The default values for the flags and options.
-// TODO: Write Deserialize trait for this struct
-// TODO: Separate the config and the values into two separate structs
+/// Execution control flags.
 #[derive(Debug, Default, Clone, Deserialize)]
-pub struct DefaultValues {
+pub struct ExecutionConfig {
     /// Flag: Do not output detail about each item processed.
     pub detail_off: Option<bool>,
 
@@ -59,15 +56,73 @@ pub struct DefaultValues {
 
     /// Flag: Single-threaded execution
     pub single_thread: Option<bool>,
+}
 
-    /// The name of the logging configuration file
-    pub log_config_file: Option<String>,
+/// Picture/cover art configuration.
+#[derive(Debug, Default, Clone, Deserialize)]
+pub struct PictureConfig {
+    /// Default value for the albums front cover.
+    pub picture_front: Option<String>,
 
-    // Options //
+    /// Default value for the album's back cover.
+    pub picture_back: Option<String>,
+
+    /// A list of front cover candidates
+    pub picture_front_candidates: Option<Vec<String>>,
+
+    /// A list of back cover candidates
+    pub picture_back_candidates: Option<Vec<String>>,
+
+    /// A list of search folders for cover candidates
+    pub picture_search_folders: Option<Vec<String>>,
+
+    /// Picture max size (in pixels - height and width)
+    pub picture_max_size: Option<u32>,
+}
+
+impl PictureConfig {
+    /// Gathers the list of folder candidates into a vector. Uses "." and ".." if nothing is found.
+    pub fn search_folders(&self) -> Vec<String> {
+        if let Some(f) = &self.picture_search_folders {
+            if !f.is_empty() {
+                return self
+                    .picture_search_folders
+                    .as_ref()
+                    .unwrap_or(&vec![".".to_string(), "..".to_string()])
+                    .clone();
+            }
+        }
+        vec![".".to_string(), "..".to_string()]
+    }
+
+    /// Get the list of front cover candidates
+    pub fn picture_front_candidates(&self) -> Vec<String> {
+        self.picture_front_candidates
+            .as_ref()
+            .unwrap_or(&vec![
+                "front.jpg".to_string(),
+                "cover.jpg".to_string(),
+                "folder.jpg".to_string(),
+            ])
+            .clone()
+    }
+
+    /// Get the list of back cover candidates
+    pub fn picture_back_candidates(&self) -> Vec<String> {
+        self.picture_back_candidates
+            .as_ref()
+            .unwrap_or(&vec!["back.jpg".to_string()])
+            .clone()
+    }
+}
+
+/// Tag metadata values.
+#[derive(Debug, Default, Clone, Deserialize)]
+pub struct TagValues {
     /// The default album artist.
     pub album_artist: Option<String>,
 
-    /// The default name on which the album artist is sorted. Example: Artist is "Alicia Keys", but the `artist_sort` may be "Keys, Alicia".
+    /// The default name on which the album artist is sorted.
     pub album_artist_sort: Option<String>,
 
     /// Album title.
@@ -127,24 +182,26 @@ pub struct DefaultValues {
 
     /// Default value for the track's comments.
     pub track_comments: Option<String>,
+}
 
-    /// Default value for the albums front cover.
-    pub picture_front: Option<String>,
+//~ spec:startcode
+/// The default values for the flags and options.
+#[derive(Debug, Default, Clone, Deserialize)]
+pub struct DefaultValues {
+    /// Execution control flags
+    #[serde(flatten)]
+    pub execution: ExecutionConfig,
 
-    /// Default value for the album's back cover.
-    pub picture_back: Option<String>,
+    /// Picture/cover art configuration
+    #[serde(flatten)]
+    pub pictures: PictureConfig,
 
-    /// A list of front cover candidates
-    pub picture_front_candidates: Option<Vec<String>>,
+    /// Tag metadata values
+    #[serde(flatten)]
+    pub tags: TagValues,
 
-    /// A list of back cover candidates
-    pub picture_back_candidates: Option<Vec<String>>,
-
-    /// A list of search folders for cover candidates
-    pub picture_search_folders: Option<Vec<String>>,
-
-    /// Picture max size (in pixels - height and width)
-    pub picture_max_size: Option<u32>,
+    /// The name of the logging configuration file
+    pub log_config_file: Option<String>,
 
     /// New filename pattern for rename
     pub rename_file: Option<String>,
@@ -162,7 +219,7 @@ impl DefaultValues {
         let mut cfg = Self::new();
 
         let psf_list: Vec<String> = vec![String::from("."), String::from("..")];
-        cfg.picture_search_folders = Some(psf_list);
+        cfg.pictures.picture_search_folders = Some(psf_list);
 
         // Read the config file
         if cli.contains_id("config-file") {
@@ -173,8 +230,6 @@ impl DefaultValues {
             .to_string();
             cfg = Self::load_config(&config_filename)?;
         }
-
-        // dbg!(&config);
 
         // Collate config file flags and CLI flags and output the right config
         check_flag!(cli, "stop-on-error", cfg, stop_on_error);
@@ -215,14 +270,18 @@ impl DefaultValues {
         };
 
         // Check if the picture_search_folders contain "." and "..". Add them if not.
-        let mut psf = config.picture_search_folders.clone().unwrap_or_default();
+        let mut psf = config
+            .pictures
+            .picture_search_folders
+            .clone()
+            .unwrap_or_default();
         if !psf.contains(&'.'.to_string()) {
             psf.push('.'.to_string());
         }
         if !psf.contains(&"..".to_string()) {
             psf.push("..".to_string());
         }
-        config.picture_search_folders = Some(psf);
+        config.pictures.picture_search_folders = Some(psf);
 
         Ok(config)
     }
@@ -273,7 +332,7 @@ impl DefaultValues {
             }
             candidate_list.push(".".to_string());
             candidate_list.push("..".to_string());
-            self.picture_search_folders = Some(candidate_list);
+            self.pictures.picture_search_folders = Some(candidate_list);
         }
     }
 
@@ -282,7 +341,7 @@ impl DefaultValues {
         if let Some(size) = args.get_one::<String>("picture-max-size") {
             match size.parse::<u32>() {
                 Ok(pms) => {
-                    self.picture_max_size = Some(pms);
+                    self.pictures.picture_max_size = Some(pms);
                     log::debug!("picture-max-size = {pms:?}");
                 }
                 Err(e) => {
@@ -300,8 +359,8 @@ impl DefaultValues {
                 candidate_list.push(candidate.clone());
             }
         }
-        if !candidate_list.is_empty() && self.picture_front_candidates.is_none() {
-            self.picture_front_candidates = Some(candidate_list);
+        if !candidate_list.is_empty() && self.pictures.picture_front_candidates.is_none() {
+            self.pictures.picture_front_candidates = Some(candidate_list);
         }
     }
 
@@ -313,67 +372,9 @@ impl DefaultValues {
                 candidate_list.push(candidate.clone());
             }
         }
-        if !candidate_list.is_empty() && self.picture_back_candidates.is_none() {
-            self.picture_back_candidates = Some(candidate_list);
+        if !candidate_list.is_empty() && self.pictures.picture_back_candidates.is_none() {
+            self.pictures.picture_back_candidates = Some(candidate_list);
         }
-    }
-
-    // Misc convenience functions
-
-    /// Gathers the list of folder candidates into a vector. Uses "." and ".." if nothing is found.
-    /// While this may seem redundant, it's safer since it always returns something.
-    ///
-    /// # Arguments
-    ///
-    /// None.
-    ///
-    /// # Returns
-    ///
-    /// A `Vec<String>` containing the picture folder candidates from the config, or "." & ".." if the original list is empty.
-    ///
-    /// # Errors
-    ///
-    /// None.
-    ///
-    /// # Panics
-    ///
-    /// None.
-    ///
-    /// # Examples
-    ///
-    /// See tests.
-    ///
-    pub fn search_folders(&self) -> Vec<String> {
-        if let Some(f) = &self.picture_search_folders {
-            if !f.is_empty() {
-                return self
-                    .picture_search_folders
-                    .as_ref()
-                    .unwrap_or(&vec![".".to_string(), "..".to_string()])
-                    .clone();
-            }
-        }
-        vec![".".to_string(), "..".to_string()]
-    }
-
-    /// Get the list of front cover candidates
-    pub fn picture_front_candidates(&self) -> Vec<String> {
-        self.picture_front_candidates
-            .as_ref()
-            .unwrap_or(&vec![
-                "front.jpg".to_string(),
-                "cover.jpg".to_string(),
-                "folder.jpg".to_string(),
-            ])
-            .clone()
-    }
-
-    /// Get the list of back cover candidates
-    pub fn picture_back_candidates(&self) -> Vec<String> {
-        self.picture_back_candidates
-            .as_ref()
-            .unwrap_or(&vec!["back.jpg".to_string()])
-            .clone()
     }
 } // impl DefaultValues
 
@@ -393,18 +394,18 @@ mod tests {
         let mut dfv = DefaultValues::new();
 
         // Check that some values are "None"
-        assert!(dfv.detail_off.is_none());
+        assert!(dfv.execution.detail_off.is_none());
         assert!(dfv.log_config_file.is_none());
-        assert!(dfv.album_artist.is_none());
-        assert!(dfv.track_count.is_none());
+        assert!(dfv.tags.album_artist.is_none());
+        assert!(dfv.tags.track_count.is_none());
 
         // Assign a few values
-        dfv.disc_number = Some(1);
-        dfv.disc_count = Some(true);
+        dfv.tags.disc_number = Some(1);
+        dfv.tags.disc_count = Some(true);
 
         // Check that the values got assigned OK.
-        assert_eq!(dfv.disc_number.unwrap(), 1);
-        assert!(dfv.disc_count.unwrap());
+        assert_eq!(dfv.tags.disc_number.unwrap(), 1);
+        assert!(dfv.tags.disc_count.unwrap());
     }
 
     #[test]
@@ -418,76 +419,85 @@ mod tests {
         let dfvu = dfv.unwrap();
         println!("dfvu = {dfvu:?}");
 
-        assert!(!dfvu.detail_off.unwrap());
-        assert!(dfvu.print_summary.unwrap());
-        assert!(!dfvu.stop_on_error.unwrap());
-        assert!(dfvu.dry_run.unwrap());
-        assert!(!dfvu.single_thread.unwrap());
+        assert!(!dfvu.execution.detail_off.unwrap());
+        assert!(dfvu.execution.print_summary.unwrap());
+        assert!(!dfvu.execution.stop_on_error.unwrap());
+        assert!(dfvu.execution.dry_run.unwrap());
+        assert!(!dfvu.execution.single_thread.unwrap());
         assert_eq!(dfvu.log_config_file.unwrap(), "log4rs.yaml".to_string());
 
         assert_eq!(
-            dfvu.album_artist.unwrap(),
+            dfvu.tags.album_artist.unwrap(),
             "Ludwig van Beethoven".to_string()
         );
         assert_eq!(
-            dfvu.album_artist_sort.unwrap(),
+            dfvu.tags.album_artist_sort.unwrap(),
             "Beethoven, Ludwig van".to_string()
         );
-        assert_eq!(dfvu.album_title.unwrap(), "Piano Sonata No. 5".to_string());
         assert_eq!(
-            dfvu.album_title_sort.unwrap(),
+            dfvu.tags.album_title.unwrap(),
+            "Piano Sonata No. 5".to_string()
+        );
+        assert_eq!(
+            dfvu.tags.album_title_sort.unwrap(),
             "Piano Sonata No. 5".to_string()
         );
 
-        assert_eq!(dfvu.disc_number.unwrap(), 1);
-        assert!(dfvu.disc_count.unwrap());
-        assert_eq!(dfvu.disc_number_total.unwrap(), 2);
+        assert_eq!(dfvu.tags.disc_number.unwrap(), 1);
+        assert!(dfvu.tags.disc_count.unwrap());
+        assert_eq!(dfvu.tags.disc_number_total.unwrap(), 2);
 
         assert_eq!(
-            dfvu.track_artist.unwrap(),
+            dfvu.tags.track_artist.unwrap(),
             "Ludwig van Beethoven".to_string()
         );
         assert_eq!(
-            dfvu.track_artist_sort.unwrap(),
+            dfvu.tags.track_artist_sort.unwrap(),
             "Beethoven, Ludwig van".to_string()
         );
         assert_eq!(
-            dfvu.track_title.unwrap(),
+            dfvu.tags.track_title.unwrap(),
             "Piano Sonata No. 5 - II. Adagio".to_string()
         );
         assert_eq!(
-            dfvu.track_title_sort.unwrap(),
+            dfvu.tags.track_title_sort.unwrap(),
             "Piano Sonata No. 5 - II. Adagio".to_string()
         );
-        assert_eq!(dfvu.track_number.unwrap(), 2);
-        assert!(dfvu.track_count.unwrap());
-        assert_eq!(dfvu.track_number_total.unwrap(), 5);
+        assert_eq!(dfvu.tags.track_number.unwrap(), 2);
+        assert!(dfvu.tags.track_count.unwrap());
+        assert_eq!(dfvu.tags.track_number_total.unwrap(), 5);
 
-        assert_eq!(dfvu.track_genre.unwrap(), "Classical".to_string());
-        assert_eq!(dfvu.track_genre_number.unwrap(), 33);
+        assert_eq!(dfvu.tags.track_genre.unwrap(), "Classical".to_string());
+        assert_eq!(dfvu.tags.track_genre_number.unwrap(), 33);
 
         assert_eq!(
-            dfvu.track_composer.unwrap(),
+            dfvu.tags.track_composer.unwrap(),
             "Ludwig van Beethoven".to_string()
         );
         assert_eq!(
-            dfvu.track_composer_sort.unwrap(),
+            dfvu.tags.track_composer_sort.unwrap(),
             "Beethoven, Ludwig van".to_string()
         );
 
-        assert_eq!(dfvu.track_date.unwrap(), "1843".to_string());
+        assert_eq!(dfvu.tags.track_date.unwrap(), "1843".to_string());
         assert_eq!(
-            dfvu.track_comments.unwrap(),
+            dfvu.tags.track_comments.unwrap(),
             "I have no idea if this is correct".to_string()
         );
 
-        assert_eq!(dfvu.picture_front.unwrap(), "cover-resized.jpg".to_string());
-        assert_eq!(dfvu.picture_back.unwrap(), "back-resized.jpg".to_string());
+        assert_eq!(
+            dfvu.pictures.picture_front.unwrap(),
+            "cover-resized.jpg".to_string()
+        );
+        assert_eq!(
+            dfvu.pictures.picture_back.unwrap(),
+            "back-resized.jpg".to_string()
+        );
 
-        assert_eq!(dfvu.picture_search_folders.unwrap().len(), 4);
-        assert_eq!(dfvu.picture_front_candidates.unwrap().len(), 6);
-        assert_eq!(dfvu.picture_back_candidates.unwrap().len(), 4);
-        assert_eq!(dfvu.picture_max_size.unwrap(), 500);
+        assert_eq!(dfvu.pictures.picture_search_folders.unwrap().len(), 4);
+        assert_eq!(dfvu.pictures.picture_front_candidates.unwrap().len(), 6);
+        assert_eq!(dfvu.pictures.picture_back_candidates.unwrap().len(), 4);
+        assert_eq!(dfvu.pictures.picture_max_size.unwrap(), 500);
 
         assert_eq!(dfvu.rename_file.unwrap(), "%dn-%tn - %ta - %tt".to_string());
 
@@ -503,17 +513,17 @@ mod tests {
 
         // Default is none.
         assert_eq!(
-            cfg.search_folders(),
+            cfg.pictures.search_folders(),
             vec![".".to_string(), "..".to_string()]
         );
 
-        cfg.picture_search_folders = Some(vec![
+        cfg.pictures.picture_search_folders = Some(vec![
             "Artwork".to_string(),
             "Scans".to_string(),
             "Covers".to_string(),
         ]);
         assert_eq!(
-            cfg.search_folders(),
+            cfg.pictures.search_folders(),
             vec![
                 "Artwork".to_string(),
                 "Scans".to_string(),

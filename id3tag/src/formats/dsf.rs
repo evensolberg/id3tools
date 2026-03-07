@@ -27,9 +27,9 @@ pub fn process(
         // Print new tags
         for (key, value) in new_tags {
             // Output information about tags getting changed
-            if config.detail_off.unwrap_or(false) {
+            if config.execution.detail_off.unwrap_or(false) {
                 log::debug!("{filename} :: New {key} = {value}");
-            } else if config.dry_run.unwrap_or(false) {
+            } else if config.execution.dry_run.unwrap_or(false) {
                 log::info!("{filename} :: New {key} = {value}");
             } else {
                 log::debug!("{filename} :: New {key} = {value}");
@@ -44,28 +44,28 @@ pub fn process(
                 // Disc number
                 "TPOS" => {
                     let num =
-                        to_number(value, "disc number", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "disc number", config.execution.stop_on_error.unwrap_or(false))?;
                     tag.set_disc(num);
                 }
 
                 // Disc count
                 "TPOS-T" => {
                     let num =
-                        to_number(value, "total discs", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "total discs", config.execution.stop_on_error.unwrap_or(false))?;
                     tag.set_total_discs(num);
                 }
 
                 // Track number
                 "TRCK" => {
                     let num =
-                        to_number(value, "track number", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "track number", config.execution.stop_on_error.unwrap_or(false))?;
                     tag.set_track(num);
                 }
 
                 // Track count
                 "TRCK-T" => {
                     let num =
-                        to_number(value, "total tracks", config.stop_on_error.unwrap_or(false))?;
+                        to_number(value, "total tracks", config.execution.stop_on_error.unwrap_or(false))?;
                     tag.set_total_tracks(num);
                 }
 
@@ -159,7 +159,7 @@ fn rename_file(
     match rename_result {
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
-            if config.stop_on_error.unwrap_or(false) {
+            if config.execution.stop_on_error.unwrap_or(false) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )

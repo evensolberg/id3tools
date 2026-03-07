@@ -51,11 +51,11 @@ pub fn process_file(
     log::debug!("process_file::front_cover_path = {front_cover_path:?}, back_cover_path = {back_cover_path:?}, ");
 
     if front_cover_path.is_some() {
-        config.picture_front = front_cover_path;
+        config.pictures.picture_front = front_cover_path;
     }
 
     if back_cover_path.is_some() {
-        config.picture_back = back_cover_path;
+        config.pictures.picture_back = back_cover_path;
     }
 
     let new_tags_result = parse_options(filename, file_type, &config, cli_args);
@@ -81,7 +81,7 @@ pub fn process_file(
             match proc_res {
                 Ok(_) => processed = true,
                 Err(err) => {
-                    if config.stop_on_error.unwrap_or(true) {
+                    if config.execution.stop_on_error.unwrap_or(true) {
                         return Err(format!("Unable to process {filename}. Error: {err}").into());
                     }
                     log::error!("Unable to process {filename}. Error: {err}");
@@ -89,7 +89,7 @@ pub fn process_file(
             }
         } // Ok(_)
         Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
+            if config.execution.stop_on_error.unwrap_or(true) {
                 return Err(format!("Unable to parse tags for {filename}. Error: {err}").into());
             }
             log::error!("Unable to parse tags for {filename}. Error: {err}");
@@ -114,59 +114,59 @@ fn parse_options(
     let ot = tags::get_tag_names(file_type);
 
     // Track and album artist at the same time.
-    track_album_artist!(cli, dv, nt, ot);
+    track_album_artist!(cli, dv.tags, nt, ot);
 
     // We should never hit "album-artist" and "track-artist" if we have the one above,
     // but the compiler doesn't know that. So we have to do a bunch of cloning above to ensure the
     // code below still compiles as expected.
-    tag!(cli, dv, nt, ot, "album-artist", album_artist, false);
-    tag!(cli, dv, nt, ot, "track-artist", track_artist, false);
+    tag!(cli, dv.tags, nt, ot, "album-artist", album_artist, false);
+    tag!(cli, dv.tags, nt, ot, "track-artist", track_artist, false);
     tag!(
         cli,
-        dv,
+        dv.tags,
         nt,
         ot,
         "album-artist-sort",
         album_artist_sort,
         false
     );
-    tag!(cli, dv, nt, ot, "album-title", album_title, false);
-    tag!(cli, dv, nt, ot, "album-title-sort", album_title_sort, false);
-    tag!(cli, dv, nt, ot, "disc-number", disc_number, true);
-    tag!(cli, dv, nt, ot, "disc-total", disc_number_total, true);
+    tag!(cli, dv.tags, nt, ot, "album-title", album_title, false);
+    tag!(cli, dv.tags, nt, ot, "album-title-sort", album_title_sort, false);
+    tag!(cli, dv.tags, nt, ot, "disc-number", disc_number, true);
+    tag!(cli, dv.tags, nt, ot, "disc-total", disc_number_total, true);
     tag!(
         cli,
-        dv,
+        dv.tags,
         nt,
         ot,
         "track-artist-sort",
         track_artist_sort,
         false
     );
-    tag!(cli, dv, nt, ot, "track-title", track_title, false);
-    tag!(cli, dv, nt, ot, "track-title-sort", track_title_sort, false);
-    tag!(cli, dv, nt, ot, "track-number", track_number, false);
-    tag!(cli, dv, nt, ot, "track-total", track_number_total, true);
-    tag!(cli, dv, nt, ot, "track-genre", track_genre, true);
-    tag!(cli, dv, nt, ot, "track-composer", track_composer, false);
+    tag!(cli, dv.tags, nt, ot, "track-title", track_title, false);
+    tag!(cli, dv.tags, nt, ot, "track-title-sort", track_title_sort, false);
+    tag!(cli, dv.tags, nt, ot, "track-number", track_number, false);
+    tag!(cli, dv.tags, nt, ot, "track-total", track_number_total, true);
+    tag!(cli, dv.tags, nt, ot, "track-genre", track_genre, true);
+    tag!(cli, dv.tags, nt, ot, "track-composer", track_composer, false);
     tag!(
         cli,
-        dv,
+        dv.tags,
         nt,
         ot,
         "track-composer-sort",
         track_composer_sort,
         false
     );
-    tag!(cli, dv, nt, ot, "track-date", track_date, false);
-    tag!(cli, dv, nt, ot, "track-comments", track_comments, false);
+    tag!(cli, dv.tags, nt, ot, "track-date", track_date, false);
+    tag!(cli, dv.tags, nt, ot, "track-comments", track_comments, false);
 
-    disc_number_count!(cli, dv, nt, ot, filename);
-    track_number_count!(cli, dv, nt, ot, filename);
-    track_genre_num!(cli, dv, nt, ot);
+    disc_number_count!(cli, dv.tags, nt, ot, filename);
+    track_number_count!(cli, dv.tags, nt, ot, filename);
+    track_genre_num!(cli, dv.tags, nt, ot);
 
-    pic!(cli, dv, nt, ot, front);
-    pic!(cli, dv, nt, ot, back);
+    pic!(cli, dv.pictures, nt, ot, front);
+    pic!(cli, dv.pictures, nt, ot, back);
 
     Ok(nt)
 }

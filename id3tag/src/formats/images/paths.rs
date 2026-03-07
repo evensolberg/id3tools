@@ -53,13 +53,13 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
 /// Returns:
 /// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
 pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
-    let search_folders = cfg.search_folders();
+    let search_folders = cfg.pictures.search_folders();
     log::debug!("gather_cover_candidates::search_folders = {search_folders:?}");
 
     let picture_candidates = if cover_type == CoverType::Front {
-        cfg.picture_front_candidates()
+        cfg.pictures.picture_front_candidates()
     } else {
-        cfg.picture_back_candidates()
+        cfg.pictures.picture_back_candidates()
     };
 
     let mut cover_candidates: Vec<String> = Vec::new();
@@ -151,11 +151,11 @@ mod tests {
     #[test]
     fn test_gather_cover_candidates_with_spaces() {
         let mut cfg = DefaultValues::new();
-        cfg.picture_front_candidates = Some(vec![
+        cfg.pictures.picture_front_candidates = Some(vec![
             "Album Art.jpg".to_string(),
             "Cover Image.png".to_string(),
         ]);
-        cfg.picture_search_folders = Some(vec![".".to_string(), "Artwork Folder".to_string()]);
+        cfg.pictures.picture_search_folders = Some(vec![".".to_string(), "Artwork Folder".to_string()]);
 
         let res = gather_cover_candidates(CoverType::Front, &cfg);
         assert!(res.contains(&"./Album Art.jpg".to_string()));
@@ -168,19 +168,19 @@ mod tests {
     /// Tests the `gather_cover_paths` function
     fn test_gather_cover_paths() {
         let mut cfg = DefaultValues::new();
-        cfg.picture_front = Some("front.jpg".to_string());
-        cfg.picture_back = Some("back.jpg".to_string());
-        cfg.picture_front_candidates = Some(vec![
+        cfg.pictures.picture_front = Some("front.jpg".to_string());
+        cfg.pictures.picture_back = Some("back.jpg".to_string());
+        cfg.pictures.picture_front_candidates = Some(vec![
             "cover.jpg".to_string(),
             "front.jpg".to_string(),
             "front.png".to_string(),
         ]);
-        cfg.picture_back_candidates = Some(vec![
+        cfg.pictures.picture_back_candidates = Some(vec![
             "backcover.jpg".to_string(),
             "back.jpg".to_string(),
             "back.png".to_string(),
         ]);
-        cfg.picture_search_folders = Some(vec![
+        cfg.pictures.picture_search_folders = Some(vec![
             ".".to_string(),
             "..".to_string(),
             "Artwork".to_string(),

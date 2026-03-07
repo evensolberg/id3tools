@@ -30,12 +30,12 @@ macro_rules! split {
     ($cfg:ident, $tag:ident, $nt:ident, $nn:ident, $nm:literal, $value:ident) => {
         let split = common::split_val($value.trim())?;
         if split.0 != 0 {
-            $cfg.$nn = Some(split.0);
+            $cfg.tags.$nn = Some(split.0);
             let name = format!("{}NUMBER", $nm);
             $tag.insert(name, split.0.to_string());
         }
         if split.1 != 0 {
-            $cfg.$nt = Some(split.1);
+            $cfg.tags.$nt = Some(split.1);
             let name = format!("{}TOTAL", $nm);
             $tag.insert(name, split.1.to_string());
         }
@@ -65,7 +65,7 @@ pub fn process(
     let mut tags = Tag::read_from_path(m_file)?;
     let mut processed_ok = false;
     let mut cfg = config.clone();
-    let max_size = cfg.picture_max_size.unwrap_or(500);
+    let max_size = cfg.pictures.picture_max_size.unwrap_or(500);
 
     // If existing TRACKNUMBER or DISCNUMBER is in the x/y format, we need to fix it.
     if let Some(id3) = tags.vorbis_comments() {
@@ -84,7 +84,7 @@ pub fn process(
 
     // Set new tags
     for (k, v) in nt {
-        if !(cfg.detail_off.unwrap_or(false)) && !cfg.dry_run.unwrap_or(false) {
+        if !(cfg.execution.detail_off.unwrap_or(false)) && !cfg.execution.dry_run.unwrap_or(false) {
             log::debug!("process::{m_file} :: New {k} = {v}");
         } else {
             log::info!("{m_file} :: New {k} = {}", v.trim());
@@ -103,7 +103,7 @@ pub fn process(
                 match set_picture(&mut tags, v.trim(), cover_type, max_size) {
                     Ok(()) => log::debug!("process::{cover_type:?} set."),
                     Err(err) => {
-                        if cfg.stop_on_error.unwrap_or(true) {
+                        if cfg.execution.stop_on_error.unwrap_or(true) {
                             return Err(format!(
                                 "Unable to set {cover_type:?} to {v}. Error message: {err}"
                             )
@@ -121,14 +121,14 @@ pub fn process(
     }
 
     // Try to save
-    if cfg.dry_run.unwrap_or(true) {
+    if cfg.execution.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
         processed_ok = true;
     } else if tags.save().is_ok() {
         processed_ok = true;
         log::info!("{m_file}   ✓");
     } else {
-        if cfg.stop_on_error.unwrap_or(true) {
+        if cfg.execution.stop_on_error.unwrap_or(true) {
             return Err(format!("Unable to save {m_file}").into());
         }
         log::warn!("Unable to save {m_file}");
@@ -189,7 +189,7 @@ fn rename_file(
     match rename_result {
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
-            if config.stop_on_error.unwrap_or(true) {
+            if config.execution.stop_on_error.unwrap_or(true) {
                 return Err(format!(
                     "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
                 )
