@@ -24,7 +24,7 @@ strip = true
 
 [workspace.dependencies]
 ape = "0"
-clap = { version = "4.5.60", features = ["cargo"] }
+clap = { version = "4.6.0", features = ["cargo"] }
 dsf = "0.2.2"
 log = "0.4.29"
 log4rs = "1.4.0"
@@ -32,13 +32,13 @@ id3 = "1.16.4"
 metaflac = "0.2.8"
 mp4ameta = "0.13.0"
 assay = "0.1.1"
-clap_complete = "4.5.66"
+clap_complete = "4.6.0"
 clap_complete_fig = "4.5.2"
-clap_mangen = "0.2.31"
+clap_mangen = "0.2.33"
 csv = "1.4.0"
 glob = "0.3.3"
 human-duration = "0.1.0"
-image = "0.25.9"
+image = "0.25.10"
 infer = "0.19.0"
 itertools = "0.14.0"
 mp3-metadata = "0.4.0"
@@ -47,8 +47,8 @@ serde = "1.0.228"
 serde_json = "1.0.149"
 shellexpand = "3"
 thousands = "0.2.0"
-toml = "1.0"
-env_logger = "0.11.9"
+toml = "1.1"
+env_logger = "0.11.10"
 
 [workspace.package]
 edition = "2021"
