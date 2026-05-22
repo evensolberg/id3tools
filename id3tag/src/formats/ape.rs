@@ -18,7 +18,7 @@ pub fn process(
     // Set new tags
     for (key, value) in new_tags {
         if config.execution.detail_off.unwrap_or(false) {
-            log::debug!("{filename} :: New {key} = {value}",);
+            log::debug!("{filename} :: New {key} = {value}");
         } else if config.execution.dry_run.unwrap_or(false) {
             log::info!("{filename} :: New {key} = {value}");
         } else {
