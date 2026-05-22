@@ -73,19 +73,11 @@ impl Statistics {
         self.total_size += size;
     }
 
-    pub const fn calc_avg_ms(&mut self) {
-        self.avg_ms = if self.file_count > 0 {
-            self.total_ms / self.file_count
-        } else {
-            0
-        }
+    pub fn calc_avg_ms(&mut self) {
+        self.avg_ms = self.total_ms.checked_div(self.file_count).unwrap_or(0);
     }
 
-    pub const fn calc_avg_size(&mut self) {
-        self.avg_size = if self.file_count > 0 {
-            self.total_size / self.file_count
-        } else {
-            0
-        }
+    pub fn calc_avg_size(&mut self) {
+        self.avg_size = self.total_size.checked_div(self.file_count).unwrap_or(0);
     }
 }

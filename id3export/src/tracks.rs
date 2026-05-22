@@ -519,7 +519,7 @@ impl Reader for Track {
         }
 
         tag.frames().for_each(|frame| {
-            log::debug!("Frame: {frame:?}",);
+            log::debug!("Frame: {frame:?}");
             match frame.id() {
                 "TPE2" => self.album_artist = Some(frame.content().to_string()),
                 "TSO2" => self.album_artist_sort = Some(frame.content().to_string()),
