@@ -539,6 +539,10 @@ mod tests {
     #[test]
     ///
     fn test_count_files() {
+        // Skip if testdata is not available (e.g. in CI without LFS files)
+        if !Path::new("../testdata/sample.ape").exists() {
+            return;
+        }
         if Path::new("../testdata/DOSTM_Cover-reesize.jpg").exists() {
             let _res = std::fs::remove_file(Path::new("../testdata/DOSTM_Cover-reesize.jpg"));
         }
