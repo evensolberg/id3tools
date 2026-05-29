@@ -26,9 +26,9 @@ strip = true
 ape = "0"
 clap = { version = "4.6.1", features = ["cargo"] }
 dsf = "0.2.2"
-log = "0.4.29"
+log = "0.4.30"
 log4rs = "1.4.0"
-id3 = "1.16.4"
+id3 = "1.17.0"
 metaflac = "0.2.8"
 mp4ameta = "0.13.0"
 assay = "0.1.1"
