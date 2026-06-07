@@ -779,6 +779,29 @@ mod tests {
         assert!(result.iter().any(|f| f.ends_with(".flac")));
     }
 
+    /// A `?`-only glob pattern (no `*` or `[`) must be routed through the glob
+    /// engine.  This guards against `?` being accidentally dropped from the
+    /// `has_wildcards` check in a future refactor — such a drop would cause
+    /// `?`-patterns to fall through to literal passthrough silently.
+    #[test]
+    fn test_expand_file_args_question_mark_glob() {
+        // Skip if testdata is not available
+        if !Path::new("../testdata/sample.flac").exists() {
+            return;
+        }
+
+        // Pattern uses ONLY `?` — no `*` or `[`.  No literal file with this
+        // name exists, so it must be expanded by the glob engine.
+        let args = vec!["../testdata/sample.?lac"];
+        let result = expand_file_args(args.into_iter());
+        assert!(
+            !result.is_empty(),
+            "question-mark-only glob pattern expanded nothing (? may have been \
+             dropped from has_wildcards)"
+        );
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+    }
+
     /// A dangling symlink whose name contains `[` must be passed through as a
     /// literal path, not silently dropped by the glob engine.  `Path::exists()`
     /// follows symlinks and returns `false` for a dangling target, which would
