@@ -354,8 +354,8 @@ impl Reader for Track {
         {
             Ok(m) => m,
             Err(e) => {
-                log::error!("Error reading MP3: {e:?}");
-                bail!("{e:?}");
+                log::error!("Error reading MP3: {e}");
+                bail!("{e}");
             }
         };
 
