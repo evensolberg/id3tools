@@ -61,7 +61,7 @@ id3-q2n,all crates: add forbid(unsafe_code) to all crate roots,closed,,task,3,al
 id3-q9a,Allow import of tags based on file names.,open,,feature,2,,2026-03-07,2026-03-07,,,,,,
 id3-qm5,Verify that target file names dont contain any weird characters,closed,,bug,2,,2026-03-07,2026-03-07,"Fixed: expanded clean_filename to strip ?*""<>|, control chars (\t\n\r), and collapse multiple spaces",,,,,
 id3-rtf,dep: paste crate unmaintained (RUSTSEC-2024-0436),closed,,task,3,dependency,2026-03-06,2026-03-07,,,,,,
-id3-rwl,Square brackets in file names cause the file to be ignored,in_progress,,bug,2,,2026-06-06,2026-06-06,,,,,,
+id3-rwl,Square brackets in file names cause the file to be ignored,closed,,bug,2,,2026-06-06,2026-06-07,Fixed in PR #44 — expand_file_args now uses symlink_metadata to detect literal filenames with brackets; bracket-only args probe the filesystem before globbing; all tests pass.,,,,,
 id3-sd4,id3export: panicking unwrap on fs::metadata in tracks.rs,closed,,bug,1,id3export|critical|panic,2026-03-06,2026-03-07,,,,,,
 id3-spo,Refactor big functions into smaller ones that can be tested independently.,open,,task,2,,2026-03-07,2026-03-07,,,,,,
 id3-syj,common: tests fail due to missing sample audio files in testdata/,closed,,bug,2,common|tests,2026-03-07,2026-03-07,,,,,,

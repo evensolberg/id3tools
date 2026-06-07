@@ -1,12 +1,13 @@
 ---
 id: id3-rwl
 title: Square brackets in file names cause the file to be ignored
-status: in_progress
+status: closed
 type: bug
 priority: 2
 tags: []
 created: 2026-06-06
-updated: 2026-06-06
+updated: 2026-06-07
+closed_reason: 'Fixed in PR #44 — expand_file_args now uses symlink_metadata to detect literal filenames with brackets; bracket-only args probe the filesystem before globbing; all tests pass.'
 phase: ''
 ---
 
@@ -19,3 +20,5 @@ id3tag (and presumably the other utilities) will ignore any files that have `[` 
 [2026-06-06] Fix: in `expand_file_args`, add an `exists_literally` check using `std::fs::symlink_metadata` (does not follow symlinks, so dangling symlinks are correctly treated as present). The check only applies to args containing `[` but no `*`/`?` — conventional glob wildcards are always expanded. If the entry exists, push the arg directly as a literal path and skip globbing. This preserves full glob functionality (`*.mp3`, `[0-9]*.mp3`) while correctly handling filenames containing `[` and `]`.
 
 [start] 2026-06-06 20:43:39
+
+[stop]  2026-06-07 08:50:12  12h 6m 33s
