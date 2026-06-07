@@ -25,7 +25,10 @@ where
 {
     let mut result = Vec::new();
     for arg in args {
-        if arg.contains('*') || arg.contains('?') || arg.contains('[') {
+        let looks_like_glob = arg.contains('*') || arg.contains('?') || arg.contains('[');
+        let exists_literally = std::path::Path::new(arg).exists();
+
+        if looks_like_glob && !exists_literally {
             match glob::glob(arg) {
                 Ok(paths) => {
                     let mut matched = false;
@@ -632,5 +635,46 @@ mod tests {
         let result = expand_file_args(args.into_iter());
         assert_eq!(result[0], "plain.txt");
         assert!(result.len() > 2);
+    }
+
+    /// A literal filename that contains `[` and `]` must not be fed through the
+    /// glob engine — the brackets would be misinterpreted as a character class
+    /// and the file would be silently dropped.
+    #[test]
+    fn test_expand_file_args_brackets_in_literal_filename() {
+        let dir = std::env::temp_dir();
+        let path = dir.join("Song [Live Version].mp3");
+        std::fs::File::create(&path).expect("create temp file");
+        let path_str = path.to_str().expect("valid UTF-8 path");
+
+        let result = expand_file_args(std::iter::once(path_str));
+
+        std::fs::remove_file(&path).ok();
+        assert_eq!(
+            result,
+            vec![path_str],
+            "literal file with brackets in name was silently dropped"
+        );
+    }
+
+    /// A glob pattern that legitimately uses `[` together with `*` must still
+    /// expand correctly when no literal file by that name exists.
+    #[test]
+    fn test_expand_file_args_bracket_glob_pattern_still_works() {
+        // Skip if testdata is not available
+        if !Path::new("../testdata/sample.flac").exists() {
+            return;
+        }
+
+        // Pattern uses both `[` and `*` — there is no literal file with this name
+        let args = vec!["../testdata/sample.[fm]*"];
+        let result = expand_file_args(args.into_iter());
+        // Should match sample.flac, sample.mp3, sample.m4a at minimum
+        assert!(
+            !result.is_empty(),
+            "bracket+wildcard glob pattern expanded nothing"
+        );
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+        assert!(result.iter().any(|f| f.ends_with(".mp3")));
     }
 }
