@@ -40,7 +40,7 @@ where
             // error, since that indicates an unexpected I/O condition.
             let exists_literally = match std::fs::symlink_metadata(arg) {
                 Ok(_) => {
-                    log::debug!(
+                    log::info!(
                         "Argument '{arg}' contains glob characters but a \
                          filesystem entry with that exact name exists; \
                          treating it as a literal path."
@@ -590,9 +590,6 @@ mod tests {
         if !Path::new("../testdata/sample.ape").exists() {
             return;
         }
-        if Path::new("../testdata/DOSTM_Cover-reesize.jpg").exists() {
-            let _res = std::fs::remove_file(Path::new("../testdata/DOSTM_Cover-reesize.jpg"));
-        }
         assert!(count_files("../testdata/sample.ape").is_ok());
         assert!(count_files("../testdata/sample.mp3").is_ok());
         assert!(count_files("../testdata/sample.flac").is_ok());
@@ -690,7 +687,7 @@ mod tests {
 
         let path_str_owned = path.to_str().expect("valid UTF-8 path").to_string();
         // Guard removes the file even if the assertion panics.
-        let _guard = TempPathGuard(path.clone());
+        let _guard = TempPathGuard(path);
 
         let result = expand_file_args(std::iter::once(path_str_owned.as_str()));
         assert_eq!(
@@ -760,9 +757,9 @@ mod tests {
         let _ = std::fs::remove_file(&link_path);
         symlink(&missing_target, &link_path).expect("create dangling symlink");
         // Guard removes the symlink even if the assertion or expand_file_args panics.
-        let _guard = TempPathGuard(link_path.clone());
-
         let link_str_owned = link_path.to_str().expect("valid UTF-8 path").to_string();
+        // Guard removes the symlink even if the assertion or expand_file_args panics.
+        let _guard = TempPathGuard(link_path);
         let result = expand_file_args(std::iter::once(link_str_owned.as_str()));
         assert_eq!(
             result,
