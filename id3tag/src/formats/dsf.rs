@@ -3,10 +3,10 @@
 use crate::default_values::DefaultValues;
 use crate::formats::tags::option_to_tag;
 use crate::rename_file;
+use anyhow::{bail, Result};
 use common::FileTypes;
 use dsf::{self, DsfFile};
 use id3::TagLike;
-use anyhow::{bail, Result};
 use std::{collections::HashMap, path::Path};
 
 /// Performs the actual processing of DSF files.
@@ -107,11 +107,7 @@ pub fn process(
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tag: &id3::Tag,
-) -> Result<()> {
+fn rename_file(filename: &str, config: &DefaultValues, tag: &id3::Tag) -> Result<()> {
     let tags_names = option_to_tag(FileTypes::Dsf);
     let mut replace_map = HashMap::new();
 

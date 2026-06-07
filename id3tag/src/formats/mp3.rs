@@ -12,11 +12,7 @@ use std::collections::HashMap;
 
 /// Performs the actual processing of MP4 files.
 #[allow(clippy::too_many_lines)]
-pub fn process(
-    filename: &str,
-    nt: &HashMap<String, String>,
-    cfg: &DefaultValues,
-) -> Result<bool> {
+pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues) -> Result<bool> {
     log::debug!("Filename: {filename}");
     let mut processed_ok = false;
     let max_size = cfg.pictures.picture_max_size.unwrap_or(500);

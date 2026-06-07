@@ -3,8 +3,8 @@
 use crate::default_values::DefaultValues;
 use crate::formats::images;
 use crate::rename_file;
-use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use anyhow::{bail, Result};
+use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
 
 /// Performs the actual processing of MP4 files.
@@ -118,11 +118,7 @@ fn set_picture(tags: &mut Tag, filename: &str) -> Result<()> {
 }
 
 /// Renames the MP4 file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tag: &mp4ameta::Tag,
-) -> Result<()> {
+fn rename_file(filename: &str, config: &DefaultValues, tag: &mp4ameta::Tag) -> Result<()> {
     let tags_map = get_mp4_tags(tag);
     log::debug!("tags_map = {tags_map:?}");
 

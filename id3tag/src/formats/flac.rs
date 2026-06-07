@@ -5,9 +5,9 @@ use crate::formats::images::read_cover;
 use crate::formats::tags;
 use crate::formats::FileTypes;
 use crate::rename_file;
+use anyhow::{bail, Result};
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
-use anyhow::{bail, Result};
 use std::collections::HashMap;
 
 /// Splits the incoming value into two the (disc/track) number and count.
@@ -161,11 +161,7 @@ fn set_picture(
 }
 
 /// Renames a FLAC file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tags: &metaflac::Tag,
-) -> Result<()> {
+fn rename_file(filename: &str, config: &DefaultValues, tags: &metaflac::Tag) -> Result<()> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
     let mut pattern = String::new();

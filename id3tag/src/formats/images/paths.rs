@@ -93,10 +93,7 @@ pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Ve
 /// - Returns an error if the music directory cannot be canonicalized.
 /// - Returns an error if the music file's directory cannot be determined.
 /// - Returns an error if the image path cannot be canonicalized.
-pub fn find_first_image(
-    m_file: &str,
-    image_vec: &Vec<String>,
-) -> Result<Option<PathBuf>> {
+pub fn find_first_image(m_file: &str, image_vec: &Vec<String>) -> Result<Option<PathBuf>> {
     let music_file = Path::new(m_file);
     if !music_file.exists() {
         bail!("Music file {m_file} does not appear to exist.");
