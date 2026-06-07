@@ -10,7 +10,24 @@ use infer::{MatcherType, Type};
 use crate::file_types::FileTypes;
 
 /// Expand glob patterns in a list of file arguments into actual file paths.
-/// Non-glob strings that don't match any files are kept as-is (so clap/downstream can report the error).
+///
+/// Each argument is classified as follows:
+///
+/// - **No glob characters** (`*`, `?`, `[`): passed through as-is so that the
+///   caller (clap/downstream) can report a meaningful error if the file does
+///   not exist.
+/// - **Glob characters present, entry exists on disk**: the argument is treated
+///   as a *literal* path and pushed directly into the result. Detection uses
+///   [`std::fs::symlink_metadata`] (does **not** follow symlinks) so that
+///   dangling symlinks — whose names may contain `[` — are correctly recognised
+///   as present entries rather than fed to the glob engine. Any OS error other
+///   than [`NotFound`][std::io::ErrorKind::NotFound] (e.g. `PermissionDenied`)
+///   is also treated conservatively as "exists", preferring a downstream
+///   open-error over silently dropping the argument.
+/// - **Glob characters present, entry does not exist**: the argument is treated
+///   as a glob pattern and expanded by [`glob::glob`]. Patterns that match
+///   nothing produce a `warn!` log and contribute no entries to the result.
+///   Invalid patterns fall back to literal passthrough (with a `warn!`).
 ///
 /// # Arguments
 ///
@@ -679,9 +696,11 @@ mod tests {
     /// and the file would be silently dropped.
     #[test]
     fn test_expand_file_args_brackets_in_literal_filename() {
+        // Include the process ID in the name to avoid collisions when multiple
+        // test processes run concurrently on the same machine.
+        let pid = std::process::id();
         let dir = std::env::temp_dir();
-        let path = dir.join("Song [Live Version].mp3");
-        // Remove any stale file from a previous run before creating a fresh one.
+        let path = dir.join(format!("Song [Live Version] {pid}.mp3"));
         let _ = std::fs::remove_file(&path);
         std::fs::File::create(&path).expect("create temp file");
 
@@ -749,9 +768,16 @@ mod tests {
     fn test_expand_file_args_dangling_symlink_with_brackets() {
         use std::os::unix::fs::symlink;
 
+        // Include the process ID in both names to avoid collisions when multiple
+        // test processes run concurrently on the same machine.
+        let pid = std::process::id();
         let dir = std::env::temp_dir();
-        let link_path = dir.join("Song [Demo].mp3");
-        let missing_target = dir.join("nonexistent_target_xyzzy.mp3");
+        let link_path = dir.join(format!("Song [Demo] {pid}.mp3"));
+        // Ensure the target path definitely does not exist so the symlink is
+        // truly dangling (a pre-existing target would make it non-dangling and
+        // invalidate what the test is asserting).
+        let missing_target = dir.join(format!("nonexistent_target_{pid}_xyzzy.mp3"));
+        let _ = std::fs::remove_file(&missing_target);
 
         // Remove any stale link from a previous run, then create a fresh dangling symlink.
         let _ = std::fs::remove_file(&link_path);
