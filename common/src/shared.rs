@@ -28,25 +28,36 @@ where
         let looks_like_glob = arg.contains('*') || arg.contains('?') || arg.contains('[');
 
         if looks_like_glob {
-            // Check whether a filesystem entry with this exact name already exists.
             // Uses `symlink_metadata` (does NOT follow symlinks) so that dangling
             // symlinks are detected as present rather than being routed through the
             // glob engine where their brackets would be misinterpreted.
             // Any error other than `NotFound` (e.g. `PermissionDenied`) is treated
             // as "exists" — conservative fallback prefers a downstream "cannot open"
             // error over silently dropping the argument.
+            // Log at debug level when the file is genuinely present (expected,
+            // normal case for filenames like `Song [Live].mp3`).
+            // Log at warn level only when the stat itself fails with a non-NotFound
+            // error, since that indicates an unexpected I/O condition.
             let exists_literally = match std::fs::symlink_metadata(arg) {
+                Ok(_) => {
+                    log::debug!(
+                        "Argument '{arg}' contains glob characters but a \
+                         filesystem entry with that exact name exists; \
+                         treating it as a literal path."
+                    );
+                    true
+                }
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
-                Ok(_) | Err(_) => true,
+                Err(e) => {
+                    log::warn!(
+                        "Could not stat '{arg}' ({e}); \
+                         treating it as a literal path."
+                    );
+                    true
+                }
             };
 
             if exists_literally {
-                log::warn!(
-                    "Argument '{arg}' contains glob characters but a filesystem \
-                     entry with that exact name exists; treating it as a literal \
-                     path. If glob expansion was intended, rename or remove the \
-                     conflicting entry."
-                );
                 result.push(arg.to_string());
             } else {
                 match glob::glob(arg) {
@@ -432,6 +443,14 @@ pub fn path_to_string(p: std::path::PathBuf) -> String {
 mod tests {
     use super::*;
 
+    /// Drop guard that removes a file/symlink on scope exit, including on panic.
+    struct TempPathGuard(std::path::PathBuf);
+    impl Drop for TempPathGuard {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
     #[test]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
@@ -669,22 +688,14 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         std::fs::File::create(&path).expect("create temp file");
 
-        // Capture path_str before the drop guard takes ownership of `path`.
         let path_str_owned = path.to_str().expect("valid UTF-8 path").to_string();
-
-        // Use a drop guard so the file is removed even if the assertion panics.
-        struct Guard(std::path::PathBuf);
-        impl Drop for Guard {
-            fn drop(&mut self) {
-                let _ = std::fs::remove_file(&self.0);
-            }
-        }
-        let _guard = Guard(path.clone());
+        // Guard removes the file even if the assertion panics.
+        let _guard = TempPathGuard(path.clone());
 
         let result = expand_file_args(std::iter::once(path_str_owned.as_str()));
         assert_eq!(
             result,
-            vec![path_str_owned.clone()],
+            vec![path_str_owned],
             "literal file with brackets in name was silently dropped"
         );
     }
@@ -745,17 +756,17 @@ mod tests {
         let link_path = dir.join("Song [Demo].mp3");
         let missing_target = dir.join("nonexistent_target_xyzzy.mp3");
 
-        // Remove any stale link from a previous run, then create a fresh dangling symlink
+        // Remove any stale link from a previous run, then create a fresh dangling symlink.
         let _ = std::fs::remove_file(&link_path);
         symlink(&missing_target, &link_path).expect("create dangling symlink");
+        // Guard removes the symlink even if the assertion or expand_file_args panics.
+        let _guard = TempPathGuard(link_path.clone());
 
-        let link_str = link_path.to_str().expect("valid UTF-8 path");
-        let result = expand_file_args(std::iter::once(link_str));
-
-        let _ = std::fs::remove_file(&link_path);
+        let link_str_owned = link_path.to_str().expect("valid UTF-8 path").to_string();
+        let result = expand_file_args(std::iter::once(link_str_owned.as_str()));
         assert_eq!(
             result,
-            vec![link_str],
+            vec![link_str_owned],
             "dangling symlink with brackets in name was silently dropped"
         );
     }
