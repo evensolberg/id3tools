@@ -10,7 +10,29 @@ use infer::{MatcherType, Type};
 use crate::file_types::FileTypes;
 
 /// Expand glob patterns in a list of file arguments into actual file paths.
-/// Non-glob strings that don't match any files are kept as-is (so clap/downstream can report the error).
+///
+/// Each argument is classified as follows:
+///
+/// - **No glob characters** (`*`, `?`, `[`): passed through as-is so that the
+///   caller (clap/downstream) can report a meaningful error if the file does
+///   not exist.
+/// - **Contains `[` but no `*` or `?`, and a filesystem entry with that exact
+///   name exists**: the argument is treated as a *literal* path. Detection uses
+///   [`std::fs::symlink_metadata`] (does **not** follow symlinks) so that
+///   dangling symlinks — whose names may contain `[` — are correctly recognised
+///   as present entries rather than fed to the glob engine. Any OS error other
+///   than [`NotFound`][std::io::ErrorKind::NotFound] (e.g. `PermissionDenied`)
+///   is also treated conservatively as "exists", preferring a downstream
+///   open-error over silently dropping the argument. This handles the common
+///   case of real audio filenames like `Song [Live].mp3`.
+/// - **Contains `*` or `?`** (with or without `[`), **or contains `[` and no
+///   matching entry exists**: the argument is treated as a glob pattern and
+///   expanded by [`glob::glob`]. `*`/`?`-containing patterns are always
+///   expanded regardless of whether a same-named literal entry exists, so that
+///   `*.mp3` always expands to all matching files rather than being shadowed
+///   by an unusual literal file called `*.mp3`. Patterns that match nothing
+///   produce a `warn!` log and contribute no entries to the result. Invalid
+///   patterns fall back to literal passthrough (with a `warn!`).
 ///
 /// # Arguments
 ///
@@ -25,28 +47,73 @@ where
 {
     let mut result = Vec::new();
     for arg in args {
-        if arg.contains('*') || arg.contains('?') || arg.contains('[') {
-            match glob::glob(arg) {
-                Ok(paths) => {
-                    let mut matched = false;
-                    for entry in paths {
-                        match entry {
-                            Ok(path) => {
-                                if let Some(s) = path.to_str() {
-                                    result.push(s.to_string());
-                                    matched = true;
+        // Compute the two constituent flags first so they can be reused
+        // inside the branch without rescanning the string.
+        let has_wildcards = arg.contains('*') || arg.contains('?');
+        let has_bracket = arg.contains('[');
+        let looks_like_glob = has_wildcards || has_bracket;
+
+        if looks_like_glob {
+            // The literal-existence shortcut only applies when the argument
+            // contains `[` but NOT `*` or `?`.  Arguments with `*`/`?` are
+            // almost certainly intentional glob patterns (e.g. `*.mp3`) and
+            // should always be expanded.  The original bug was specifically
+            // about `[` in real filenames like `Song [Live].mp3`; treating
+            // `*`/`?`-containing args as potential literal paths would prevent
+            // glob expansion in the common case where a file by that name
+            // (e.g. `*.mp3`) happens to exist on disk.
+            //
+            // Uses `symlink_metadata` (does NOT follow symlinks) so that
+            // dangling symlinks are detected as present rather than being
+            // routed into the glob engine where brackets would be
+            // misinterpreted.  Any non-`NotFound` error (e.g. `PermissionDenied`)
+            // is treated conservatively as "exists" to prefer a downstream
+            // open-error over silently dropping the argument.
+            let exists_literally = !has_wildcards
+                && match std::fs::symlink_metadata(arg) {
+                    Ok(_) => {
+                        log::debug!(
+                            "Argument '{arg}' contains '[' but a filesystem \
+                             entry with that exact name exists; treating it \
+                             as a literal path."
+                        );
+                        true
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+                    Err(e) => {
+                        log::warn!(
+                            "Could not stat '{arg}' ({e}); \
+                             treating it as a literal path."
+                        );
+                        true
+                    }
+                };
+
+            if exists_literally {
+                result.push(arg.to_string());
+            } else {
+                match glob::glob(arg) {
+                    Ok(paths) => {
+                        let mut matched = false;
+                        for entry in paths {
+                            match entry {
+                                Ok(path) => {
+                                    if let Some(s) = path.to_str() {
+                                        result.push(s.to_string());
+                                        matched = true;
+                                    }
                                 }
+                                Err(e) => log::warn!("Glob error for pattern '{arg}': {e}"),
                             }
-                            Err(e) => log::warn!("Glob error for pattern '{arg}': {e}"),
+                        }
+                        if !matched {
+                            log::warn!("No files matched pattern '{arg}'");
                         }
                     }
-                    if !matched {
-                        log::warn!("No files matched pattern '{arg}'");
+                    Err(e) => {
+                        log::warn!("Invalid glob pattern '{arg}': {e}");
+                        result.push(arg.to_string());
                     }
-                }
-                Err(e) => {
-                    log::warn!("Invalid glob pattern '{arg}': {e}");
-                    result.push(arg.to_string());
                 }
             }
         } else {
@@ -408,6 +475,14 @@ pub fn path_to_string(p: std::path::PathBuf) -> String {
 mod tests {
     use super::*;
 
+    /// Drop guard that removes a file/symlink on scope exit, including on panic.
+    struct TempPathGuard(std::path::PathBuf);
+    impl Drop for TempPathGuard {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
     #[test]
     /// Returns the mime type based on the file name
     fn test_get_mime_type() {
@@ -547,9 +622,6 @@ mod tests {
         if !Path::new("../testdata/sample.ape").exists() {
             return;
         }
-        if Path::new("../testdata/DOSTM_Cover-reesize.jpg").exists() {
-            let _res = std::fs::remove_file(Path::new("../testdata/DOSTM_Cover-reesize.jpg"));
-        }
         assert!(count_files("../testdata/sample.ape").is_ok());
         assert!(count_files("../testdata/sample.mp3").is_ok());
         assert!(count_files("../testdata/sample.flac").is_ok());
@@ -632,5 +704,140 @@ mod tests {
         let result = expand_file_args(args.into_iter());
         assert_eq!(result[0], "plain.txt");
         assert!(result.len() > 2);
+    }
+
+    /// A literal filename that contains `[` and `]` must not be fed through the
+    /// glob engine — the brackets would be misinterpreted as a character class
+    /// and the file would be silently dropped.
+    #[test]
+    fn test_expand_file_args_brackets_in_literal_filename() {
+        // Include the process ID in the name to avoid collisions when multiple
+        // test processes run concurrently on the same machine.
+        let pid = std::process::id();
+        let dir = std::env::temp_dir();
+        let path = dir.join(format!("Song [Live Version] {pid}.mp3"));
+        let _ = std::fs::remove_file(&path);
+        std::fs::File::create(&path).expect("create temp file");
+
+        // `expand_file_args` only accepts `&str`, so skip the test if the temp
+        // directory path is not valid UTF-8 rather than panicking.
+        let Some(path_str_owned) = path.to_str().map(str::to_owned) else {
+            let _ = std::fs::remove_file(&path);
+            return;
+        };
+        // Guard removes the file even if the assertion panics.
+        let _guard = TempPathGuard(path);
+
+        let result = expand_file_args(std::iter::once(path_str_owned.as_str()));
+        assert_eq!(
+            result,
+            vec![path_str_owned],
+            "literal file with brackets in name was silently dropped"
+        );
+    }
+
+    /// A glob pattern that legitimately uses `[` together with `*` must still
+    /// expand correctly when no literal file by that name exists.
+    #[test]
+    fn test_expand_file_args_bracket_glob_pattern_still_works() {
+        // Skip if testdata is not available
+        if !Path::new("../testdata/sample.flac").exists() {
+            return;
+        }
+
+        // Pattern uses both `[` and `*` — there is no literal file with this name
+        let args = vec!["../testdata/sample.[fm]*"];
+        let result = expand_file_args(args.into_iter());
+        // Should match sample.flac, sample.mp3, sample.m4a at minimum
+        assert!(
+            !result.is_empty(),
+            "bracket+wildcard glob pattern expanded nothing"
+        );
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+        assert!(result.iter().any(|f| f.ends_with(".mp3")));
+    }
+
+    /// A bracket-only glob pattern (no `*` or `?`) must still be routed through
+    /// the glob engine when no literal file by that name exists.  This guards
+    /// against the `arg.contains('[')` arm being accidentally dropped from the
+    /// `looks_like_glob` condition in a future refactor.
+    #[test]
+    fn test_expand_file_args_bracket_only_glob() {
+        // Skip if testdata is not available
+        if !Path::new("../testdata/sample.flac").exists() {
+            return;
+        }
+
+        // Pattern has ONLY `[` — no `*` or `?`.  There is no literal file with
+        // this name, so it must be expanded by the glob engine.
+        let args = vec!["../testdata/sample.[Ff]lac"];
+        let result = expand_file_args(args.into_iter());
+        assert!(
+            !result.is_empty(),
+            "bracket-only glob pattern expanded nothing (arg.contains('[') may have been dropped)"
+        );
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+    }
+
+    /// A `?`-only glob pattern (no `*` or `[`) must be routed through the glob
+    /// engine.  This guards against `?` being accidentally dropped from the
+    /// `has_wildcards` check in a future refactor — such a drop would cause
+    /// `?`-patterns to fall through to literal passthrough silently.
+    #[test]
+    fn test_expand_file_args_question_mark_glob() {
+        // Skip if testdata is not available
+        if !Path::new("../testdata/sample.flac").exists() {
+            return;
+        }
+
+        // Pattern uses ONLY `?` — no `*` or `[`.  No literal file with this
+        // name exists, so it must be expanded by the glob engine.
+        let args = vec!["../testdata/sample.?lac"];
+        let result = expand_file_args(args.into_iter());
+        assert!(
+            !result.is_empty(),
+            "question-mark-only glob pattern expanded nothing (? may have been \
+             dropped from has_wildcards)"
+        );
+        assert!(result.iter().any(|f| f.ends_with(".flac")));
+    }
+
+    /// A dangling symlink whose name contains `[` must be passed through as a
+    /// literal path, not silently dropped by the glob engine.  `Path::exists()`
+    /// follows symlinks and returns `false` for a dangling target, which would
+    /// cause the original code to misinterpret the brackets as a character class.
+    #[cfg(unix)]
+    #[test]
+    fn test_expand_file_args_dangling_symlink_with_brackets() {
+        use std::os::unix::fs::symlink;
+
+        // Include the process ID in both names to avoid collisions when multiple
+        // test processes run concurrently on the same machine.
+        let pid = std::process::id();
+        let dir = std::env::temp_dir();
+        let link_path = dir.join(format!("Song [Demo] {pid}.mp3"));
+        // Ensure the target path definitely does not exist so the symlink is
+        // truly dangling (a pre-existing target would make it non-dangling and
+        // invalidate what the test is asserting).
+        let missing_target = dir.join(format!("nonexistent_target_{pid}_xyzzy.mp3"));
+        let _ = std::fs::remove_file(&missing_target);
+
+        // Remove any stale link from a previous run, then create a fresh dangling symlink.
+        let _ = std::fs::remove_file(&link_path);
+        symlink(&missing_target, &link_path).expect("create dangling symlink");
+        // `expand_file_args` only accepts `&str`, so skip the test if the temp
+        // directory path is not valid UTF-8 rather than panicking.
+        let Some(link_str_owned) = link_path.to_str().map(str::to_owned) else {
+            let _ = std::fs::remove_file(&link_path);
+            return;
+        };
+        // Guard removes the symlink even if the assertion or expand_file_args panics.
+        let _guard = TempPathGuard(link_path);
+        let result = expand_file_args(std::iter::once(link_str_owned.as_str()));
+        assert_eq!(
+            result,
+            vec![link_str_owned],
+            "dangling symlink with brackets in name was silently dropped"
+        );
     }
 }
