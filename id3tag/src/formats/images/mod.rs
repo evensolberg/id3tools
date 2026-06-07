@@ -89,7 +89,7 @@ fn find_cover(
 ///
 /// # Returns
 ///
-/// `Result<(Vec<u8>, String), Box<dyn Error>>` - a tuple of image bytes and mime type string.
+/// `anyhow::Result<(Vec<u8>, String)>` - a tuple of image bytes and mime type string.
 ///
 /// # Errors
 ///
