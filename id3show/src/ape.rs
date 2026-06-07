@@ -1,7 +1,7 @@
 //! Read the contents of an APE file and show the metadata.
 
 use ape::{self, ItemType};
-use std::error::Error;
+use anyhow::Result;
 
 /// Show the metadata of an APE file.
 /// If `show_detail` is true, show more detailed information such as binary data (items and lengths) and locator data (items and lengths).
@@ -13,7 +13,7 @@ use std::error::Error;
 ///
 /// # Returns
 ///
-/// * `Result<(), Box<dyn Error>>` - A result that indicates whether the operation was successful.
+/// * `Result<()>` - A result that indicates whether the operation was successful.
 ///
 /// # Example
 ///
@@ -23,7 +23,7 @@ use std::error::Error;
 /// let res = id3show::show_metadata(filename, show_detail);
 /// assert!(res.is_ok());
 /// ```
-pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
+pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     let tags = ape::read_from_path(filename)?;
 
     for item in tags.iter() {

@@ -1,9 +1,10 @@
 //! Show DSF file metadata.
 use dsf::{self, DsfFile};
-use std::{error::Error, path::Path};
+use anyhow::{bail, Result};
+use std::path::Path;
 
 /// Performs the actual processing of DSF files.
-pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
+pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     log::debug!("Filename: {filename}");
     let path = Path::new(&filename);
 
@@ -13,7 +14,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 println!("DSF file metadata:\n\n{dsf_file}");
             }
             Err(error) => {
-                return Err(format!("Unable to read DSF file {filename}. Error: {error}").into());
+                bail!("Unable to read DSF file {filename}. Error: {error}");
             }
         }
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {
@@ -22,7 +23,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
             println!("  {} = {}", frame.id(), frame.content());
         }
     } else {
-        return Err(format!("Unable to read DSF file {filename}").into());
+        bail!("Unable to read DSF file {filename}");
     }
 
     Ok(())

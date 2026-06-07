@@ -2,7 +2,7 @@
 
 use metaflac::block;
 use metaflac::Tag;
-use std::error::Error;
+use anyhow::{bail, Result};
 
 /// Shows the metadata contents of the file provided.
 ///
@@ -14,12 +14,12 @@ use std::error::Error;
 ///
 /// **Returns:**
 ///
-/// `Result<(), Box<dyn Error>>` -- Nothing except `Ok` if things go well, otherwise an error.
+/// `Result<()>` -- Nothing except `Ok` if things go well, otherwise an error.
 ///
 /// **Example:**
 ///
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
-pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
+pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     let tags = Tag::read_from_path(filename)?;
 
     // Placeholder for duration
@@ -151,16 +151,16 @@ fn show_unknown(uk: &(u8, Vec<u8>)) {
 }
 
 #[allow(clippy::cast_precision_loss, clippy::cast_lossless)]
-fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64, Box<dyn Error>> {
+fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64> {
     if sample_rate == 0 {
-        return Err("Sample rate is zero".into());
+        bail!("Sample rate is zero");
     }
 
     Ok(samples as f64 / sample_rate as f64)
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String, Box<dyn Error>> {
+fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
     let duration = calc_duration_seconds(samples, sample_rate)?;
     let hours = (duration / 3600.0) as u32;
     let minutes = ((duration % 3600.0) / 60.0) as u32;
