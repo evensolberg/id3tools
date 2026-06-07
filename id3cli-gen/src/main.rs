@@ -1,8 +1,10 @@
 #![forbid(unsafe_code)]
 
+use anyhow::Result;
+
 // use clap_mangen;
 
-fn run() -> Result<(), Box<dyn std::error::Error>> {
+fn run() -> Result<()> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     println!("Generating Fig completions for id3tag - id3tag.js");
     let mut cli = common::build_cli("latest");
@@ -28,9 +30,8 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            let msg = err.to_string().replace('\"', "");
-            log::error!("{msg}");
-            eprintln!("Error: {msg}");
+            log::error!("{err:#}");
+            eprintln!("Error: {err:#}");
             1 // exit with a non-zero return code, indicating a problem
         }
     });
