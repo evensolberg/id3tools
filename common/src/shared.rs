@@ -34,13 +34,13 @@ where
             // Any error other than `NotFound` (e.g. `PermissionDenied`) is treated
             // as "exists" — conservative fallback prefers a downstream "cannot open"
             // error over silently dropping the argument.
-            // Log at debug level when the file is genuinely present (expected,
-            // normal case for filenames like `Song [Live].mp3`).
-            // Log at warn level only when the stat itself fails with a non-NotFound
-            // error, since that indicates an unexpected I/O condition.
+            // Emit debug (not info/warn) when the file is genuinely present —
+            // this is the expected, normal case for filenames like `Song [Live].mp3`
+            // and should not pollute default-level output in batch operations.
+            // Only escalate to warn when the stat itself fails unexpectedly.
             let exists_literally = match std::fs::symlink_metadata(arg) {
                 Ok(_) => {
-                    log::info!(
+                    log::debug!(
                         "Argument '{arg}' contains glob characters but a \
                          filesystem entry with that exact name exists; \
                          treating it as a literal path."
@@ -756,7 +756,6 @@ mod tests {
         // Remove any stale link from a previous run, then create a fresh dangling symlink.
         let _ = std::fs::remove_file(&link_path);
         symlink(&missing_target, &link_path).expect("create dangling symlink");
-        // Guard removes the symlink even if the assertion or expand_file_args panics.
         let link_str_owned = link_path.to_str().expect("valid UTF-8 path").to_string();
         // Guard removes the symlink even if the assertion or expand_file_args panics.
         let _guard = TempPathGuard(link_path);
