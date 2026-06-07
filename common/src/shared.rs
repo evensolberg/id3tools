@@ -45,34 +45,41 @@ where
         let looks_like_glob = arg.contains('*') || arg.contains('?') || arg.contains('[');
 
         if looks_like_glob {
-            // Uses `symlink_metadata` (does NOT follow symlinks) so that dangling
-            // symlinks are detected as present rather than being routed through the
-            // glob engine where their brackets would be misinterpreted.
-            // Any error other than `NotFound` (e.g. `PermissionDenied`) is treated
-            // as "exists" — conservative fallback prefers a downstream "cannot open"
-            // error over silently dropping the argument.
-            // Emit debug (not info/warn) when the file is genuinely present —
-            // this is the expected, normal case for filenames like `Song [Live].mp3`
-            // and should not pollute default-level output in batch operations.
-            // Only escalate to warn when the stat itself fails unexpectedly.
-            let exists_literally = match std::fs::symlink_metadata(arg) {
-                Ok(_) => {
-                    log::debug!(
-                        "Argument '{arg}' contains glob characters but a \
-                         filesystem entry with that exact name exists; \
-                         treating it as a literal path."
-                    );
-                    true
-                }
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
-                Err(e) => {
-                    log::warn!(
-                        "Could not stat '{arg}' ({e}); \
-                         treating it as a literal path."
-                    );
-                    true
-                }
-            };
+            // The literal-existence shortcut only applies when the argument
+            // contains `[` but NOT `*` or `?`.  Arguments with `*`/`?` are
+            // almost certainly intentional glob patterns (e.g. `*.mp3`) and
+            // should always be expanded.  The original bug was specifically
+            // about `[` in real filenames like `Song [Live].mp3`; treating
+            // `*`/`?`-containing args as potential literal paths would prevent
+            // glob expansion in the common case where a file by that name
+            // (e.g. `*.mp3`) happens to exist on disk.
+            //
+            // Uses `symlink_metadata` (does NOT follow symlinks) so that
+            // dangling symlinks are detected as present rather than being
+            // routed into the glob engine where brackets would be
+            // misinterpreted.  Any non-`NotFound` error (e.g. `PermissionDenied`)
+            // is treated conservatively as "exists" to prefer a downstream
+            // open-error over silently dropping the argument.
+            let has_wildcards = arg.contains('*') || arg.contains('?');
+            let exists_literally = !has_wildcards
+                && match std::fs::symlink_metadata(arg) {
+                    Ok(_) => {
+                        log::debug!(
+                            "Argument '{arg}' contains '[' but a filesystem \
+                             entry with that exact name exists; treating it \
+                             as a literal path."
+                        );
+                        true
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => false,
+                    Err(e) => {
+                        log::warn!(
+                            "Could not stat '{arg}' ({e}); \
+                             treating it as a literal path."
+                        );
+                        true
+                    }
+                };
 
             if exists_literally {
                 result.push(arg.to_string());
