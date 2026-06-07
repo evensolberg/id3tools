@@ -1,7 +1,7 @@
 //! Image processing module. Contains functions for finding and reading cover images.
 
+use anyhow::{bail, Result};
 use image::{self, imageops::FilterType, ImageFormat, ImageReader};
-use std::error::Error;
 use std::io::Cursor;
 use std::path::Path;
 
@@ -29,11 +29,11 @@ pub use ops::aspect_ratio_ok;
 ///
 /// # Returns
 ///
-/// `Result<(Option<String>, Option<String>), Box<dyn Error>>` - an `Option<String>` tuple containing the paths to the front and back covers, or None, if nothing has been found.
+/// `anyhow::Result<(Option<String>, Option<String>)>` - an `Option<String>` tuple containing the paths to the front and back covers, or None, if nothing has been found.
 pub fn get_cover_filenames(
     music_file: &str,
     cfg: &DefaultValues,
-) -> Result<(Option<String>, Option<String>), Box<dyn Error>> {
+) -> Result<(Option<String>, Option<String>)> {
     let front_cover_path = if cfg.pictures.picture_front_candidates.is_some() {
         find_cover(CoverType::Front, music_file, cfg)?
     } else {
@@ -61,13 +61,13 @@ pub fn get_cover_filenames(
 ///
 /// # Returns:
 ///
-/// `Result<String, Box<dyn Error>>` - returns a string with the path to the cover if found, or an empty string if not.
+/// `anyhow::Result<Option<String>>` - returns a string with the path to the cover if found, or `None` if not.
 /// Returns an error if something goes wrong
 fn find_cover(
     cover_type: CoverType,
     music_file: &str,
     cfg: &DefaultValues,
-) -> Result<Option<String>, Box<dyn Error>> {
+) -> Result<Option<String>> {
     let cover_candidates = gather_cover_candidates(cover_type, cfg);
 
     let cover_path = find_first_image(music_file, &cover_candidates)?;
@@ -95,17 +95,15 @@ fn find_cover(
 ///
 /// Returns an error if the image cannot be read or if the aspect ratio is not within the expected range.
 /// The expected aspect ratio is within 1.5:1 and 1:1.5 (eg. 300x200, 200x300, 300x300, 200x200)
-pub fn read_cover(cover_file: &str, max_size: u32) -> Result<(Vec<u8>, String), Box<dyn Error>> {
+pub fn read_cover(cover_file: &str, max_size: u32) -> Result<(Vec<u8>, String)> {
     let img = ImageReader::open(cover_file)?.decode()?;
 
     if !aspect_ratio_ok(img.width(), img.height()) {
-        return Err(format!("Image {cover_file} is outside the expected ratio.").into());
+        bail!("Image {cover_file} is outside the expected ratio.");
     }
 
     if image_too_small(&img, max_size) {
-        return Err(
-            format!("Image {cover_file} is too small. (Less than 1/2 the cover size.)").into(),
-        );
+        bail!("Image {cover_file} is too small. (Less than 1/2 the cover size.)");
     }
 
     let output_format = detect_format(cover_file);
@@ -123,7 +121,7 @@ pub fn read_cover(cover_file: &str, max_size: u32) -> Result<(Vec<u8>, String), 
 }
 
 /// Converts image bytes to JPEG format. Used by formats that only support JPEG (e.g. MP4).
-pub fn to_jpeg(data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
+pub fn to_jpeg(data: &[u8]) -> Result<Vec<u8>> {
     let img = image::load_from_memory(data)?;
     let mut buf: Cursor<Vec<u8>> = Cursor::new(Vec::new());
     img.write_to(&mut buf, ImageFormat::Jpeg)?;

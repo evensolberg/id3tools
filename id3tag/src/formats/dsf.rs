@@ -6,14 +6,15 @@ use crate::rename_file;
 use common::FileTypes;
 use dsf::{self, DsfFile};
 use id3::TagLike;
-use std::{collections::HashMap, error::Error, path::Path};
+use anyhow::{bail, Result};
+use std::{collections::HashMap, path::Path};
 
 /// Performs the actual processing of DSF files.
 pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     log::debug!("Filename: {filename}");
 
     let mut processed_ok = false;
@@ -110,7 +111,7 @@ fn rename_file(
     filename: &str,
     config: &DefaultValues,
     tag: &id3::Tag,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let tags_names = option_to_tag(FileTypes::Dsf);
     let mut replace_map = HashMap::new();
 
@@ -151,10 +152,7 @@ fn rename_file(
                         replace_map.insert("%track-number-total".to_string(), total);
                     }
                     _ => {
-                        return Err(format!(
-                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
-                        )
-                        .into())
+                        bail!("Unknown tag {tag_name} encountered when unwrapping disc/track information.")
                     }
                 }
             } else {
@@ -172,10 +170,7 @@ fn rename_file(
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
-                )
-                .into());
+                bail!("Unable to rename {filename} with tags \"{pattern}\". Error: {err}");
             }
             log::warn!(
                 "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing.",
@@ -201,12 +196,12 @@ fn rename_file(
 ///
 /// # Errors
 ///     If the value is not a number, return an error
-fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32, Box<dyn Error>> {
+fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32> {
     let num = match value.parse::<u32>() {
         Ok(n) => n,
         Err(err) => {
             if stop_on_error {
-                return Err(format!("Unable to set {item} to {value}. Error: {err}").into());
+                bail!("Unable to set {item} to {value}. Error: {err}");
             }
             log::error!(
                 "Unable to set {item} to {value}. Setting to 1 and continuing. Error: {err}",

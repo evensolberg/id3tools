@@ -7,8 +7,8 @@ use crate::formats::FileTypes;
 use crate::rename_file;
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
+use anyhow::{bail, Result};
 use std::collections::HashMap;
-use std::error::Error;
 
 /// Splits the incoming value into two the (disc/track) number and count.
 /// Inserts the split values into their respective spots in the `HashSet`.
@@ -52,7 +52,7 @@ macro_rules! split {
 ///
 /// **Returns:**
 ///
-/// `Result<(), Box<dyn Error>>` -- Nothing except `Ok` if things go well, otherwise an error.
+/// `anyhow::Result<bool>` -- `Ok(true)` if the file was processed, otherwise an error.
 ///
 /// **Example:**
 ///
@@ -61,7 +61,7 @@ pub fn process(
     m_file: &str,
     nt: &mut HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     let mut tags = Tag::read_from_path(m_file)?;
     let mut processed_ok = false;
     let mut cfg = config.clone();
@@ -104,10 +104,7 @@ pub fn process(
                     Ok(()) => log::debug!("process::{cover_type:?} set."),
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(true) {
-                            return Err(format!(
-                                "Unable to set {cover_type:?} to {v}. Error message: {err}"
-                            )
-                            .into());
+                            bail!("Unable to set {cover_type:?} to {v}. Error message: {err}");
                         }
                         log::error!(
                             "Unable to set {cover_type:?} to {v}. Continuing. Error message: {err}"
@@ -129,7 +126,7 @@ pub fn process(
         log::info!("{m_file}   ✓");
     } else {
         if cfg.execution.stop_on_error.unwrap_or(true) {
-            return Err(format!("Unable to save {m_file}").into());
+            bail!("Unable to save {m_file}");
         }
         log::warn!("Unable to save {m_file}");
     }
@@ -149,7 +146,7 @@ fn set_picture(
     img_file: &str,
     cover_type: metaflac::block::PictureType,
     max_size: u32,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     tags.remove_picture_type(cover_type);
     let (img, mime_type) = read_cover(img_file, max_size)?;
     log::debug!(
@@ -168,7 +165,7 @@ fn rename_file(
     filename: &str,
     config: &DefaultValues,
     tags: &metaflac::Tag,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
     let mut pattern = String::new();
@@ -193,10 +190,7 @@ fn rename_file(
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
-                )
-                .into());
+                bail!("Unable to rename {filename} with tags \"{pattern}\". Error: {err}");
             }
             log::warn!(
                 "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."

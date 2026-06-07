@@ -1,6 +1,6 @@
 //! Image path related functions
 
-use std::error::Error;
+use anyhow::{bail, Result};
 use std::path::{Path, PathBuf};
 
 use common::directory;
@@ -51,7 +51,7 @@ pub fn complete_path(folder: &Path, filename: &String) -> String {
 /// `cfg: &DefaultValues` - program configuration as surmised from the CLI and config file
 ///
 /// Returns:
-/// `Result<Vec<String>, Box<dyn Error>>`: A vector of strings containing the paths to be searched, or an error if something goes wrong.
+/// `Vec<String>`: A vector of strings containing the paths to be searched.
 pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Vec<String> {
     let search_folders = cfg.pictures.search_folders();
     log::debug!("gather_cover_candidates::search_folders = {search_folders:?}");
@@ -85,7 +85,7 @@ pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Ve
 ///
 /// # Returns
 ///
-/// `Result<Option<PathBuf>, Box<dyn Error>>` - the full path of the first image found, or `Ok(None)` if nothing is found.
+/// `anyhow::Result<Option<PathBuf>>` - the full path of the first image found, or `Ok(None)` if nothing is found.
 ///
 /// # Errors
 ///
@@ -96,10 +96,10 @@ pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Ve
 pub fn find_first_image(
     m_file: &str,
     image_vec: &Vec<String>,
-) -> Result<Option<PathBuf>, Box<dyn Error>> {
+) -> Result<Option<PathBuf>> {
     let music_file = Path::new(m_file);
     if !music_file.exists() {
-        return Err(format!("Music file {m_file} does not appear to exist.").into());
+        bail!("Music file {m_file} does not appear to exist.");
     }
 
     let music_path = music_file.canonicalize()?;

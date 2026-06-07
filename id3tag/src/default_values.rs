@@ -1,8 +1,8 @@
 //! Contains the struct and functions to maintain the configuration state.
 
 // Read default values from config file
+use anyhow::{bail, Context, Result};
 use serde::Deserialize;
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 
@@ -208,7 +208,7 @@ impl DefaultValues {
     }
 
     /// Builds a config based on CLI arguments
-    pub fn build_config(cli: &ArgMatches) -> Result<Self, Box<dyn Error>> {
+    pub fn build_config(cli: &ArgMatches) -> Result<Self> {
         let mut cfg = Self::new();
 
         let psf_list: Vec<String> = vec![String::from("."), String::from("..")];
@@ -241,15 +241,15 @@ impl DefaultValues {
     }
 
     /// Loads the config from the supplied TOML file.
-    pub fn load_config(filename: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn load_config(filename: &str) -> Result<Self> {
         let mut config_toml = String::new();
 
         let mut file = File::open(filename)
-            .map_err(|err| format!("Config file {filename} not found. Error: {err}"))?;
+            .with_context(|| format!("Config file {filename} not found"))?;
 
         let bytes = file.read_to_string(&mut config_toml)?;
         if bytes == 0 {
-            return Err(format!("Unable to read the contents of {filename}").into());
+            bail!("Unable to read the contents of {filename}");
         }
 
         let mut config = match toml::from_str(&config_toml) {
@@ -284,7 +284,7 @@ impl DefaultValues {
     /// Checks the loaded config if there is a `file_rename` present, and validates it.
     /// Also checks the CLI for a rename-file and overrides any previous config entries if it is present.
     /// Returns OK if everything went well. Returns an error if the `file_rename` is invalid.
-    fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<(), Box<dyn Error>> {
+    fn check_for_file_rename(&mut self, args: &clap::ArgMatches) -> Result<()> {
         // Check if anything came from the config file and validate it
         let mut pattern = None;
         let binding = String::new();
@@ -304,9 +304,7 @@ impl DefaultValues {
 
         if let Some(pat) = pattern {
             if common::file_rename_pattern_not_ok(&pat) {
-                return Err(
-                    format!("File rename pattern {pat} likely won't create unique files.").into(),
-                );
+                bail!("File rename pattern {pat} likely won't create unique files.");
             }
             self.rename_file = Some(pat);
         }

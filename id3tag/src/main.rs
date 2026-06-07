@@ -8,8 +8,8 @@
 #![warn(clippy::pedantic)]
 #![forbid(unsafe_code)]
 
+use anyhow::{bail, Result};
 use clap::ArgMatches;
-use std::error::Error;
 use std::time::Instant;
 
 // Local modules
@@ -26,7 +26,7 @@ use thousands::Separable;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
 #[allow(clippy::cast_precision_loss)] // for  `let el = elapsed as f64 / 1000.0;`
-fn run() -> Result<(), Box<dyn Error>> {
+fn run() -> Result<()> {
     // Start timing the execution
     let now = Instant::now();
 
@@ -36,9 +36,7 @@ fn run() -> Result<(), Box<dyn Error>> {
     let binding = String::new();
     let pattern = cli.get_one::<String>("rename-file").unwrap_or(&binding);
     if cli.contains_id("rename-file") && file_rename_pattern_not_ok(pattern) {
-        return Err(
-            format!("File rename pattern {pattern} likely won't create unique files.").into(),
-        );
+        bail!("File rename pattern {pattern} likely won't create unique files.");
     }
 
     // Build the config -- read the CLI arguments and the config file if one is provided.
@@ -126,9 +124,8 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            let msg = err.to_string().replace('\"', "");
-            log::error!("{msg}");
-            eprintln!("Error: {msg}");
+            log::error!("{err:#}");
+            eprintln!("Error: {err:#}");
             1 // exit with a non-zero return code, indicating a problem
         }
     });
