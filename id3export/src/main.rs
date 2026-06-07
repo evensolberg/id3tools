@@ -5,7 +5,7 @@ mod build_cli;
 mod stats;
 mod tracks;
 
-use std::error::Error;
+use anyhow::Result;
 
 use crate::{stats::calc_avg, tracks::Reader};
 use build_cli::build_cli;
@@ -16,7 +16,7 @@ use stats::update_stats;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// This is where the magic happens.
-fn run() -> Result<(), Box<dyn Error>> {
+fn run() -> Result<()> {
     // Set up the command line. Ref https://docs.rs/clap for details.
     let cli_args = build_cli().get_matches();
 
@@ -129,15 +129,14 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            let msg = err.to_string().replace('\"', "");
-            log::error!("{msg}");
-            eprintln!("Error: {msg}");
+            log::error!("{err:#}");
+            eprintln!("Error: {err:#}");
             1 // exit with a non-zero return code, indicating a problem
         }
     });
 }
 
-fn write_csv(filename: &str, tracks: Vec<tracks::Track>) -> Result<(), Box<dyn Error>> {
+fn write_csv(filename: &str, tracks: Vec<tracks::Track>) -> Result<()> {
     let mut wtr = csv::WriterBuilder::new().from_path(filename)?;
 
     for track in tracks {
