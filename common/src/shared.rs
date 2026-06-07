@@ -716,7 +716,12 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         std::fs::File::create(&path).expect("create temp file");
 
-        let path_str_owned = path.to_str().expect("valid UTF-8 path").to_string();
+        // `expand_file_args` only accepts `&str`, so skip the test if the temp
+        // directory path is not valid UTF-8 rather than panicking.
+        let Some(path_str_owned) = path.to_str().map(str::to_owned) else {
+            let _ = std::fs::remove_file(&path);
+            return;
+        };
         // Guard removes the file even if the assertion panics.
         let _guard = TempPathGuard(path);
 
@@ -794,7 +799,12 @@ mod tests {
         // Remove any stale link from a previous run, then create a fresh dangling symlink.
         let _ = std::fs::remove_file(&link_path);
         symlink(&missing_target, &link_path).expect("create dangling symlink");
-        let link_str_owned = link_path.to_str().expect("valid UTF-8 path").to_string();
+        // `expand_file_args` only accepts `&str`, so skip the test if the temp
+        // directory path is not valid UTF-8 rather than panicking.
+        let Some(link_str_owned) = link_path.to_str().map(str::to_owned) else {
+            let _ = std::fs::remove_file(&link_path);
+            return;
+        };
         // Guard removes the symlink even if the assertion or expand_file_args panics.
         let _guard = TempPathGuard(link_path);
         let result = expand_file_args(std::iter::once(link_str_owned.as_str()));
