@@ -338,7 +338,7 @@ pub fn split_val(value: &str) -> Result<(u16, u16)> {
 /// `filename: &str` - the name of the file to be used as the example. The function will get the extension and look for the number of files with the same extension.
 ///
 /// # Returns
-/// `Result<String, Box<dyn Error>>` - a formatted string with the number of files found, or an error if something went wrong.
+/// `Result<String>` - a formatted string with the number of files found, or an error if something went wrong.
 ///
 /// # Errors
 /// - Returns an error if unable to get the directory name from the fielname.
@@ -442,7 +442,7 @@ where
 /// `filename: &str` - the name of the file for which we need the full path
 ///
 /// # Returns
-/// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
+/// `Result<std::path::PathBuf>` - a `PathBuf` containing the full directory path to the file if succcessful.
 ///
 /// # Errors
 ///
