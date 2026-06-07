@@ -16,18 +16,23 @@ use crate::file_types::FileTypes;
 /// - **No glob characters** (`*`, `?`, `[`): passed through as-is so that the
 ///   caller (clap/downstream) can report a meaningful error if the file does
 ///   not exist.
-/// - **Glob characters present, entry exists on disk**: the argument is treated
-///   as a *literal* path and pushed directly into the result. Detection uses
+/// - **Contains `[` but no `*` or `?`, and a filesystem entry with that exact
+///   name exists**: the argument is treated as a *literal* path. Detection uses
 ///   [`std::fs::symlink_metadata`] (does **not** follow symlinks) so that
 ///   dangling symlinks — whose names may contain `[` — are correctly recognised
 ///   as present entries rather than fed to the glob engine. Any OS error other
 ///   than [`NotFound`][std::io::ErrorKind::NotFound] (e.g. `PermissionDenied`)
 ///   is also treated conservatively as "exists", preferring a downstream
-///   open-error over silently dropping the argument.
-/// - **Glob characters present, entry does not exist**: the argument is treated
-///   as a glob pattern and expanded by [`glob::glob`]. Patterns that match
-///   nothing produce a `warn!` log and contribute no entries to the result.
-///   Invalid patterns fall back to literal passthrough (with a `warn!`).
+///   open-error over silently dropping the argument. This handles the common
+///   case of real audio filenames like `Song [Live].mp3`.
+/// - **Contains `*` or `?`** (with or without `[`), **or contains `[` and no
+///   matching entry exists**: the argument is treated as a glob pattern and
+///   expanded by [`glob::glob`]. `*`/`?`-containing patterns are always
+///   expanded regardless of whether a same-named literal entry exists, so that
+///   `*.mp3` always expands to all matching files rather than being shadowed
+///   by an unusual literal file called `*.mp3`. Patterns that match nothing
+///   produce a `warn!` log and contribute no entries to the result. Invalid
+///   patterns fall back to literal passthrough (with a `warn!`).
 ///
 /// # Arguments
 ///
