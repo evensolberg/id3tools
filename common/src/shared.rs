@@ -47,7 +47,11 @@ where
 {
     let mut result = Vec::new();
     for arg in args {
-        let looks_like_glob = arg.contains('*') || arg.contains('?') || arg.contains('[');
+        // Compute the two constituent flags first so they can be reused
+        // inside the branch without rescanning the string.
+        let has_wildcards = arg.contains('*') || arg.contains('?');
+        let has_bracket = arg.contains('[');
+        let looks_like_glob = has_wildcards || has_bracket;
 
         if looks_like_glob {
             // The literal-existence shortcut only applies when the argument
@@ -65,7 +69,6 @@ where
             // misinterpreted.  Any non-`NotFound` error (e.g. `PermissionDenied`)
             // is treated conservatively as "exists" to prefer a downstream
             // open-error over silently dropping the argument.
-            let has_wildcards = arg.contains('*') || arg.contains('?');
             let exists_literally = !has_wildcards
                 && match std::fs::symlink_metadata(arg) {
                     Ok(_) => {
