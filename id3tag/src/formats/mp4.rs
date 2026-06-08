@@ -3,7 +3,7 @@
 use crate::default_values::DefaultValues;
 use crate::formats::images;
 use crate::rename_file;
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
 
@@ -76,9 +76,9 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    bail!("Unable to save tags to {filename}. Error: {err}");
+                    return Err(err).context(format!("Unable to save tags to {filename}"));
                 }
-                log::warn!("Unable to save tags to {filename}. Error: {err}");
+                log::warn!("Unable to save tags to {filename}: {err:#}");
             }
         }
     }
@@ -89,9 +89,9 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    bail!("Unable to rename {filename}. Error: {err}");
+                    return Err(err).context(format!("Unable to rename {filename}"));
                 }
-                log::warn!("Unable to rename {filename}. Error: {err}");
+                log::warn!("Unable to rename {filename}: {err:#}");
             }
         }
     }
@@ -132,10 +132,11 @@ fn rename_file(filename: &str, config: &DefaultValues, tag: &mp4ameta::Tag) -> R
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                bail!("Unable to rename {filename} with tags \"{pattern}\". Error: {err}");
+                return Err(err)
+                    .context(format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
+                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
             );
         }
     }

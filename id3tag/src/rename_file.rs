@@ -1,4 +1,4 @@
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use std::{collections::HashMap, path::Path};
 
 use crate::default_values::DefaultValues;
@@ -111,9 +111,9 @@ pub fn rename_file(
             Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    bail!("Unable to rename {filename} to {npl}. Error: {err}");
+                    return Err(err).context(format!("Unable to rename {filename} to {npl}"));
                 }
-                log::warn!("Unable to rename {filename} to {npl}. Error: {err}");
+                log::warn!("Unable to rename {filename} to {npl}: {err:#}");
             }
         }
     }
