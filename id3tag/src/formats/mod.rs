@@ -2,7 +2,7 @@
 //! all reside under this crate, so they don't have to be exposed to the main body of code.
 
 #![forbid(unsafe_code)]
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use std::{
     collections::HashMap,
     fs,
@@ -82,17 +82,17 @@ pub fn process_file(
                 Ok(_) => processed = true,
                 Err(err) => {
                     if config.execution.stop_on_error.unwrap_or(true) {
-                        bail!("Unable to process {filename}. Error: {err}");
+                        return Err(err).context(format!("Unable to process {filename}"));
                     }
-                    log::error!("Unable to process {filename}. Error: {err}");
+                    log::error!("Unable to process {filename}: {err:#}");
                 }
             }
         } // Ok(_)
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                bail!("Unable to parse tags for {filename}. Error: {err}");
+                return Err(err).context(format!("Unable to parse tags for {filename}"));
             }
-            log::error!("Unable to parse tags for {filename}. Error: {err}");
+            log::error!("Unable to parse tags for {filename}: {err:#}");
         } // Err(err)
     } // match new_tags_result
 
