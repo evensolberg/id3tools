@@ -230,14 +230,14 @@ impl Reader for Track {
     /// Returns an error if the file type is not supported.
     ///
     fn read(&mut self) -> Result<()> {
-        if self.path.is_none() {
+        let Some(path) = self.path.as_deref() else {
             bail!("No path provided");
-        }
+        };
 
-        let metadata = std::fs::metadata(self.path.as_ref().unwrap_or(&String::new()))?;
+        let metadata = std::fs::metadata(path)?;
         self.file_size = Some(metadata.len());
 
-        let file_type = FileTypes::from_filename(self.path.as_ref().unwrap_or(&String::new()));
+        let file_type = FileTypes::from_filename(path);
         log::debug!("File type: {file_type}");
         match file_type {
             FileTypes::Flac => self.read_flac()?,
