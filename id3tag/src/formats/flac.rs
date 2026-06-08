@@ -52,7 +52,10 @@ macro_rules! split {
 ///
 /// **Returns:**
 ///
-/// `anyhow::Result<bool>` -- `Ok(true)` if the file was processed, otherwise an error.
+/// `anyhow::Result<bool>` -- `Ok(true)` if the file was saved successfully or a dry-run was
+/// performed; `Ok(false)` if saving failed but `stop_on_error` is disabled (a warning is logged
+/// and processing continues); `Err(...)` if saving failed and `stop_on_error` is enabled, or if
+/// any other unrecoverable error occurred.
 ///
 /// **Example:**
 ///
