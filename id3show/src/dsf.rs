@@ -1,6 +1,6 @@
 //! Show DSF file metadata.
 use dsf::{self, DsfFile};
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use std::path::Path;
 
 /// Performs the actual processing of DSF files.
@@ -14,7 +14,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                 println!("DSF file metadata:\n\n{dsf_file}");
             }
             Err(error) => {
-                bail!("Unable to read DSF file {filename}. Error: {error}");
+                return Err(error).context(format!("Unable to read DSF file {filename}"));
             }
         }
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {

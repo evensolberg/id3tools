@@ -87,8 +87,9 @@ fn main() {
     std::process::exit(match run() {
         Ok(()) => 0, // everying is hunky dory - exit with code 0 (success)
         Err(err) => {
-            log::error!("{err:#}");
-            eprintln!("Error: {err:#}");
+            let msg = format!("{err:#}").replace('"', "");
+            log::error!("{msg}");
+            eprintln!("Error: {msg}");
             1 // exit with a non-zero return code, indicating a problem
         }
     });
