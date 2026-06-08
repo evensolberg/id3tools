@@ -7,7 +7,8 @@ priority: 1
 tags: []
 created: 2026-03-07
 updated: 2026-06-07
-phase: ''
+closed_reason: ''
+dependencies: []
 ---
 
 # Replace `Box<dyn Error>` with `anyhow` for error handling
