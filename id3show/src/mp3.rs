@@ -456,7 +456,7 @@ fn open_mp3(filename: &str) -> Result<MP3Metadata> {
     match meta_res {
         Ok(r) => Ok(r),
         Err(e) => {
-            bail!("Unable to open {filename} for to read stream info. Error: {e}")
+            bail!("Unable to open {filename} for reading stream info. Error: {e}")
         }
     }
 }
