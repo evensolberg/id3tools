@@ -354,6 +354,8 @@ impl Reader for Track {
         {
             Ok(m) => m,
             Err(e) => {
+                // mp3_metadata::Error does not implement std::error::Error so it cannot be
+                // chained as an anyhow source. Format it into the message as the next best option.
                 bail!(
                     "Error reading MP3 metadata from {}: {e}",
                     self.path.as_deref().unwrap_or("<unknown>")

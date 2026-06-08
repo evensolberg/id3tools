@@ -456,6 +456,8 @@ fn open_mp3(filename: &str) -> Result<MP3Metadata> {
     match meta_res {
         Ok(r) => Ok(r),
         Err(e) => {
+            // mp3_metadata::Error does not implement std::error::Error so it cannot be
+            // chained as an anyhow source. Format it into the message as the next best option.
             bail!("Unable to open {filename} for reading stream info. Error: {e}")
         }
     }

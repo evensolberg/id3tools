@@ -3,7 +3,7 @@
 
 use crate::default_values::DefaultValues;
 use crate::formats::images::read_cover;
-use anyhow::{bail, Result};
+use anyhow::{Context, Result};
 use ape::{self, Item, ItemType};
 use std::{collections::HashMap, fs::File};
 
@@ -40,9 +40,10 @@ pub fn process(
                     Ok(()) => log::debug!("{ape_key} set for {filename}."),
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
-                            bail!("Unable to set {ape_key} to {value}. Error: {err}");
+                            return Err(err)
+                                .context(format!("Unable to set {ape_key} to {value}"));
                         }
-                        log::error!("Unable to set {ape_key} to {value}. Continuing. Error: {err}");
+                        log::error!("Unable to set {ape_key} to {value}. Continuing: {err:#}");
                     }
                 }
             }
@@ -59,9 +60,9 @@ pub fn process(
                     }
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
-                            bail!("Unable to set {key} to {value}. Error message: {err}");
+                            return Err(err).context(format!("Unable to set {key} to {value}"));
                         }
-                        log::error!("Unable to set {key} to {value}. Error message: {err}");
+                        log::error!("Unable to set {key} to {value}: {err:#}");
                     }
                 }
             }

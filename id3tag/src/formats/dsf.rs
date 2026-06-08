@@ -3,7 +3,7 @@
 use crate::default_values::DefaultValues;
 use crate::formats::tags::option_to_tag;
 use crate::rename_file;
-use anyhow::{bail, Result};
+use anyhow::{bail, Context, Result};
 use common::FileTypes;
 use dsf::{self, DsfFile};
 use id3::TagLike;
@@ -166,10 +166,11 @@ fn rename_file(filename: &str, config: &DefaultValues, tag: &id3::Tag) -> Result
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(false) {
-                bail!("Unable to rename {filename} with tags \"{pattern}\". Error: {err}");
+                return Err(err)
+                    .context(format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing.",
+                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing.",
             );
         }
     }
@@ -197,10 +198,10 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32> {
         Ok(n) => n,
         Err(err) => {
             if stop_on_error {
-                bail!("Unable to set {item} to {value}. Error: {err}");
+                return Err(err).context(format!("Unable to set {item} to {value}"));
             }
             log::error!(
-                "Unable to set {item} to {value}. Setting to 1 and continuing. Error: {err}",
+                "Unable to set {item} to {value}. Setting to 1 and continuing: {err:#}",
             );
             1
         }
