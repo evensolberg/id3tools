@@ -354,8 +354,10 @@ impl Reader for Track {
         {
             Ok(m) => m,
             Err(e) => {
-                log::error!("Error reading MP3: {e}");
-                bail!("{e}");
+                bail!(
+                    "Error reading MP3 metadata from {}: {e}",
+                    self.path.as_deref().unwrap_or("<unknown>")
+                );
             }
         };
 

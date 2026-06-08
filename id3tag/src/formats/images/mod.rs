@@ -61,8 +61,8 @@ pub fn get_cover_filenames(
 ///
 /// # Returns:
 ///
-/// `anyhow::Result<Option<String>>` - returns a string with the path to the cover if found, or `None` if not.
-/// Returns an error if something goes wrong
+/// `anyhow::Result<Option<String>>` - `Some(path)` if a cover file was found, `None` if no cover
+/// was found, or an error if something goes wrong (e.g. the music file path is invalid).
 fn find_cover(
     cover_type: CoverType,
     music_file: &str,
