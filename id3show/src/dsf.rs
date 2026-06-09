@@ -14,7 +14,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                 println!("DSF file metadata:\n\n{dsf_file}");
             }
             Err(error) => {
-                return Err(error).context(format!("Unable to read DSF file {filename}"));
+                return Err(error).with_context(|| format!("Unable to read DSF file {filename}"));
             }
         }
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {

@@ -41,7 +41,7 @@ pub fn process(
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
                             return Err(err)
-                                .context(format!("Unable to set {ape_key} to {value}"));
+                                .with_context(|| format!("Unable to set {ape_key} to {value}"));
                         }
                         log::error!("Unable to set {ape_key} to {value}. Continuing: {err:#}");
                     }
@@ -60,7 +60,7 @@ pub fn process(
                     }
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
-                            return Err(err).context(format!("Unable to set {key} to {value}"));
+                            return Err(err).with_context(|| format!("Unable to set {key} to {value}"));
                         }
                         log::error!("Unable to set {key} to {value}: {err:#}");
                     }

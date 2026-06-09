@@ -76,7 +76,7 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(err).context(format!("Unable to save tags to {filename}"));
+                    return Err(err).with_context(|| format!("Unable to save tags to {filename}"));
                 }
                 log::warn!("Unable to save tags to {filename}: {err:#}");
             }
@@ -89,7 +89,7 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(err).context(format!("Unable to rename {filename}"));
+                    return Err(err).with_context(|| format!("Unable to rename {filename}"));
                 }
                 log::warn!("Unable to rename {filename}: {err:#}");
             }
@@ -133,7 +133,7 @@ fn rename_file(filename: &str, config: &DefaultValues, tag: &mp4ameta::Tag) -> R
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
                 return Err(err)
-                    .context(format!("Unable to rename {filename} with tags \"{pattern}\""));
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
                 "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."

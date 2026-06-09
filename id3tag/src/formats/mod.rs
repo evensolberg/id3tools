@@ -82,7 +82,7 @@ pub fn process_file(
                 Ok(_) => processed = true,
                 Err(err) => {
                     if config.execution.stop_on_error.unwrap_or(true) {
-                        return Err(err).context(format!("Unable to process {filename}"));
+                        return Err(err).with_context(|| format!("Unable to process {filename}"));
                     }
                     log::error!("Unable to process {filename}: {err:#}");
                 }
@@ -90,7 +90,7 @@ pub fn process_file(
         } // Ok(_)
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(err).context(format!("Unable to parse tags for {filename}"));
+                return Err(err).with_context(|| format!("Unable to parse tags for {filename}"));
             }
             log::error!("Unable to parse tags for {filename}: {err:#}");
         } // Err(err)

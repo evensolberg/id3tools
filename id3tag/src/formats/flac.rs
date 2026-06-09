@@ -108,7 +108,7 @@ pub fn process(
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(true) {
                             return Err(err)
-                                .context(format!("Unable to set {cover_type:?} to {v}"));
+                                .with_context(|| format!("Unable to set {cover_type:?} to {v}"));
                         }
                         log::error!(
                             "Unable to set {cover_type:?} to {v}. Continuing: {err:#}"
@@ -133,7 +133,7 @@ pub fn process(
             }
             Err(err) => {
                 if cfg.execution.stop_on_error.unwrap_or(true) {
-                    return Err(err).context(format!("Unable to save {m_file}"));
+                    return Err(err).with_context(|| format!("Unable to save {m_file}"));
                 }
                 log::warn!("Unable to save {m_file}: {err:#}");
             }
@@ -196,7 +196,7 @@ fn rename_file(filename: &str, config: &DefaultValues, tags: &metaflac::Tag) -> 
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
                 return Err(err)
-                    .context(format!("Unable to rename {filename} with tags \"{pattern}\""));
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
                 "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."

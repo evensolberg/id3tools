@@ -37,7 +37,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(err)
-                                .context(format!("Unable to set front cover for {filename}"));
+                                .with_context(|| format!("Unable to set front cover for {filename}"));
                         }
                         log::error!("Unable to set front cover for {filename}: {err:#}");
                     }
@@ -51,7 +51,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                 Err(err) => {
                     if cfg.execution.stop_on_error.unwrap_or(false) {
                         return Err(err)
-                            .context(format!("Unable to set back cover for {filename}"));
+                            .with_context(|| format!("Unable to set back cover for {filename}"));
                     }
                     log::error!("Unable to set back cover for {filename}: {err:#}");
                 }
@@ -67,7 +67,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(err)
-                                .context(format!("Unable to set disc number to {value}"));
+                                .with_context(|| format!("Unable to set disc number to {value}"));
                         }
                         log::error!(
                             "Unable to set disc number to {value}. Setting to 1 and continuing: {err:#}"
@@ -85,7 +85,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(err)
-                                .context(format!("Unable to set total discs to {value}"));
+                                .with_context(|| format!("Unable to set total discs to {value}"));
                         }
                         log::error!(
                             "Unable to set total discs to {value}. Setting to 1 and continuing: {err:#}"
@@ -103,7 +103,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(err)
-                                .context(format!("Unable to set track number to {value}"));
+                                .with_context(|| format!("Unable to set track number to {value}"));
                         }
                         log::error!(
                             "Unable to set track number to {value}. Setting to 1 and continuing: {err:#}"
@@ -121,7 +121,7 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
                             return Err(err)
-                                .context(format!("Unable to set total tracks to {value}"));
+                                .with_context(|| format!("Unable to set total tracks to {value}"));
                         }
                         log::error!(
                             "Unable to set total tracks to {value}. Setting to 1 and continuing: {err:#}"
@@ -280,7 +280,7 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
         Err(err) => {
             if cfg.execution.stop_on_error.unwrap_or(false) {
                 return Err(err)
-                    .context(format!("Unable to rename {filename} with tags \"{pattern}\""));
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
                 "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
