@@ -166,12 +166,11 @@ fn rename_file(filename: &str, config: &DefaultValues, tag: &id3::Tag) -> Result
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(false) {
-                return Err(err)
-                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
+                return Err(err).with_context(|| {
+                    format!("Unable to rename {filename} with tags \"{pattern}\"")
+                });
             }
-            log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing.",
-            );
+            log::warn!("Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing.",);
         }
     }
 
@@ -200,9 +199,7 @@ fn to_number(value: &str, item: &str, stop_on_error: bool) -> Result<u32> {
             if stop_on_error {
                 return Err(err).with_context(|| format!("Unable to set {item} to {value}"));
             }
-            log::error!(
-                "Unable to set {item} to {value}. Setting to 1 and continuing: {err:#}",
-            );
+            log::error!("Unable to set {item} to {value}. Setting to 1 and continuing: {err:#}",);
             1
         }
     };

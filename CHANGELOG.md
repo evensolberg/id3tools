@@ -2,6 +2,80 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug Fixes
+
+- Don't glob-expand literal paths containing brackets
+- Harden expand_file_args; bump common to 0.1.7
+- Fix misleading warn msg; add shared TempPathGuard
+- Remove dead cleanup, fix clones, promote to log::info!
+- Revert info! to debug!, drop duplicate comment
+- Address Copilot review comments
+- Limit literal-exists check to bracket-only args; fix crumbs
+- Improve error message wording in two places
+- Chain dsf error + restore quote-stripping in main handlers
+- Bump common to 0.2.0 and tighten find_first_image signature
+
+### Documentation
+
+- Fix expand_file_args rustdoc to match implementation
+- Fix flac::process return-value doc comment
+- Fix find_first_image doc comment parameter type
+
+### Miscellaneous Tasks
+
+- Bump the actions group with 4 updates
+- Bump the rust-deps group across 1 directory with 9 updates (#41)
+- Update Cargo.lock for common 0.1.7
+- Bump the rust-deps group with 2 updates (#42)
+- Bump log from 0.4.30 to 0.4.32 in the rust-deps group (#43)
+- Close crumb id3-rwl (fixed in PR #44)
+- Add anyhow 1.x to workspace dependencies
+- Close crumb id3-chf — anyhow migration complete
+- Restore consistent front-matter schema on id3-chf
+
+### Refactor
+
+- Hoist has_wildcards/has_bracket to eliminate rescan
+- Replace Box<dyn Error> with anyhow::Result
+- Fix stale Box<dyn Error> doc comments in shared.rs
+- Replace Box<dyn Error> with anyhow::Result
+- Fix stale Box<dyn Error> doc comment in images/mod.rs
+- Replace Box<dyn Error> with anyhow::Result
+- Replace Box<dyn Error> with anyhow::Result
+- Replace Box<dyn Error> with anyhow::Result
+- Use Display instead of Debug for MP3 read error
+- Preserve error cause chain in process_file
+- Preserve error cause chain in rename and mp4 paths
+- Preserve error cause chain in mp3 and export paths
+- Preserve error cause chain in flac, ape, dsf paths
+- Bind path once in Track::read via let-else
+
+### Styling
+
+- Normalize import group ordering via cargo fmt
+- Lazy with_context and consistent path guards
+
+### Testing
+
+- Skip instead of panic on non-UTF-8 temp dir
+- Add ?-only glob test to guard has_wildcards completeness
+
+## [0.16.0] - 2026-03-07
+
+### Bug Fixes
+
+- Switch metaflac to crates.io and update tokio
+
+### Miscellaneous Tasks
+
+- Apply formatting fixes and update crumbs
+
+### Ci
+
+- Replace cargo-dist with native GitHub Actions workflows
+
 ## [0.15.1] - 2026-03-07
 
 ### Bug Fixes

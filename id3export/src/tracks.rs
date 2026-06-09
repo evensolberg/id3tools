@@ -1,9 +1,9 @@
+use anyhow::{bail, Result};
 use common::{need_split, FileTypes};
 use id3::{Tag, TagLike};
 use metaflac::block;
 use mp4ameta::{Data, Fourcc, Tag as Mp4Tag};
 use serde::Serialize;
-use anyhow::{bail, Result};
 
 macro_rules! mp3_tags {
     ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {

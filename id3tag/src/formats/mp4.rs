@@ -132,12 +132,11 @@ fn rename_file(filename: &str, config: &DefaultValues, tag: &mp4ameta::Tag) -> R
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(err)
-                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
+                return Err(err).with_context(|| {
+                    format!("Unable to rename {filename} with tags \"{pattern}\"")
+                });
             }
-            log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
-            );
+            log::warn!("Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing.");
         }
     }
 

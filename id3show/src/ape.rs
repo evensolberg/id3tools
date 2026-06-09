@@ -1,7 +1,7 @@
 //! Read the contents of an APE file and show the metadata.
 
-use ape::{self, ItemType};
 use anyhow::Result;
+use ape::{self, ItemType};
 
 /// Show the metadata of an APE file.
 /// If `show_detail` is true, show more detailed information such as binary data (items and lengths) and locator data (items and lengths).

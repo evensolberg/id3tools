@@ -32,10 +32,7 @@ pub fn print_stats(stats: &StatsMap) {
     }
 }
 
-pub fn export_summary_csv(
-    stats: &StatsMap,
-    filename: &str,
-) -> Result<()> {
+pub fn export_summary_csv(stats: &StatsMap, filename: &str) -> Result<()> {
     let mut wtr = csv::Writer::from_path(filename)?;
     wtr.write_record([
         "Type",

@@ -1,5 +1,5 @@
-use mp4ameta::Tag;
 use anyhow::Result;
+use mp4ameta::Tag;
 
 /// Show the MP4 metadata
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {

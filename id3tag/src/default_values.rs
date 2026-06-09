@@ -244,8 +244,8 @@ impl DefaultValues {
     pub fn load_config(filename: &str) -> Result<Self> {
         let mut config_toml = String::new();
 
-        let mut file =
-            File::open(filename).with_context(|| format!("Failed to open config file {filename}"))?;
+        let mut file = File::open(filename)
+            .with_context(|| format!("Failed to open config file {filename}"))?;
 
         let bytes = file.read_to_string(&mut config_toml)?;
         if bytes == 0 {

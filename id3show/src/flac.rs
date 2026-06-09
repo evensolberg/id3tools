@@ -1,8 +1,8 @@
 //! Show FLAC metadata.
 
+use anyhow::{bail, Result};
 use metaflac::block;
 use metaflac::Tag;
-use anyhow::{bail, Result};
 
 /// Shows the metadata contents of the file provided.
 ///

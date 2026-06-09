@@ -1,8 +1,8 @@
+use anyhow::{bail, Result};
 use id3::frame;
 use id3::Content;
 use id3::Tag;
 use mp3_metadata::MP3Metadata;
-use anyhow::{bail, Result};
 
 /// Look into an `Option<String>` and output the `String` if there is one.
 macro_rules! opt {

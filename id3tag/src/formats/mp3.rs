@@ -36,8 +36,9 @@ pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues
                     Ok(()) => (),
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(err)
-                                .with_context(|| format!("Unable to set front cover for {filename}"));
+                            return Err(err).with_context(|| {
+                                format!("Unable to set front cover for {filename}")
+                            });
                         }
                         log::error!("Unable to set front cover for {filename}: {err:#}");
                     }
@@ -279,12 +280,11 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if cfg.execution.stop_on_error.unwrap_or(false) {
-                return Err(err)
-                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
+                return Err(err).with_context(|| {
+                    format!("Unable to rename {filename} with tags \"{pattern}\"")
+                });
             }
-            log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
-            );
+            log::warn!("Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing.");
         }
     }
 

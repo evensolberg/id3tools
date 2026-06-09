@@ -2,8 +2,8 @@
 
 use std::ffi::OsStr;
 use std::path::Path;
-use std::time::UNIX_EPOCH;
 use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 use anyhow::{bail, Context, Result};
 use infer::{MatcherType, Type};

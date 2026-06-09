@@ -111,7 +111,8 @@ pub fn rename_file(
             Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(err).with_context(|| format!("Unable to rename {filename} to {npl}"));
+                    return Err(err)
+                        .with_context(|| format!("Unable to rename {filename} to {npl}"));
                 }
                 log::warn!("Unable to rename {filename} to {npl}: {err:#}");
             }

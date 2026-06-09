@@ -1,6 +1,6 @@
 //! Show DSF file metadata.
-use dsf::{self, DsfFile};
 use anyhow::{bail, Context, Result};
+use dsf::{self, DsfFile};
 use std::path::Path;
 
 /// Performs the actual processing of DSF files.
