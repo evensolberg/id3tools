@@ -5,10 +5,10 @@ use crate::formats::images::read_cover;
 use crate::formats::tags;
 use crate::formats::FileTypes;
 use crate::rename_file;
+use anyhow::{Context, Result};
 use metaflac::block::PictureType::{CoverBack, CoverFront};
 use metaflac::Tag;
 use std::collections::HashMap;
-use std::error::Error;
 
 /// Splits the incoming value into two the (disc/track) number and count.
 /// Inserts the split values into their respective spots in the `HashSet`.
@@ -52,7 +52,10 @@ macro_rules! split {
 ///
 /// **Returns:**
 ///
-/// `Result<(), Box<dyn Error>>` -- Nothing except `Ok` if things go well, otherwise an error.
+/// `anyhow::Result<bool>` -- `Ok(true)` if the file was saved successfully or a dry-run was
+/// performed; `Ok(false)` if saving failed but `stop_on_error` is disabled (a warning is logged
+/// and processing continues); `Err(...)` if saving failed and `stop_on_error` is enabled, or if
+/// any other unrecoverable error occurred.
 ///
 /// **Example:**
 ///
@@ -61,7 +64,7 @@ pub fn process(
     m_file: &str,
     nt: &mut HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     let mut tags = Tag::read_from_path(m_file)?;
     let mut processed_ok = false;
     let mut cfg = config.clone();
@@ -104,13 +107,11 @@ pub fn process(
                     Ok(()) => log::debug!("process::{cover_type:?} set."),
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(true) {
-                            return Err(format!(
-                                "Unable to set {cover_type:?} to {v}. Error message: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set {cover_type:?} to {v}"));
                         }
                         log::error!(
-                            "Unable to set {cover_type:?} to {v}. Continuing. Error message: {err}"
+                            "Unable to set {cover_type:?} to {v}. Continuing: {err:#}"
                         );
                     }
                 } // match
@@ -124,14 +125,19 @@ pub fn process(
     if cfg.execution.dry_run.unwrap_or(true) {
         log::debug!("Dry-run. Not saving.");
         processed_ok = true;
-    } else if tags.save().is_ok() {
-        processed_ok = true;
-        log::info!("{m_file}   ✓");
     } else {
-        if cfg.execution.stop_on_error.unwrap_or(true) {
-            return Err(format!("Unable to save {m_file}").into());
+        match tags.save() {
+            Ok(()) => {
+                processed_ok = true;
+                log::info!("{m_file}   ✓");
+            }
+            Err(err) => {
+                if cfg.execution.stop_on_error.unwrap_or(true) {
+                    return Err(err).with_context(|| format!("Unable to save {m_file}"));
+                }
+                log::warn!("Unable to save {m_file}: {err:#}");
+            }
         }
-        log::warn!("Unable to save {m_file}");
     }
 
     // Rename file
@@ -149,7 +155,7 @@ fn set_picture(
     img_file: &str,
     cover_type: metaflac::block::PictureType,
     max_size: u32,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     tags.remove_picture_type(cover_type);
     let (img, mime_type) = read_cover(img_file, max_size)?;
     log::debug!(
@@ -164,11 +170,7 @@ fn set_picture(
 }
 
 /// Renames a FLAC file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tags: &metaflac::Tag,
-) -> Result<(), Box<dyn Error>> {
+fn rename_file(filename: &str, config: &DefaultValues, tags: &metaflac::Tag) -> Result<()> {
     let tags_names = tags::option_to_tag(FileTypes::Flac);
     let mut replace_map = HashMap::new();
     let mut pattern = String::new();
@@ -193,13 +195,11 @@ fn rename_file(
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
-                )
-                .into());
+                return Err(err)
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
+                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
             );
         }
     }

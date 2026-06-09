@@ -23,6 +23,7 @@ strip = true
 # panic = "unwind"
 
 [workspace.dependencies]
+anyhow = "1"
 ape = "0"
 clap = { version = "4.6.1", features = ["cargo"] }
 dsf = "0.2.2"

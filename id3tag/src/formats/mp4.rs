@@ -3,16 +3,16 @@
 use crate::default_values::DefaultValues;
 use crate::formats::images;
 use crate::rename_file;
+use anyhow::{bail, Context, Result};
 use mp4ameta::{Data, Fourcc, ImgFmt, Tag};
 use std::collections::HashMap;
-use std::error::Error;
 
 /// Performs the actual processing of MP4 files.
 pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     log::debug!("Filename: {}", &filename);
 
     let mut processed_ok = false;
@@ -62,7 +62,7 @@ pub fn process(
             "trkn-t" => tag.set_total_tracks(value.parse::<u16>().unwrap_or(1)),
             _ => {
                 // tag.set_data(Fourcc(key.as_bytes().try_into()?), Data::Utf8(value.into()));
-                return Err(format!("Unknown key: {key}").into());
+                bail!("Unknown key: {key}");
             }
         }
     }
@@ -76,9 +76,9 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(format!("Unable to save tags to {filename}. Error: {err}").into());
+                    return Err(err).with_context(|| format!("Unable to save tags to {filename}"));
                 }
-                log::warn!("Unable to save tags to {filename}. Error: {err}");
+                log::warn!("Unable to save tags to {filename}: {err:#}");
             }
         }
     }
@@ -89,9 +89,9 @@ pub fn process(
             Ok(()) => processed_ok = true,
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(format!("Unable to rename {filename}. Error: {err}").into());
+                    return Err(err).with_context(|| format!("Unable to rename {filename}"));
                 }
-                log::warn!("Unable to rename {filename}. Error: {err}");
+                log::warn!("Unable to rename {filename}: {err:#}");
             }
         }
     }
@@ -101,7 +101,7 @@ pub fn process(
 }
 
 /// Sets the front or back cover
-fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
+fn set_picture(tags: &mut Tag, filename: &str) -> Result<()> {
     let fmt = ImgFmt::Jpeg;
     let (raw_data, mime_type) = images::read_cover(filename, 0)?;
     // MP4 only supports JPEG — convert if needed
@@ -118,11 +118,7 @@ fn set_picture(tags: &mut Tag, filename: &str) -> Result<(), Box<dyn Error>> {
 }
 
 /// Renames the MP4 file based on the pattern provided
-fn rename_file(
-    filename: &str,
-    config: &DefaultValues,
-    tag: &mp4ameta::Tag,
-) -> Result<(), Box<dyn Error>> {
+fn rename_file(filename: &str, config: &DefaultValues, tag: &mp4ameta::Tag) -> Result<()> {
     let tags_map = get_mp4_tags(tag);
     log::debug!("tags_map = {tags_map:?}");
 
@@ -136,13 +132,11 @@ fn rename_file(
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(format!(
-                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
-                )
-                .into());
+                return Err(err)
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
+                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
             );
         }
     }

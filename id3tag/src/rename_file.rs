@@ -1,4 +1,5 @@
-use std::{collections::HashMap, error::Error, path::Path};
+use anyhow::{bail, Context, Result};
+use std::{collections::HashMap, path::Path};
 
 use crate::default_values::DefaultValues;
 
@@ -28,12 +29,12 @@ pub fn rename_file(
     filename: &str,
     tags: &HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<String> {
     // Check if there is a rename pattern
     let mut new_filename = if let Some(nfn) = &config.rename_file {
         nfn.clone()
     } else {
-        return Err("No filename pattern presented. Unable to continue.".into());
+        bail!("No filename pattern presented. Unable to continue.");
     };
 
     // Check if any tag used in the pattern is empty. If so, skip the rename.
@@ -110,11 +111,9 @@ pub fn rename_file(
             Ok(()) => log::debug!("{filename} --> {npl}"),
             Err(err) => {
                 if config.execution.stop_on_error.unwrap_or(true) {
-                    return Err(
-                        format!("Unable to rename {filename} to {npl}. Error: {err}").into(),
-                    );
+                    return Err(err).with_context(|| format!("Unable to rename {filename} to {npl}"));
                 }
-                log::warn!("Unable to rename {filename} to {npl}. Error: {err}");
+                log::warn!("Unable to rename {filename} to {npl}: {err:#}");
             }
         }
     }

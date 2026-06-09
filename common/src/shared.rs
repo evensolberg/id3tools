@@ -3,8 +3,9 @@
 use std::ffi::OsStr;
 use std::path::Path;
 use std::time::UNIX_EPOCH;
-use std::{error::Error, time::SystemTime};
+use std::time::SystemTime;
 
+use anyhow::{bail, Context, Result};
 use infer::{MatcherType, Type};
 
 use crate::file_types::FileTypes;
@@ -128,10 +129,10 @@ where
 /// # Errors
 ///
 /// - If we can't infer the file type from path, we give an error
-pub fn get_mime_type(filename: &str) -> Result<String, Box<dyn Error>> {
+pub fn get_mime_type(filename: &str) -> Result<String> {
     // Read the file and check the mime type
     let Some(file_type) = infer::get_from_path(filename)? else {
-        return Err("File type not supported".into());
+        bail!("File type not supported");
     };
 
     Ok(file_type.mime_type().to_string())
@@ -154,12 +155,12 @@ pub fn get_extension(filename: &str) -> String {
 /// # Errors
 ///
 /// - `infer::get_from_path()` fails
-pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
+pub fn get_file_type(filename: &str) -> Result<FileTypes> {
     // return the file type
     let file_type = infer::get_from_path(filename)?;
     log::debug!("File type = {file_type:?}");
     let Some(file_type) = file_type else {
-        return Err("File type not supported".into());
+        bail!("File type not supported");
     };
 
     let ft;
@@ -176,7 +177,7 @@ pub fn get_file_type(filename: &str) -> Result<FileTypes, Box<dyn Error>> {
         if mp4vec.contains(&ext.as_str()) {
             ft = FileTypes::M4A;
         } else {
-            return Err("File type not supported".into());
+            bail!("File type not supported");
         }
     }
 
@@ -305,24 +306,24 @@ pub fn need_split(value: &str) -> bool {
 /// # Errors
 ///
 /// - Returns an error if the split pattern can't be found.
-pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
+pub fn split_val(value: &str) -> Result<(u16, u16)> {
     let split_str: Vec<&str>;
     if value.contains("of") {
         split_str = value.split("of").collect();
     } else if value.contains('/') {
         split_str = value.split('/').collect();
     } else {
-        return Err("Split pattern not found.".into());
+        bail!("Split pattern not found.");
     }
 
     let count = split_str[0]
         .trim()
         .parse::<u16>()
-        .map_err(|e| format!("Unable to parse count '{}': {e}", split_str[0].trim()))?;
+        .with_context(|| format!("Unable to parse count '{}'", split_str[0].trim()))?;
     let total = split_str[1]
         .trim()
         .parse::<u16>()
-        .map_err(|e| format!("Unable to parse total '{}': {e}", split_str[1].trim()))?;
+        .with_context(|| format!("Unable to parse total '{}'", split_str[1].trim()))?;
 
     // return the values (i.e., 1 of 2)
     Ok((count, total))
@@ -337,14 +338,14 @@ pub fn split_val(value: &str) -> Result<(u16, u16), Box<dyn Error>> {
 /// `filename: &str` - the name of the file to be used as the example. The function will get the extension and look for the number of files with the same extension.
 ///
 /// # Returns
-/// `Result<String, Box<dyn Error>>` - a formatted string with the number of files found, or an error if something went wrong.
+/// `Result<String>` - a formatted string with the number of files found, or an error if something went wrong.
 ///
 /// # Errors
 /// - Returns an error if unable to get the directory name from the fielname.
 ///
 /// # Panics
 /// None.
-pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
+pub fn count_files(filename: &str) -> Result<String> {
     let ext = get_extension(filename);
 
     // Get just the directory part, excluding the filename
@@ -357,7 +358,7 @@ pub fn count_files(filename: &str) -> Result<String, Box<dyn Error>> {
     }
 
     if !dir.is_dir() {
-        return Err(format!("Unable to get directory name from filename {filename}.").into());
+        bail!("Unable to get directory name from filename {filename}.");
     }
 
     // Get the list of (music) files in the directory
@@ -441,7 +442,7 @@ where
 /// `filename: &str` - the name of the file for which we need the full path
 ///
 /// # Returns
-/// `Result<std::path::PathBuf, Box<dyn Error>>` - a `PathBuf` containing the full directory path to the file if succcessful.
+/// `Result<std::path::PathBuf>` - a `PathBuf` containing the full directory path to the file if succcessful.
 ///
 /// # Errors
 ///
@@ -449,7 +450,7 @@ where
 ///
 /// # Example
 /// `get_full_path_directory("/some/path/myfile.txt")` returns "/some/path/"
-pub fn directory(filename: &str) -> Result<std::path::PathBuf, Box<dyn Error>> {
+pub fn directory(filename: &str) -> Result<std::path::PathBuf> {
     let mut music_file_path = std::fs::canonicalize(filename)?;
     music_file_path = music_file_path
         .parent()

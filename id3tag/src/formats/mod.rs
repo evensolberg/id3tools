@@ -2,9 +2,9 @@
 //! all reside under this crate, so they don't have to be exposed to the main body of code.
 
 #![forbid(unsafe_code)]
+use anyhow::{bail, Context, Result};
 use std::{
     collections::HashMap,
-    error::Error,
     fs,
     path::{Component, Path},
 };
@@ -37,13 +37,13 @@ use crate::{disc_number_count, pic, tag, track_album_artist, track_genre_num, tr
 /// Returns:
 ///
 /// - `Ok(bool)` if everything goes well. The boolean indicates whether the file was processed or not.
-/// - `Box<dyn Error>` if we run into problems
+/// - `anyhow::Error` if we run into problems
 pub fn process_file(
     file_type: FileTypes,
     filename: &str,
     cfg: &DefaultValues,
     cli_args: &clap::ArgMatches,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     // Check if we need to create one or more cover images.
     log::debug!("process_file::filename = {filename}");
     let mut config = cfg.clone();
@@ -74,7 +74,7 @@ pub fn process_file(
                 FileTypes::MP3 => mp3::process(filename, &new_tags, &config),
                 FileTypes::M4A => mp4::process(filename, &new_tags, &config),
                 FileTypes::Unknown => {
-                    return Err(format!("{filename} is unknown file type.").into())
+                    bail!("{filename} is unknown file type.")
                 }
             };
 
@@ -82,17 +82,17 @@ pub fn process_file(
                 Ok(_) => processed = true,
                 Err(err) => {
                     if config.execution.stop_on_error.unwrap_or(true) {
-                        return Err(format!("Unable to process {filename}. Error: {err}").into());
+                        return Err(err).with_context(|| format!("Unable to process {filename}"));
                     }
-                    log::error!("Unable to process {filename}. Error: {err}");
+                    log::error!("Unable to process {filename}: {err:#}");
                 }
             }
         } // Ok(_)
         Err(err) => {
             if config.execution.stop_on_error.unwrap_or(true) {
-                return Err(format!("Unable to parse tags for {filename}. Error: {err}").into());
+                return Err(err).with_context(|| format!("Unable to parse tags for {filename}"));
             }
-            log::error!("Unable to parse tags for {filename}. Error: {err}");
+            log::error!("Unable to parse tags for {filename}: {err:#}");
         } // Err(err)
     } // match new_tags_result
 
@@ -109,7 +109,7 @@ fn parse_options(
     file_type: common::FileTypes,
     dv: &DefaultValues,
     cli: &clap::ArgMatches,
-) -> Result<HashMap<String, String>, Box<dyn Error>> {
+) -> Result<HashMap<String, String>> {
     let mut nt = HashMap::new();
     let ot = tags::get_tag_names(file_type);
 
@@ -214,9 +214,9 @@ fn parse_options(
 /// Convert a numerical ID3 genre to a string
 /// Ref: <https://en.wikipedia.org/wiki/ID3#Genre_list_in_ID3v1%5B12%5D>
 #[allow(clippy::too_many_lines)] // Not much we can do about this one.
-fn genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
+fn genre_name(tagnumber: u16) -> Result<String> {
     if tagnumber > 191 {
-        return Err("Incorrect value supplied. Must be 0-191.".into());
+        bail!("Incorrect value supplied. Must be 0-191.");
     }
 
     let tags = vec![
@@ -421,7 +421,7 @@ fn genre_name(tagnumber: u16) -> Result<String, Box<dyn Error>> {
 /// It it is named 'CD xx' or 'disc xx' (case insensitive), we get the number and use it.
 // TODO: There may be a better way to do this by tokenizing the filename.
 // TODO: Need to be able to handle cases like CD1of3 ("CD1 of 3" is fine)
-fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
+fn disc_number(filename: &str) -> Result<u16> {
     let mut parent_dir = common::directory(filename)?
         .file_name()
         .unwrap_or_default()
@@ -498,21 +498,19 @@ fn disc_number(filename: &str) -> Result<u16, Box<dyn Error>> {
 ///
 /// # Returns
 ///
-/// * `Result<u16, Box<dyn Error>>` - The number of discs as a `u16` if successful, otherwise an error.
+/// * `anyhow::Result<u16>` - The number of discs as a `u16` if successful, otherwise an error.
 ///
 /// # Examples
 ///
 /// ```
-/// use std::error::Error;
-///
-/// fn main() -> Result<(), Box<dyn Error>> {
+/// fn main() -> anyhow::Result<()> {
 ///     let filename = "/path/to/file.mp3";
 ///     let disc_count = disc_count(filename)?;
 ///     println!("Number of discs: {disc_count}");
 ///     Ok(())
 /// }
 /// ```
-fn disc_count(filename: &str) -> Result<u16, Box<dyn Error>> {
+fn disc_count(filename: &str) -> Result<u16> {
     let disc_candidates = disc_candidates();
     log::trace!("disc_candidates = {disc_candidates:?}");
 

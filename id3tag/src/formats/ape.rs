@@ -3,15 +3,16 @@
 
 use crate::default_values::DefaultValues;
 use crate::formats::images::read_cover;
+use anyhow::{Context, Result};
 use ape::{self, Item, ItemType};
-use std::{collections::HashMap, error::Error, fs::File};
+use std::{collections::HashMap, fs::File};
 
 /// Performs the actual processing of APE files.
 pub fn process(
     filename: &str,
     new_tags: &HashMap<String, String>,
     config: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<bool> {
     let mut processed_ok = false;
     let mut tags = ape::read_from_path(filename)?;
 
@@ -39,12 +40,10 @@ pub fn process(
                     Ok(()) => log::debug!("{ape_key} set for {filename}."),
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
-                            return Err(format!(
-                                "Unable to set {ape_key} to {value}. Error: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set {ape_key} to {value}"));
                         }
-                        log::error!("Unable to set {ape_key} to {value}. Continuing. Error: {err}");
+                        log::error!("Unable to set {ape_key} to {value}. Continuing: {err:#}");
                     }
                 }
             }
@@ -61,12 +60,9 @@ pub fn process(
                     }
                     Err(err) => {
                         if config.execution.stop_on_error.unwrap_or(true) {
-                            return Err(format!(
-                                "Unable to set {key} to {value}. Error message: {err}"
-                            )
-                            .into());
+                            return Err(err).with_context(|| format!("Unable to set {key} to {value}"));
                         }
-                        log::error!("Unable to set {key} to {value}. Error message: {err}");
+                        log::error!("Unable to set {key} to {value}: {err:#}");
                     }
                 }
             }
@@ -99,12 +95,7 @@ pub fn process(
 /// Sets the front or back cover art in an APE tag.
 /// APE cover art convention: key is "Cover Art (Front)" or "Cover Art (Back)",
 /// value is a binary item with format: `description\0` + raw image bytes.
-fn set_picture(
-    tags: &mut ape::Tag,
-    img_file: &str,
-    ape_key: &str,
-    max_size: u32,
-) -> Result<(), Box<dyn Error>> {
+fn set_picture(tags: &mut ape::Tag, img_file: &str, ape_key: &str, max_size: u32) -> Result<()> {
     // Remove existing cover art with this key
     let _ = tags.remove_items(ape_key);
 
@@ -128,11 +119,7 @@ fn set_picture(
 /// Renames the APE file based on the tags
 // Allow the uneccesary Ok(()) for now for consistency with other functions and possible changes later.
 #[allow(clippy::unnecessary_wraps)]
-fn rename_file(
-    _filename: &str,
-    _config: &DefaultValues,
-    _tags: &ape::Tag,
-) -> Result<(), Box<dyn Error>> {
+fn rename_file(_filename: &str, _config: &DefaultValues, _tags: &ape::Tag) -> Result<()> {
     log::warn!(
         "Rename is currently not supported for APE files because the metadata is not standardized."
     );

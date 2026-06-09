@@ -382,6 +382,7 @@ checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 name = "common"
 version = "0.1.7"
 dependencies = [
+ "anyhow",
  "assay",
  "clap",
  "glob",
@@ -782,6 +783,7 @@ dependencies = [
 name = "id3cli-gen"
 version = "0.1.4"
 dependencies = [
+ "anyhow",
  "clap_complete",
  "clap_complete_fig",
  "clap_mangen",
@@ -793,6 +795,7 @@ dependencies = [
 name = "id3export"
 version = "0.7.3"
 dependencies = [
+ "anyhow",
  "ape",
  "clap",
  "common",
@@ -814,6 +817,7 @@ dependencies = [
 name = "id3show"
 version = "0.2.7"
 dependencies = [
+ "anyhow",
  "ape",
  "clap",
  "common",
@@ -829,6 +833,7 @@ dependencies = [
 name = "id3tag"
 version = "0.16.0"
 dependencies = [
+ "anyhow",
  "ape",
  "clap",
  "common",

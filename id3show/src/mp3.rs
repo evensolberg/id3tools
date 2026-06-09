@@ -2,7 +2,7 @@ use id3::frame;
 use id3::Content;
 use id3::Tag;
 use mp3_metadata::MP3Metadata;
-use std::error::Error;
+use anyhow::{bail, Result};
 
 /// Look into an `Option<String>` and output the `String` if there is one.
 macro_rules! opt {
@@ -62,7 +62,7 @@ macro_rules! genre_vec {
 }
 
 /// Performs the actual processing of MP3 files.
-pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Error>> {
+pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     let meta = open_mp3(filename)?;
     let duration_string = calc_duration_string(meta.duration.as_secs_f64());
     if show_detail {
@@ -131,7 +131,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<(), Box<dyn Er
                 }
             }
             _ => {
-                return Err(format!("Unknown content type in file {filename}").into());
+                bail!("Unknown content type in file {filename}");
             }
         }
     }
@@ -451,12 +451,14 @@ fn mp3_emphasis(e: mp3_metadata::Emphasis) -> String {
 }
 
 /// Open an MP3 file for reading using the `mp3_metadata` crate and return the metadata as a result if OK.
-fn open_mp3(filename: &str) -> Result<MP3Metadata, Box<dyn Error>> {
+fn open_mp3(filename: &str) -> Result<MP3Metadata> {
     let meta_res = mp3_metadata::read_from_file(filename);
     match meta_res {
         Ok(r) => Ok(r),
         Err(e) => {
-            Err(format!("Unable to open {filename} for to read stream info. Error: {e}").into())
+            // mp3_metadata::Error does not implement std::error::Error so it cannot be
+            // chained as an anyhow source. Format it into the message as the next best option.
+            bail!("Unable to open {filename} for reading stream info. Error: {e}")
         }
     }
 }

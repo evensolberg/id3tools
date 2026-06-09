@@ -11,6 +11,7 @@ keywords = ["flac", "audio", "parser", "metadata", "display"]
 repository = "https://github.com/evensolberg/id3tools"
 
 [dependencies]
+anyhow.workspace = true
 ape = { workspace = true }
 dsf = { workspace = true }
 id3 = { workspace = true }

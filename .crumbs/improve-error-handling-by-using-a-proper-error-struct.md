@@ -1,12 +1,12 @@
 ---
 id: id3-chf
 title: Replace `Box<dyn Error>` with `anyhow` for error handling
-status: open
+status: closed
 type: task
 priority: 1
 tags: []
 created: 2026-03-07
-updated: 2026-03-08
+updated: 2026-06-07
 closed_reason: ''
 dependencies: []
 ---
@@ -28,3 +28,7 @@ The codebase uses `Box<dyn Error>` everywhere with `format!("...").into()` for e
 - Replace `Result<T, Box<dyn Error>>` with `anyhow::Result<T>` across all crates (`common`, `id3tag`, `id3show`, `id3export`)
 - Replace `format!("...").into()` patterns with `.context()`
 - Replace `return Err(format!(...).into())` with `bail!()`
+
+[start] 2026-06-07 15:58:12
+
+[stop]  2026-06-07 16:34:36  36m 24s

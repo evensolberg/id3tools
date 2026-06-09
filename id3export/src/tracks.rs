@@ -3,7 +3,7 @@ use id3::{Tag, TagLike};
 use metaflac::block;
 use mp4ameta::{Data, Fourcc, Tag as Mp4Tag};
 use serde::Serialize;
-use std::error::Error;
+use anyhow::{bail, Result};
 
 macro_rules! mp3_tags {
     ($tags:ident, $field:ident, $self_ref:ident, $self_field:ident) => {
@@ -194,29 +194,29 @@ impl Track {
 
 /// Handles reading of various audio file formats.
 pub trait Reader {
-    fn read(&mut self) -> Result<(), Box<dyn Error>>
+    fn read(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 
     // May move the following functions out of the trait so the trait stays simple.
 
-    fn read_flac(&mut self) -> Result<(), Box<dyn Error>>
+    fn read_flac(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 
-    fn read_mp3(&mut self) -> Result<(), Box<dyn Error>>
+    fn read_mp3(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 
-    fn read_mp4(&mut self) -> Result<(), Box<dyn Error>>
+    fn read_mp4(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 
-    fn read_ape(&mut self) -> Result<(), Box<dyn Error>>
+    fn read_ape(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 
-    fn read_dsf(&mut self) -> Result<(), Box<dyn Error>>
+    fn read_dsf(&mut self) -> Result<()>
     where
         Self: std::marker::Sized;
 }
@@ -229,15 +229,15 @@ impl Reader for Track {
     ///
     /// Returns an error if the file type is not supported.
     ///
-    fn read(&mut self) -> Result<(), Box<dyn Error>> {
-        if self.path.is_none() {
-            return Err("No path provided".into());
-        }
+    fn read(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
+        };
 
-        let metadata = std::fs::metadata(self.path.as_ref().unwrap_or(&String::new()))?;
+        let metadata = std::fs::metadata(path)?;
         self.file_size = Some(metadata.len());
 
-        let file_type = FileTypes::from_filename(self.path.as_ref().unwrap_or(&String::new()));
+        let file_type = FileTypes::from_filename(path);
         log::debug!("File type: {file_type}");
         match file_type {
             FileTypes::Flac => self.read_flac()?,
@@ -253,12 +253,11 @@ impl Reader for Track {
     }
 
     /// Builds a `Track` struct from a FLAC file.
-    fn read_flac(&mut self) -> Result<(), Box<dyn Error>> {
-        let tags = if self.path.is_some() {
-            metaflac::Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?
-        } else {
-            return Err("No path provided".into());
+    fn read_flac(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
         };
+        let tags = metaflac::Tag::read_from_path(path)?;
 
         self.file_format = Some(FileTypes::Flac);
 
@@ -349,14 +348,16 @@ impl Reader for Track {
     }
 
     /// Builds a `Track` struct from an MP3 file.
-    fn read_mp3(&mut self) -> Result<(), Box<dyn Error>> {
-        let meta = match mp3_metadata::read_from_file(self.path.as_ref().unwrap_or(&String::new()))
-        {
+    fn read_mp3(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
+        };
+        let meta = match mp3_metadata::read_from_file(path) {
             Ok(m) => m,
             Err(e) => {
-                let msg = format!("{e:?}");
-                log::error!("Error reading MP3: {msg}");
-                return Err(msg.into());
+                // mp3_metadata::Error does not implement std::error::Error so it cannot be
+                // chained as an anyhow source. Format it into the message as the next best option.
+                bail!("Error reading MP3 metadata from {path}: {e}");
             }
         };
 
@@ -369,7 +370,7 @@ impl Reader for Track {
         let frames = meta.frames;
 
         if frames.is_empty() {
-            return Err("No frames found".into());
+            bail!("No frames found");
         }
 
         self.bitrate = Some(u32::from(frames[0].bitrate));
@@ -385,7 +386,7 @@ impl Reader for Track {
         self.sample_rate = Some(u32::from(frames[0].sampling_freq));
 
         // Use a different crate to get the metadata
-        let tag = Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+        let tag = Tag::read_from_path(path)?;
         mp3_tag!(tag, "TPE2", self, album_artist);
         mp3_tag!(tag, "TSO2", self, album_artist_sort);
         mp3_tag!(tag, album, self, album_title);
@@ -408,8 +409,11 @@ impl Reader for Track {
     }
 
     /// Builds a `Track` struct from an MP4 file.
-    fn read_mp4(&mut self) -> Result<(), Box<dyn Error>> {
-        let tags = Mp4Tag::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+    fn read_mp4(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
+        };
+        let tags = Mp4Tag::read_from_path(path)?;
         let audio = tags.audio_info();
 
         self.file_format = Some(FileTypes::M4A);
@@ -457,8 +461,11 @@ impl Reader for Track {
     }
 
     /// Reads an APE file. Unfortunately, the `ape` crate currently does not provide a way to read the file's duration, bitrate, etc.
-    fn read_ape(&mut self) -> Result<(), Box<dyn Error>> {
-        let tags = ape::read_from_path(self.path.as_ref().unwrap_or(&String::new()))?;
+    fn read_ape(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
+        };
+        let tags = ape::read_from_path(path)?;
         log::debug!("APE tags: {tags:?}");
 
         self.file_format = Some(FileTypes::Ape);
@@ -483,9 +490,11 @@ impl Reader for Track {
         Ok(())
     }
 
-    fn read_dsf(&mut self) -> Result<(), Box<dyn Error>> {
-        let newpath = String::new();
-        let filepath = std::path::Path::new(self.path.as_ref().unwrap_or(&newpath));
+    fn read_dsf(&mut self) -> Result<()> {
+        let Some(path) = self.path.as_deref() else {
+            bail!("No path provided");
+        };
+        let filepath = std::path::Path::new(path);
         let dsf_file = dsf::DsfFile::open(filepath)?;
         log::debug!("DSF file metadata: {dsf_file}");
 
@@ -510,7 +519,7 @@ impl Reader for Track {
                 .expect("ID3 tag should exist")
         } else {
             log::warn!("No ID3 tag found");
-            return Err("No ID3 tag found".into());
+            bail!("No ID3 tag found");
         };
 
         log::debug!("Tag: {tag:?}");

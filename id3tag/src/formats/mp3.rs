@@ -7,16 +7,12 @@ use id3::frame::{self, ExtendedText};
 use id3::TagLike;
 use id3::{frame::PictureType, Tag, Version};
 
+use anyhow::{bail, Context, Result};
 use std::collections::HashMap;
-use std::error::Error;
 
 /// Performs the actual processing of MP4 files.
 #[allow(clippy::too_many_lines)]
-pub fn process(
-    filename: &str,
-    nt: &HashMap<String, String>,
-    cfg: &DefaultValues,
-) -> Result<bool, Box<dyn Error>> {
+pub fn process(filename: &str, nt: &HashMap<String, String>, cfg: &DefaultValues) -> Result<bool> {
     log::debug!("Filename: {filename}");
     let mut processed_ok = false;
     let max_size = cfg.pictures.picture_max_size.unwrap_or(500);
@@ -40,12 +36,10 @@ pub fn process(
                     Ok(()) => (),
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(format!(
-                                "Unable to set front cover for {filename}. Error: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set front cover for {filename}"));
                         }
-                        log::error!("Unable to set front cover for {filename}. Error: {err}");
+                        log::error!("Unable to set front cover for {filename}: {err:#}");
                     }
                 }
             }
@@ -56,12 +50,10 @@ pub fn process(
                 Ok(()) => (),
                 Err(err) => {
                     if cfg.execution.stop_on_error.unwrap_or(false) {
-                        return Err(format!(
-                            "Unable to set back cover for {filename}. Error: {err}"
-                        )
-                        .into());
+                        return Err(err)
+                            .with_context(|| format!("Unable to set back cover for {filename}"));
                     }
-                    log::error!("Unable to set back cover for {filename}. Error: {err}");
+                    log::error!("Unable to set back cover for {filename}: {err:#}");
                 }
             },
 
@@ -74,13 +66,11 @@ pub fn process(
                     Ok(n) => n,
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(format!(
-                                "Unable to set disc number to {value}. Error: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set disc number to {value}"));
                         }
                         log::error!(
-                            "Unable to set disc number to {value}. Setting to 1 and continuing. Error: {err}"
+                            "Unable to set disc number to {value}. Setting to 1 and continuing: {err:#}"
                         );
                         1
                     }
@@ -94,13 +84,12 @@ pub fn process(
                     Ok(n) => n,
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(format!(
-                                "Unable to set total discs to {value}. Error: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set total discs to {value}"));
                         }
                         log::error!(
-                            "Unable to set total discs to {value}. Setting to 1 and continuing. Error: {err}"                        );
+                            "Unable to set total discs to {value}. Setting to 1 and continuing: {err:#}"
+                        );
                         1
                     }
                 };
@@ -113,13 +102,11 @@ pub fn process(
                     Ok(n) => n,
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(format!(
-                                "Unable to set track number to {value}. Error: {err}"
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set track number to {value}"));
                         }
                         log::error!(
-                            "Unable to set track number to {value}. Setting to 1 and continuing. Error: {err}"
+                            "Unable to set track number to {value}. Setting to 1 and continuing: {err:#}"
                         );
                         1
                     }
@@ -133,13 +120,11 @@ pub fn process(
                     Ok(n) => n,
                     Err(err) => {
                         if cfg.execution.stop_on_error.unwrap_or(false) {
-                            return Err(format!(
-                                "Unable to set total tracks to {value}. Error: {err}",
-                            )
-                            .into());
+                            return Err(err)
+                                .with_context(|| format!("Unable to set total tracks to {value}"));
                         }
                         log::error!(
-                            "Unable to set total tracks to {value}. Setting to 1 and continuing. Error: {err}"
+                            "Unable to set total tracks to {value}. Setting to 1 and continuing: {err:#}"
                         );
                         1
                     }
@@ -188,7 +173,7 @@ fn set_picture(
     img_file: &str,
     picture_type: PictureType,
     max_size: u32,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<()> {
     log::debug!("Removing existing picture.");
     tags.remove_picture_by_type(picture_type);
 
@@ -235,7 +220,7 @@ fn set_comment(tags: &mut id3::Tag, value: &str) {
 }
 
 /// Renames an MP3 file based on the pattern provided
-fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<(), Box<dyn Error>> {
+fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()> {
     let tags_names = option_to_tag(FileTypes::MP3);
     let mut replace_map = HashMap::new();
 
@@ -276,10 +261,7 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
                         replace_map.insert("%track-number-total".to_string(), total);
                     }
                     _ => {
-                        return Err(format!(
-                            "Unknown tag {tag_name} encountered when unwrapping disc/track information."
-                        )
-                        .into())
+                        bail!("Unknown tag {tag_name} encountered when unwrapping disc/track information.")
                     }
                 }
             } else {
@@ -297,13 +279,11 @@ fn rename_file(filename: &str, cfg: &DefaultValues, tag: &id3::Tag) -> Result<()
         Ok(new_filename) => log::info!("{filename} --> {new_filename}"),
         Err(err) => {
             if cfg.execution.stop_on_error.unwrap_or(false) {
-                return Err(format!(
-                    "Unable to rename {filename} with tags \"{pattern}\". Error: {err}"
-                )
-                .into());
+                return Err(err)
+                    .with_context(|| format!("Unable to rename {filename} with tags \"{pattern}\""));
             }
             log::warn!(
-                "Unable to rename {filename} with tags \"{pattern}\". Error: {err} Continuing."
+                "Unable to rename {filename} with tags \"{pattern}\": {err:#} Continuing."
             );
         }
     }

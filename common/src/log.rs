@@ -11,15 +11,16 @@ use log4rs::{
     filter::threshold::ThresholdFilter,
     Config,
 };
-use std::error::Error;
 use std::path::Path;
+
+use anyhow::Result;
 
 /// Creates a log configuration for the application.
 ///
 /// # Errors
 ///
 /// - `init_file()` failure
-pub fn build_logger(config_filename: &str) -> Result<(), Box<dyn Error>> {
+pub fn build_logger(config_filename: &str) -> Result<()> {
     let path = Path::new(&shellexpand::tilde(&config_filename).to_string()).to_owned();
     if path.exists() {
         log4rs::init_file(path, log4rs::config::Deserializers::default())?;

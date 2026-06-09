@@ -1,3 +1,4 @@
+use anyhow::Result;
 use common::thousand_separated;
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -34,7 +35,7 @@ pub fn print_stats(stats: &StatsMap) {
 pub fn export_summary_csv(
     stats: &StatsMap,
     filename: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<()> {
     let mut wtr = csv::Writer::from_path(filename)?;
     wtr.write_record([
         "Type",
