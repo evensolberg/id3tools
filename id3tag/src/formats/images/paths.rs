@@ -81,7 +81,7 @@ pub fn gather_cover_candidates(cover_type: CoverType, cfg: &DefaultValues) -> Ve
 /// # Arguments
 ///
 /// `music_file: &str` - the name (and full path) of the music file being used as the basis for the search.
-/// `image_vec: &Vec<String>` - a vector of string values containing the candidate filenames to be searched.
+/// `image_vec: &[String]` - a slice of candidate filenames to be searched.
 ///
 /// # Returns
 ///
