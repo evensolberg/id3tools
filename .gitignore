@@ -21,3 +21,4 @@ bom.txt
 tree.txt
 Cargo.lock
 test.txt
+.crumbs/index.csv

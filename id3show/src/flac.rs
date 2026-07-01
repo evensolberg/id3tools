@@ -30,7 +30,14 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
         match block {
             metaflac::Block::StreamInfo(si) => {
                 if show_detail {
+                    // Fetch file size here — only needed for the bitrate calculation in
+                    // show_audio_info, so keep it out of the non-detail path.
+                    let file_size = std::fs::metadata(filename)?.len();
+                    // Attempt the user-friendly summary first; keep the raw dump visible
+                    // even if the summary fails (e.g. corrupt file with sample_rate == 0).
+                    let audio_result = show_audio_info(si, file_size);
                     show_streaminfo(si);
+                    audio_result?;
                 }
                 duration = calc_duration_string(si.total_samples, si.sample_rate)?;
             }
@@ -60,7 +67,10 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                 }
             }
             metaflac::Block::VorbisComment(vc) => {
-                show_vorbis_comment(vc, &duration, show_detail);
+                // Duration is shown in the Audio Info block in detail mode; print
+                // it here only in non-detail mode to avoid duplication.
+                let show_duration = !show_detail;
+                show_vorbis_comment(vc, &duration, show_detail, show_duration);
             }
             metaflac::Block::Unknown(uk) => {
                 if show_detail {
@@ -72,6 +82,47 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
 
     // Return safely
     Ok(())
+}
+
+/// Show a user-friendly "Audio Info:" summary block.
+///
+/// Surfaces channels, sample rate, bit depth, encoded bitrate, and duration in
+/// one place. Only called when `--show-detail` is active; appears before the raw
+/// "Stream Info:" dump so the output mirrors the FLAC block order conceptually.
+fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
+    let duration_secs = calc_duration_seconds(si.total_samples, si.sample_rate)?;
+    let duration_str = format_duration(duration_secs);
+    let bitrate = calc_bitrate_kbps(file_size, duration_secs);
+
+    println!("  Audio Info:");
+    println!("    Channels    = {}", si.num_channels);
+    println!("    Sample Rate = {} Hz", si.sample_rate);
+    println!("    Bit Depth   = {} bits", si.bits_per_sample);
+    println!("    Bitrate     = {} kbps", bitrate);
+    println!("    Duration    = {duration_str}");
+    Ok(())
+}
+
+/// Compute the container bitrate in kbps from the on-disk file size and duration.
+///
+/// **Note:** `file_size` is the total bytes on disk, which includes all FLAC metadata
+/// blocks (Vorbis Comments, embedded artwork, SeekTable, Padding). The returned value
+/// is therefore the *container* bitrate, not the audio-stream-only bitrate. For files
+/// with large embedded artwork the figure will be noticeably higher than the pure audio
+/// bitrate; this is an accepted trade-off of using file size rather than parsing each
+/// block's audio payload.
+///
+/// Returns 0 if `duration_secs` is zero or negative to avoid division by zero.
+#[allow(
+    clippy::cast_precision_loss, // u64 → f64: files > 2^53 bytes (~8 PB) lose low bits; acceptable for bitrate estimation
+    clippy::cast_sign_loss,      // f64 → u32: f64 is a signed type; the guard above ensures a non-negative value
+    clippy::cast_possible_truncation // f64 → u32: sub-kbps remainder is intentionally discarded
+)]
+fn calc_bitrate_kbps(file_size: u64, duration_secs: f64) -> u32 {
+    if duration_secs <= 0.0 {
+        return 0;
+    }
+    (file_size as f64 * 8.0 / duration_secs / 1000.0) as u32
 }
 
 /// Show the `block::StreamInfo` fields
@@ -130,7 +181,7 @@ fn show_seektable(st: &block::SeekTable) {
 }
 
 /// Show the `block::VorbisComment` fields
-fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool) {
+fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool, show_duration: bool) {
     println!("  Vorbis Comments:");
     if show_detail {
         println!("    Vendor: {}", vc.vendor_string);
@@ -140,7 +191,9 @@ fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: b
             println!("    {key} = {value}");
         }
     }
-    println!("    Duration = {duration} mm:ss");
+    if show_duration {
+        println!("    Duration = {duration}");
+    }
 }
 
 /// Show the `block::Unknown` fields
@@ -159,14 +212,66 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64> {
     Ok(samples as f64 / sample_rate as f64)
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
-    let duration = calc_duration_seconds(samples, sample_rate)?;
-    let hours = (duration / 3600.0) as u32;
-    let minutes = ((duration % 3600.0) / 60.0) as u32;
-    let seconds = (duration % 60.0) as u32;
+    Ok(format_duration(calc_duration_seconds(samples, sample_rate)?))
+}
+
+/// Format a duration given in seconds as `mm:ss` or `hh:mm:ss` (zero-padded).
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn format_duration(secs: f64) -> String {
+    let hours = (secs / 3600.0) as u32;
+    let minutes = ((secs % 3600.0) / 60.0) as u32;
+    let seconds = (secs % 60.0) as u32;
     if hours > 0 {
-        return Ok(format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}"));
+        format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}")
+    } else {
+        format!("{minutes:0>2}:{seconds:0>2}")
     }
-    Ok(format!("{minutes:0>2}:{seconds:0>2}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- calc_bitrate_kbps ---
+
+    #[test]
+    fn test_calc_bitrate_kbps_normal() {
+        // 10_000_000 bytes (SI MB) × 8 bits / 100 s / 1_000 = 800 kbps
+        assert_eq!(calc_bitrate_kbps(10_000_000, 100.0), 800);
+    }
+
+    #[test]
+    fn test_calc_bitrate_kbps_zero_duration() {
+        assert_eq!(calc_bitrate_kbps(10_000_000, 0.0), 0);
+    }
+
+    // --- calc_duration_seconds ---
+
+    #[test]
+    fn test_calc_duration_seconds_normal() {
+        let result = calc_duration_seconds(44100, 44100).unwrap();
+        assert!((result - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_calc_duration_seconds_zero_sample_rate() {
+        assert!(calc_duration_seconds(44100, 0).is_err());
+    }
+
+    // --- calc_duration_string ---
+
+    #[test]
+    fn test_calc_duration_string_minutes() {
+        // 2 minutes exactly → "02:00"
+        let result = calc_duration_string(44100 * 120, 44100).unwrap();
+        assert_eq!(result, "02:00");
+    }
+
+    #[test]
+    fn test_calc_duration_string_hours() {
+        // 1 hour, 1 minute, 1 second = 3661 s → "01:01:01"
+        let result = calc_duration_string(44100 * 3661, 44100).unwrap();
+        assert_eq!(result, "01:01:01");
+    }
 }
