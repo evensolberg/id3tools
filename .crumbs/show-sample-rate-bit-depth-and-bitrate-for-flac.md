@@ -1,7 +1,7 @@
 ---
 id: id3-a8o
 title: Show sample rate, bit depth and bitrate for FLAC
-status: in_progress
+status: closed
 type: feature
 priority: 2
 tags: []
