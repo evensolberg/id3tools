@@ -21,6 +21,7 @@ use metaflac::Tag;
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     let tags = Tag::read_from_path(filename)?;
+    let file_size = std::fs::metadata(filename)?.len();
 
     // Placeholder for duration
     let mut duration = String::new();
@@ -30,6 +31,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
         match block {
             metaflac::Block::StreamInfo(si) => {
                 if show_detail {
+                    show_audio_info(si, file_size)?;
                     show_streaminfo(si);
                 }
                 duration = calc_duration_string(si.total_samples, si.sample_rate)?;
@@ -72,6 +74,40 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
 
     // Return safely
     Ok(())
+}
+
+/// Show a user-friendly "Audio Info:" summary block.
+///
+/// Surfaces channels, sample rate, bit depth, encoded bitrate, and duration in
+/// one place. Only called when `--show-detail` is active; appears before the raw
+/// "Stream Info:" dump so the output mirrors the FLAC block order conceptually.
+fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
+    let duration_secs = calc_duration_seconds(si.total_samples, si.sample_rate)?;
+    let duration_str = calc_duration_string(si.total_samples, si.sample_rate)?;
+    let bitrate = calc_bitrate_kbps(file_size, duration_secs);
+
+    println!("  Audio Info:");
+    println!("    Channels    = {}", si.num_channels);
+    println!("    Sample Rate = {} Hz", si.sample_rate);
+    println!("    Bit Depth   = {} bits", si.bits_per_sample);
+    println!("    Bitrate     = {} kbps", bitrate);
+    println!("    Duration    = {duration_str}");
+    Ok(())
+}
+
+/// Compute the encoded bitrate in kbps from file size and duration.
+///
+/// Returns 0 if `duration_secs` is zero or negative to avoid division by zero.
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
+fn calc_bitrate_kbps(file_size: u64, duration_secs: f64) -> u32 {
+    if duration_secs <= 0.0 {
+        return 0;
+    }
+    (file_size as f64 * 8.0 / duration_secs / 1000.0) as u32
 }
 
 /// Show the `block::StreamInfo` fields
@@ -140,7 +176,9 @@ fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: b
             println!("    {key} = {value}");
         }
     }
-    println!("    Duration = {duration} mm:ss");
+    if !show_detail {
+        println!("    Duration = {duration} mm:ss");
+    }
 }
 
 /// Show the `block::Unknown` fields
@@ -169,4 +207,51 @@ fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
         return Ok(format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}"));
     }
     Ok(format!("{minutes:0>2}:{seconds:0>2}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- calc_bitrate_kbps ---
+
+    #[test]
+    fn test_calc_bitrate_kbps_normal() {
+        // 10_000_000 bytes (SI MB) × 8 bits / 100 s / 1_000 = 800 kbps
+        assert_eq!(calc_bitrate_kbps(10_000_000, 100.0), 800);
+    }
+
+    #[test]
+    fn test_calc_bitrate_kbps_zero_duration() {
+        assert_eq!(calc_bitrate_kbps(10_000_000, 0.0), 0);
+    }
+
+    // --- calc_duration_seconds ---
+
+    #[test]
+    fn test_calc_duration_seconds_normal() {
+        let result = calc_duration_seconds(44100, 44100).unwrap();
+        assert!((result - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_calc_duration_seconds_zero_sample_rate() {
+        assert!(calc_duration_seconds(44100, 0).is_err());
+    }
+
+    // --- calc_duration_string ---
+
+    #[test]
+    fn test_calc_duration_string_minutes() {
+        // 2 minutes exactly → "02:00"
+        let result = calc_duration_string(44100 * 120, 44100).unwrap();
+        assert_eq!(result, "02:00");
+    }
+
+    #[test]
+    fn test_calc_duration_string_hours() {
+        // 1 hour, 1 minute, 1 second = 3661 s → "01:01:01"
+        let result = calc_duration_string(44100 * 3661, 44100).unwrap();
+        assert_eq!(result, "01:01:01");
+    }
 }
