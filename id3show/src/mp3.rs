@@ -76,19 +76,19 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     for item in tag.frames() {
         match item.content() {
             Content::Text(t) => {
-                println!("  {} = {t} (Text)", item.name());
+                println!("  {}: {t} (Text)", item.name());
             }
             Content::ExtendedText(et) => {
-                println!("  {} = {et} (Extended Text)", item.name());
+                println!("  {}: {et} (Extended Text)", item.name());
             }
             Content::Link(l) => {
-                println!("  {} = {l} (Link)", item.name());
+                println!("  {}: {l} (Link)", item.name());
             }
             Content::ExtendedLink(el) => {
-                println!("  {} = {el} (Extended Link)", item.name());
+                println!("  {}: {el} (Extended Link)", item.name());
             }
             Content::Comment(co) => {
-                println!("  {} = {co} (Comment)", item.name());
+                println!("  {}: {co} (Comment)", item.name());
             }
             Content::Popularimeter(pm) => {
                 if show_detail {
@@ -137,7 +137,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     }
 
     if !show_detail {
-        println!("  Duration = {duration_string} (Calc)");
+        println!("  Duration: {duration_string} (Calc)");
     }
 
     // return safely

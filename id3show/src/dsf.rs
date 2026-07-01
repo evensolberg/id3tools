@@ -20,7 +20,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     } else if let Some(tag) = DsfFile::open(path)?.id3_tag().clone() {
         log::debug!("Tag: {tag:?}");
         for frame in tag.frames() {
-            println!("  {} = {}", frame.id(), frame.content());
+            println!("  {}: {}", frame.id(), frame.content());
         }
     } else {
         bail!("Unable to read DSF file {filename}");
