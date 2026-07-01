@@ -21,7 +21,6 @@ use metaflac::Tag;
 /// `flac::process("somefile.flac", &my_tags, &my_config)?;`
 pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
     let tags = Tag::read_from_path(filename)?;
-    let file_size = std::fs::metadata(filename)?.len();
 
     // Placeholder for duration
     let mut duration = String::new();
@@ -31,8 +30,14 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
         match block {
             metaflac::Block::StreamInfo(si) => {
                 if show_detail {
-                    show_audio_info(si, file_size)?;
+                    // Fetch file size here — only needed for the bitrate calculation in
+                    // show_audio_info, so keep it out of the non-detail path.
+                    let file_size = std::fs::metadata(filename)?.len();
+                    // Attempt the user-friendly summary first; keep the raw dump visible
+                    // even if the summary fails (e.g. corrupt file with sample_rate == 0).
+                    let audio_result = show_audio_info(si, file_size);
                     show_streaminfo(si);
+                    audio_result?;
                 }
                 duration = calc_duration_string(si.total_samples, si.sample_rate)?;
             }
@@ -95,13 +100,20 @@ fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
     Ok(())
 }
 
-/// Compute the encoded bitrate in kbps from file size and duration.
+/// Compute the container bitrate in kbps from the on-disk file size and duration.
+///
+/// **Note:** `file_size` is the total bytes on disk, which includes all FLAC metadata
+/// blocks (Vorbis Comments, embedded artwork, SeekTable, Padding). The returned value
+/// is therefore the *container* bitrate, not the audio-stream-only bitrate. For files
+/// with large embedded artwork the figure will be noticeably higher than the pure audio
+/// bitrate; this is an accepted trade-off of using file size rather than parsing each
+/// block's audio payload.
 ///
 /// Returns 0 if `duration_secs` is zero or negative to avoid division by zero.
 #[allow(
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::cast_possible_truncation
+    clippy::cast_precision_loss, // u64 → f64: files > 2^53 bytes (~8 PB) lose low bits; acceptable for bitrate estimation
+    clippy::cast_sign_loss,      // f64 → u32: f64 is a signed type; the guard above ensures a non-negative value
+    clippy::cast_possible_truncation // f64 → u32: sub-kbps remainder is intentionally discarded
 )]
 fn calc_bitrate_kbps(file_size: u64, duration_secs: f64) -> u32 {
     if duration_secs <= 0.0 {
@@ -176,6 +188,8 @@ fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: b
             println!("    {key} = {value}");
         }
     }
+    // In detail mode, Duration is already printed inside the "Audio Info:" block
+    // produced by show_audio_info; suppress it here to avoid duplication.
     if !show_detail {
         println!("    Duration = {duration} mm:ss");
     }
