@@ -67,7 +67,9 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                 }
             }
             metaflac::Block::VorbisComment(vc) => {
-                show_vorbis_comment(vc, &duration, show_detail);
+                // Duration is shown in the Audio Info block in detail mode; print
+                // it here only in non-detail mode to avoid duplication.
+                show_vorbis_comment(vc, &duration, show_detail, !show_detail);
             }
             metaflac::Block::Unknown(uk) => {
                 if show_detail {
@@ -88,7 +90,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
 /// "Stream Info:" dump so the output mirrors the FLAC block order conceptually.
 fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
     let duration_secs = calc_duration_seconds(si.total_samples, si.sample_rate)?;
-    let duration_str = calc_duration_string(si.total_samples, si.sample_rate)?;
+    let duration_str = format_duration(duration_secs);
     let bitrate = calc_bitrate_kbps(file_size, duration_secs);
 
     println!("  Audio Info:");
@@ -178,7 +180,7 @@ fn show_seektable(st: &block::SeekTable) {
 }
 
 /// Show the `block::VorbisComment` fields
-fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool) {
+fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool, show_duration: bool) {
     println!("  Vorbis Comments:");
     if show_detail {
         println!("    Vendor: {}", vc.vendor_string);
@@ -188,9 +190,7 @@ fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: b
             println!("    {key} = {value}");
         }
     }
-    // In detail mode, Duration is already printed inside the "Audio Info:" block
-    // produced by show_audio_info; suppress it here to avoid duplication.
-    if !show_detail {
+    if show_duration {
         println!("    Duration = {duration} mm:ss");
     }
 }
@@ -211,16 +211,21 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64> {
     Ok(samples as f64 / sample_rate as f64)
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
-    let duration = calc_duration_seconds(samples, sample_rate)?;
-    let hours = (duration / 3600.0) as u32;
-    let minutes = ((duration % 3600.0) / 60.0) as u32;
-    let seconds = (duration % 60.0) as u32;
+    Ok(format_duration(calc_duration_seconds(samples, sample_rate)?))
+}
+
+/// Format a duration given in seconds as `mm:ss` or `hh:mm:ss` (zero-padded).
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn format_duration(secs: f64) -> String {
+    let hours = (secs / 3600.0) as u32;
+    let minutes = ((secs % 3600.0) / 60.0) as u32;
+    let seconds = (secs % 60.0) as u32;
     if hours > 0 {
-        return Ok(format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}"));
+        format!("{hours:0>2}:{minutes:0>2}:{seconds:0>2}")
+    } else {
+        format!("{minutes:0>2}:{seconds:0>2}")
     }
-    Ok(format!("{minutes:0>2}:{seconds:0>2}"))
 }
 
 #[cfg(test)]
