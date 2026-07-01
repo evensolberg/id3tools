@@ -69,7 +69,8 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
             metaflac::Block::VorbisComment(vc) => {
                 // Duration is shown in the Audio Info block in detail mode; print
                 // it here only in non-detail mode to avoid duplication.
-                show_vorbis_comment(vc, &duration, show_detail, !show_detail);
+                let show_duration = !show_detail;
+                show_vorbis_comment(vc, &duration, show_detail, show_duration);
             }
             metaflac::Block::Unknown(uk) => {
                 if show_detail {

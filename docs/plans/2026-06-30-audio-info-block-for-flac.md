@@ -16,7 +16,7 @@ synopsis: >
   channel count, and duration in one place, derived from metaflac StreamInfo and file size.
 status: active
 type: plan
-revision: 2
+revision: 3
 review_date: 2026-06-30
 reviewed_by: []
 completed_date:
@@ -35,6 +35,14 @@ revision_history:
       is wrong for tracks longer than 59:59. Clarify 10 MB = 10_000_000 bytes in test
       arithmetic. Add calc_duration_string test cases (hour-boundary logic is untested).
       Add Notes section flagging the pre-existing mm:ss suffix issue in non-detail mode.
+  - revision: 3
+    date: 2026-06-30
+    author: Claude
+    notes: >
+      Update decision table to reflect that the mm:ss suffix was removed in this PR
+      (not deferred). Update Notes section to describe what was actually done rather
+      than flagging a separate clean-up task. Update show_vorbis_comment call site to
+      use a named local (show_duration) instead of inline !show_detail.
 ---
 
 # Plan: Show Audio Info for FLAC (crumb id3-a8o)
@@ -62,7 +70,7 @@ Scope: FLAC only. Other formats are follow-up crumbs.
 | Block name | `Audio Info:` |
 | Block position | Before `Vorbis Comments:` (mirrors FLAC block order) |
 | Fields | Channels, Sample Rate, Bit Depth, Bitrate, Duration |
-| Duration in non-detail | Keep as-is (still shown at bottom of Vorbis Comments) |
+| Duration in non-detail | Shown in Vorbis Comments without any suffix (pre-existing `mm:ss` suffix removed as part of this change) |
 | Duration in detail | Shown inside `Audio Info:`, NOT repeated in Vorbis Comments |
 
 ---
@@ -263,10 +271,10 @@ some-track.flac
 
 ## Notes
 
-### Pre-existing `mm:ss` suffix in non-detail mode
+### `mm:ss` suffix removal in non-detail mode
 
-`show_vorbis_comment` currently unconditionally prints `"    Duration = {duration} mm:ss"`.
+The pre-existing `show_vorbis_comment` unconditionally printed `"    Duration = {duration} mm:ss"`.
 For tracks longer than 59:59, `calc_duration_string` returns `"hh:mm:ss"` format, making the
-`mm:ss` label wrong. This plan does not fix that path (scope is detail mode only), but the
-label is intentionally omitted from the new `show_audio_info` output. Fixing `show_vorbis_comment`
-is a separate clean-up task.
+`mm:ss` label wrong. This was fixed as part of this PR: the suffix is now omitted entirely, and
+Duration is printed only when `show_duration` is true (i.e. in non-detail mode). In detail mode,
+Duration appears in the `Audio Info:` block instead.
