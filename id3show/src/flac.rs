@@ -95,11 +95,11 @@ fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
     let bitrate = calc_bitrate_kbps(file_size, duration_secs);
 
     println!("  Audio Info:");
-    println!("    Channels    = {}", si.num_channels);
-    println!("    Sample Rate = {} Hz", si.sample_rate);
-    println!("    Bit Depth   = {} bits", si.bits_per_sample);
-    println!("    Bitrate     = {} kbps", bitrate);
-    println!("    Duration    = {duration_str}");
+    println!("    Channels: {}", si.num_channels);
+    println!("    Sample Rate: {} Hz", si.sample_rate);
+    println!("    Bit Depth: {} bits", si.bits_per_sample);
+    println!("    Bitrate: {} kbps", bitrate);
+    println!("    Duration: {duration_str}");
     Ok(())
 }
 
@@ -128,14 +128,14 @@ fn calc_bitrate_kbps(file_size: u64, duration_secs: f64) -> u32 {
 /// Show the `block::StreamInfo` fields
 fn show_streaminfo(si: &block::StreamInfo) {
     println!("  Stream Info:");
-    println!("    Min Block Size: {}", si.min_block_size);
-    println!("    Max Block Size: {}", si.max_block_size);
-    println!("    Min Frame Size: {}", si.min_frame_size);
-    println!("    Max Frame Size: {}", si.max_frame_size);
-    println!("    Sample Rate: {}", si.sample_rate);
+    println!("    Min Block Size: {} samples", si.min_block_size);
+    println!("    Max Block Size: {} samples", si.max_block_size);
+    println!("    Min Frame Size: {} bytes", si.min_frame_size);
+    println!("    Max Frame Size: {} bytes", si.max_frame_size);
+    println!("    Sample Rate: {} Hz", si.sample_rate);
     println!("    Channels: {}", si.num_channels);
-    println!("    Bits Per Sample: {}", si.bits_per_sample);
-    println!("    Total Samples: {}", si.total_samples);
+    println!("    Bits Per Sample: {} bits", si.bits_per_sample);
+    println!("    Total Samples: {} samples", si.total_samples);
     println!("    MD5: {:?}", si.md5);
 }
 
@@ -158,7 +158,7 @@ fn show_cuesheet(cs: &block::CueSheet) {
 /// Show the `block::Padding` fields
 fn show_padding(pad: u32) {
     println!("  Padding:");
-    println!("    Padding Size: {pad}");
+    println!("    Padding Size: {pad} bytes");
 }
 
 /// Show the `block::Picture` fields
@@ -167,11 +167,11 @@ fn show_picture(pic: &block::Picture) {
     println!("    Picture Type: {:?}", pic.picture_type);
     println!("    MIME Type: {}", pic.mime_type);
     println!("    Description: {}", pic.description);
-    println!("    Width: {}", pic.width);
-    println!("    Height: {}", pic.height);
-    println!("    Color Depth: {}", pic.depth);
-    println!("    Color Count: {}", pic.num_colors);
-    println!("    Picture size: {} bytes", pic.data.len());
+    println!("    Width: {} px", pic.width);
+    println!("    Height: {} px", pic.height);
+    println!("    Color Depth: {} bits", pic.depth);
+    println!("    Color Count: {} colors", pic.num_colors);
+    println!("    Picture Size: {} bytes", pic.data.len());
 }
 
 /// Show the `block::SeekTable` fields
@@ -181,18 +181,23 @@ fn show_seektable(st: &block::SeekTable) {
 }
 
 /// Show the `block::VorbisComment` fields
-fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: bool, show_duration: bool) {
+fn show_vorbis_comment(
+    vc: &block::VorbisComment,
+    duration: &str,
+    show_detail: bool,
+    show_duration: bool,
+) {
     println!("  Vorbis Comments:");
     if show_detail {
         println!("    Vendor: {}", vc.vendor_string);
     }
     for (key, values) in &vc.comments {
         for value in values {
-            println!("    {key} = {value}");
+            println!("    {key}: {value}");
         }
     }
     if show_duration {
-        println!("    Duration = {duration}");
+        println!("    Duration: {duration}");
     }
 }
 

@@ -33,10 +33,10 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                     if item.get_type() == ItemType::Locator {
                         if show_detail {
                             println!("  Locator:");
-                            println!("    {} = {s}", item.key);
+                            println!("    {}: {s}", item.key);
                         }
                     } else {
-                        println!("  {} = {s}", item.key);
+                        println!("  {}: {s}", item.key);
                     }
                 }
             }
@@ -44,7 +44,7 @@ pub fn show_metadata(filename: &str, show_detail: bool) -> Result<()> {
                 if show_detail {
                     let bytes: Vec<u8> = item.into();
                     println!("  Binary:");
-                    println!("    {} = {} bytes", item.key, bytes.len());
+                    println!("    {}: {} bytes", item.key, bytes.len());
                 }
             }
         }

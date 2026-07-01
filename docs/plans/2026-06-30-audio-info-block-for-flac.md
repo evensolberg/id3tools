@@ -128,11 +128,11 @@ fn show_audio_info(si: &block::StreamInfo, file_size: u64) -> Result<()> {
     let bitrate       = calc_bitrate_kbps(file_size, duration_secs);
 
     println!("  Audio Info:");
-    println!("    Channels    = {}", si.num_channels);
-    println!("    Sample Rate = {} Hz", si.sample_rate);
-    println!("    Bit Depth   = {} bits", si.bits_per_sample);
-    println!("    Bitrate     = {} kbps", bitrate);
-    println!("    Duration    = {duration_str}");
+    println!("    Channels: {}", si.num_channels);
+    println!("    Sample Rate: {} Hz", si.sample_rate);
+    println!("    Bit Depth: {} bits", si.bits_per_sample);
+    println!("    Bitrate: {} kbps", bitrate);
+    println!("    Duration: {duration_str}");
     Ok(())
 }
 ```
@@ -165,8 +165,8 @@ metaflac::Block::StreamInfo(si) => {
 Change the trailing `println!` in `show_vorbis_comment` from unconditional to:
 
 ```rust
-if !show_detail {
-    println!("    Duration = {duration} mm:ss");
+if show_duration {
+    println!("    Duration: {duration}");
 }
 ```
 
@@ -239,17 +239,17 @@ fn test_calc_duration_string_hours() {
 ```
 some-track.flac
   Audio Info:
-    Channels    = 2
-    Sample Rate = 44100 Hz
-    Bit Depth   = 16 bits
-    Bitrate     = 812 kbps
-    Duration    = 05:23
+    Channels: 2
+    Sample Rate: 44100 Hz
+    Bit Depth: 16 bits
+    Bitrate: 812 kbps
+    Duration: 05:23
   Stream Info:
     Min Block Size: 4096
     ...
   Vorbis Comments:
-    ARTIST = Toto
-    ALBUM  = Toto IV
+    ARTIST: Toto
+    ALBUM: Toto IV
     ...
     (Duration no longer repeated here)
 ```
