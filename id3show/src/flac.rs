@@ -191,7 +191,7 @@ fn show_vorbis_comment(vc: &block::VorbisComment, duration: &str, show_detail: b
         }
     }
     if show_duration {
-        println!("    Duration = {duration} mm:ss");
+        println!("    Duration = {duration}");
     }
 }
 

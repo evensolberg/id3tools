@@ -67,9 +67,12 @@ Scope: FLAC only. Other formats are follow-up crumbs.
 
 ---
 
-## Only File Modified
+## Files Modified
 
-**`id3show/src/flac.rs`**
+| File | Purpose |
+|---|---|
+| `id3show/src/flac.rs` | All feature code and unit tests |
+| `.gitignore` | Add `.crumbs/index.csv` (regenerated on every write; should not be tracked) |
 
 ---
 
