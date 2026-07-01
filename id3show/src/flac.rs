@@ -128,14 +128,14 @@ fn calc_bitrate_kbps(file_size: u64, duration_secs: f64) -> u32 {
 /// Show the `block::StreamInfo` fields
 fn show_streaminfo(si: &block::StreamInfo) {
     println!("  Stream Info:");
-    println!("    Min Block Size: {}", si.min_block_size);
-    println!("    Max Block Size: {}", si.max_block_size);
+    println!("    Min Block Size: {} samples", si.min_block_size);
+    println!("    Max Block Size: {} samples", si.max_block_size);
     println!("    Min Frame Size: {} bytes", si.min_frame_size);
     println!("    Max Frame Size: {} bytes", si.max_frame_size);
     println!("    Sample Rate: {} Hz", si.sample_rate);
     println!("    Channels: {}", si.num_channels);
-    println!("    Bits Per Sample: {}", si.bits_per_sample);
-    println!("    Total Samples: {}", si.total_samples);
+    println!("    Bits Per Sample: {} bits", si.bits_per_sample);
+    println!("    Total Samples: {} samples", si.total_samples);
     println!("    MD5: {:?}", si.md5);
 }
 
@@ -170,7 +170,7 @@ fn show_picture(pic: &block::Picture) {
     println!("    Width: {} px", pic.width);
     println!("    Height: {} px", pic.height);
     println!("    Color Depth: {} bits", pic.depth);
-    println!("    Color Count: {}", pic.num_colors);
+    println!("    Color Count: {} colors", pic.num_colors);
     println!("    Picture Size: {} bytes", pic.data.len());
 }
 
@@ -218,10 +218,7 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64> {
 }
 
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
-    Ok(format_duration(calc_duration_seconds(
-        samples,
-        sample_rate,
-    )?))
+    Ok(format_duration(calc_duration_seconds(samples, sample_rate)?))
 }
 
 /// Format a duration given in seconds as `mm:ss` or `hh:mm:ss` (zero-padded).
