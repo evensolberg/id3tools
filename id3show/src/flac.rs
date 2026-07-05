@@ -218,7 +218,10 @@ fn calc_duration_seconds(samples: u64, sample_rate: u32) -> Result<f64> {
 }
 
 fn calc_duration_string(samples: u64, sample_rate: u32) -> Result<String> {
-    Ok(format_duration(calc_duration_seconds(samples, sample_rate)?))
+    Ok(format_duration(calc_duration_seconds(
+        samples,
+        sample_rate,
+    )?))
 }
 
 /// Format a duration given in seconds as `mm:ss` or `hh:mm:ss` (zero-padded).

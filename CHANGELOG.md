@@ -6,6 +6,36 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- Remove unnecessary trailing commas in log macros in dsf.rs (#50)
+- Address code review findings on Audio Info block
+- Remove mm:ss suffix from non-detail Duration line
+- Standardise output to colon separator with units
+- Complete unit annotations and update stale plan doc
+- Standardise log::trace separator in mp4 handler
+
+### Documentation
+
+- Update plan doc and clarify show_duration call
+
+### Features
+
+- Add Audio Info block for FLAC (crumb id3-a8o)
+
+### Miscellaneous Tasks
+
+- Bump actions/checkout (#47)
+- Bump the rust-deps group across 1 directory with 5 updates (#51)
+- Close crumb id3-a8o (FLAC Audio Info block)
+- Bump version to 0.3.0
+
+### Refactor
+
+- Simplify duration helpers and decouple vorbis fn
+
+## [4.6.2] - 2026-06-09
+
+### Bug Fixes
+
 - Don't glob-expand literal paths containing brackets
 - Harden expand_file_args; bump common to 0.1.7
 - Fix misleading warn msg; add shared TempPathGuard
@@ -34,6 +64,7 @@ All notable changes to this project will be documented in this file.
 - Add anyhow 1.x to workspace dependencies
 - Close crumb id3-chf — anyhow migration complete
 - Restore consistent front-matter schema on id3-chf
+- Cleanup
 
 ### Refactor
 

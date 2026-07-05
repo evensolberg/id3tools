@@ -308,6 +308,8 @@ pub fn need_split(value: &str) -> bool {
 /// - Returns an error if the split pattern can't be found.
 pub fn split_val(value: &str) -> Result<(u16, u16)> {
     let split_str: Vec<&str>;
+
+    // TODO: What if the value contains both "of" and "/"? Which one should we use? For now, we'll just use "of" if it's present.
     if value.contains("of") {
         split_str = value.split("of").collect();
     } else if value.contains('/') {
@@ -467,12 +469,11 @@ pub fn path_to_string(p: std::path::PathBuf) -> String {
     p.into_os_string().into_string().unwrap_or_default()
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//// TESTS
-////////////////////////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------------
+// TESTS
+//------------------------------------------------------------------------------------
 
 #[cfg(test)]
-///
 mod tests {
     use super::*;
 
@@ -535,7 +536,7 @@ mod tests {
     }
 
     #[test]
-    ///
+    /// Tests the `file_rename_pattern_not_ok` function to ensure it validates patterns correctly.
     fn test_file_rename_pattern_validate() {
         assert!(!file_rename_pattern_not_ok("%dn-%tn %tt"));
         assert!(!file_rename_pattern_not_ok("%track-number %track-title"));
@@ -547,7 +548,7 @@ mod tests {
     }
 
     #[test]
-    ///
+    /// Tests the `roman_to_decimal` function to ensure it converts Roman numerals to decimal correctly.
     fn test_roman_to_decimal() {
         assert_eq!(roman_to_decimal("I"), 1);
         assert_eq!(roman_to_decimal("i"), 1);
@@ -599,7 +600,7 @@ mod tests {
     }
 
     #[test]
-    ///
+    /// Tests whether the `split_val` function does what it says on the tin
     fn test_split_val() {
         assert!(split_val("1 of 2").is_ok());
         assert!(split_val("1of2").is_ok());
@@ -617,7 +618,7 @@ mod tests {
     }
 
     #[test]
-    ///
+    /// Tests the `count_files` function to ensure it counts files correctly based on extension.
     fn test_count_files() {
         // Skip if testdata is not available (e.g. in CI without LFS files)
         if !Path::new("../testdata/sample.ape").exists() {
@@ -668,7 +669,7 @@ mod tests {
     }
 
     #[test]
-    ///
+    /// Tests the `thousand_separated` function to ensure it formats numbers correctly with thousand separators.
     fn test_thousand_separated() {
         assert_eq!(thousand_separated(10), "10".to_string());
         assert_eq!(thousand_separated(1000), "1,000".to_string());
@@ -677,6 +678,7 @@ mod tests {
     }
 
     #[test]
+    /// Tests the `expand_file_args` function to ensure it expands glob patterns correctly.
     fn test_expand_file_args() {
         // Non-glob args are passed through as-is
         let args = vec!["file1.txt", "file2.txt"];
@@ -817,6 +819,7 @@ mod tests {
         let pid = std::process::id();
         let dir = std::env::temp_dir();
         let link_path = dir.join(format!("Song [Demo] {pid}.mp3"));
+
         // Ensure the target path definitely does not exist so the symlink is
         // truly dangling (a pre-existing target would make it non-dangling and
         // invalidate what the test is asserting).
@@ -826,12 +829,14 @@ mod tests {
         // Remove any stale link from a previous run, then create a fresh dangling symlink.
         let _ = std::fs::remove_file(&link_path);
         symlink(&missing_target, &link_path).expect("create dangling symlink");
+
         // `expand_file_args` only accepts `&str`, so skip the test if the temp
         // directory path is not valid UTF-8 rather than panicking.
         let Some(link_str_owned) = link_path.to_str().map(str::to_owned) else {
             let _ = std::fs::remove_file(&link_path);
             return;
         };
+        
         // Guard removes the symlink even if the assertion or expand_file_args panics.
         let _guard = TempPathGuard(link_path);
         let result = expand_file_args(std::iter::once(link_str_owned.as_str()));

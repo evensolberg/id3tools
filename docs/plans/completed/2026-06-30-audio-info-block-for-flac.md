@@ -14,12 +14,12 @@ synopsis: >
   Implementation plan for adding a user-friendly "Audio Info:" block to id3show's FLAC
   output when --show-detail is passed. Surfaces sample rate, bit depth, encoded bitrate,
   channel count, and duration in one place, derived from metaflac StreamInfo and file size.
-status: active
+status: completed
 type: plan
 revision: 3
 review_date: 2026-06-30
 reviewed_by: []
-completed_date:
+completed_date: 2026-06-30
 comments:
 revision_history:
   - revision: 1
