@@ -1,822 +1,580 @@
-use std::fmt::{self, Display, Formatter};
-use std::str::FromStr;
+use strum::{Display, EnumString, FromRepr};
 
-use std::convert::TryFrom;
-
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd)]
+/// ID3v1 genre list (codes 0–191).
+///
+/// Variants map 1-to-1 with their numeric discriminant so that
+/// `Genre::try_from(n)` and `genre as u32` are both O(1) operations.
+///
+/// `Display` / `FromStr` are derived via `strum`; the `to_string` attribute
+/// sets the canonical display string and `serialize` lists accepted parse
+/// aliases.
+#[derive(
+    Default,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Ord,
+    PartialOrd,
+    Display,
+    EnumString,
+    FromRepr,
+)]
+#[repr(u32)]
 pub enum Genre {
-    Blues = 0, // 0
+    #[strum(to_string = "Blues")]
+    Blues = 0,
+    #[strum(to_string = "Classic Rock")]
     ClassicRock = 1,
+    #[strum(to_string = "Country")]
     Country = 2,
+    #[strum(to_string = "Dance")]
     Dance = 3,
+    #[strum(to_string = "Disco")]
     Disco = 4,
+    #[strum(to_string = "Funk")]
     Funk = 5,
+    #[strum(to_string = "Grunge")]
     Grunge = 6,
+    #[strum(to_string = "Hip-Hop")]
     HipHop = 7,
+    #[strum(to_string = "Jazz")]
     Jazz = 8,
+    #[strum(to_string = "Metal")]
     Metal = 9,
+    #[strum(to_string = "New Age")]
     NewAge = 10,
+    #[strum(to_string = "Oldies")]
     Oldies = 11,
 
     #[default]
+    #[strum(to_string = "Other")]
     Other = 12,
 
+    #[strum(to_string = "Pop")]
     Pop = 13,
+    #[strum(to_string = "Rhythm and Blues", serialize = "Rhythm & Blues")]
     RhythmBlues = 14,
+    #[strum(to_string = "Rap")]
     Rap = 15,
+    #[strum(to_string = "Reggae")]
     Reggae = 16,
+    #[strum(to_string = "Rock")]
     Rock = 17,
+    #[strum(to_string = "Techno")]
     Techno = 18,
+    #[strum(to_string = "Industrial")]
     Industrial = 19,
+    #[strum(to_string = "Alternative")]
     Alternative = 20,
+    #[strum(to_string = "Ska")]
     Ska = 21,
+    #[strum(to_string = "Death Metal")]
     DeathMetal = 22,
+    #[strum(to_string = "Pranks")]
     Pranks = 23,
+    #[strum(to_string = "Soundtrack")]
     Soundtrack = 24,
+    #[strum(to_string = "Euro-Techno")]
     EuroTechno = 25,
+    #[strum(to_string = "Ambient")]
     Ambient = 26,
+    #[strum(to_string = "Trip-Hop")]
     TripHop = 27,
+    #[strum(to_string = "Vocal")]
     Vocal = 28,
+    #[strum(to_string = "Jazz & Funk", serialize = "Jazz and Funk", serialize = "Jazz/Funk")]
     JazzFunk = 29,
+    #[strum(to_string = "Fusion")]
     Fusion = 30,
+    #[strum(to_string = "Trance")]
     Trance = 31,
+    #[strum(to_string = "Classical")]
     Classical = 32,
+    #[strum(to_string = "Instrumental")]
     Instrumental = 33,
+    #[strum(to_string = "Acid")]
     Acid = 34,
+    #[strum(to_string = "House")]
     House = 35,
+    #[strum(to_string = "Game")]
     Game = 36,
+    #[strum(to_string = "Sound Clip")]
     SoundClip = 37,
+    #[strum(to_string = "Gospel")]
     Gospel = 38,
+    #[strum(to_string = "Noise")]
     Noise = 39,
+    #[strum(to_string = "Alternative Rock")]
     AlternativeRock = 40,
+    #[strum(to_string = "Bass")]
     Bass = 41,
+    #[strum(to_string = "Soul")]
     Soul = 42,
+    #[strum(to_string = "Punk")]
     Punk = 43,
+    #[strum(to_string = "Space")]
     Space = 44,
+    #[strum(to_string = "Meditative")]
     Meditative = 45,
+    #[strum(to_string = "Instrumental Pop")]
     InstrumentalPop = 46,
+    #[strum(to_string = "Instrumental Rock")]
     InstrumentalRock = 47,
+    #[strum(to_string = "Ethnic")]
     Ethnic = 48,
+    #[strum(to_string = "Gothic")]
     Gothic = 49,
+    #[strum(to_string = "Darkwave")]
     Darkwave = 50,
+    #[strum(to_string = "Techno-Industrial")]
     TechnoIndustrial = 51,
+    #[strum(to_string = "Electronic")]
     Electronic = 52,
+    #[strum(to_string = "Pop-Folk")]
     PopFolk = 53,
+    #[strum(to_string = "Eurodance")]
     Eurodance = 54,
+    #[strum(to_string = "Dream")]
     Dream = 55,
+    #[strum(to_string = "Southern Rock")]
     SouthernRock = 56,
+    #[strum(to_string = "Comedy")]
     Comedy = 57,
+    #[strum(to_string = "Cult")]
     Cult = 58,
+    #[strum(to_string = "Gangsta")]
     Gangsta = 59,
+    #[strum(to_string = "Top 40")]
     Top40 = 60,
+    #[strum(to_string = "Christian Rap")]
     ChristianRap = 61,
+    #[strum(to_string = "Pop/Funk")]
     PopFunk = 62,
+    #[strum(to_string = "Jungle")]
     Jungle = 63,
+    #[strum(to_string = "Native US")]
     NativeUS = 64,
+    #[strum(to_string = "Cabaret")]
     Cabaret = 65,
+    #[strum(to_string = "New Wave")]
     NewWave = 66,
+    #[strum(to_string = "Psychedelic")]
     Psychedelic = 67,
+    #[strum(to_string = "Rave")]
     Rave = 68,
+    #[strum(to_string = "Show Tunes")]
     ShowTunes = 69,
+    #[strum(to_string = "Trailer")]
     Trailer = 70,
+    #[strum(to_string = "Lo-Fi")]
     LoFi = 71,
+    #[strum(to_string = "Tribal")]
     Tribal = 72,
+    #[strum(to_string = "Acid Punk")]
     AcidPunk = 73,
+    #[strum(to_string = "Acid Jazz")]
     AcidJazz = 74,
+    #[strum(to_string = "Polka")]
     Polka = 75,
+    #[strum(to_string = "Retro")]
     Retro = 76,
+    #[strum(to_string = "Musical")]
     Musical = 77,
+    #[strum(to_string = "Rock 'n' Roll", serialize = "Rock and Roll", serialize = "Rock & Roll")]
     RockNRoll = 78,
+    #[strum(to_string = "Hard Rock")]
     HardRock = 79,
+    #[strum(to_string = "Folk")]
     Folk = 80,
+    #[strum(to_string = "Folk Rock", serialize = "Folk-Rock")]
     FolkRock = 81,
+    #[strum(to_string = "National Folk")]
     NationalFolk = 82,
+    #[strum(to_string = "Swing")]
     Swing = 83,
+    #[strum(to_string = "Fast Fusion")]
     FastFusion = 84,
+    #[strum(to_string = "Bebop")]
     Bebop = 85,
+    #[strum(to_string = "Latin")]
     Latin = 86,
+    #[strum(to_string = "Revival")]
     Revival = 87,
+    #[strum(to_string = "Celtic")]
     Celtic = 88,
+    #[strum(to_string = "Bluegrass")]
     Bluegrass = 89,
+    #[strum(to_string = "Avantgarde")]
     Avantgarde = 90,
+    #[strum(to_string = "Gothic Rock")]
     GothicRock = 91,
+    #[strum(to_string = "Progressive Rock")]
     ProgressiveRock = 92,
+    #[strum(to_string = "Psychedelic Rock")]
     PsychedelicRock = 93,
+    #[strum(to_string = "Symphonic Rock")]
     SymphonicRock = 94,
+    #[strum(to_string = "Slow Rock")]
     SlowRock = 95,
+    #[strum(to_string = "Big Band")]
     BigBand = 96,
+    #[strum(to_string = "Chorus")]
     Chorus = 97,
+    #[strum(to_string = "Easy Listening")]
     EasyListening = 98,
+    #[strum(to_string = "Acoustic")]
     Acoustic = 99,
+    #[strum(to_string = "Humour", serialize = "Humor")]
     Humour = 100,
+    #[strum(to_string = "Speech")]
     Speech = 101,
+    #[strum(to_string = "Chanson")]
     Chanson = 102,
+    #[strum(to_string = "Opera")]
     Opera = 103,
+    #[strum(to_string = "Chamber Music")]
     ChamberMusic = 104,
+    #[strum(to_string = "Sonata")]
     Sonata = 105,
+    #[strum(to_string = "Symphony")]
     Symphony = 106,
+    #[strum(to_string = "Booty Bass")]
     BootyBass = 107,
+    #[strum(to_string = "Primus")]
     Primus = 108,
+    #[strum(to_string = "Porn Groove")]
     PornGroove = 109,
+    #[strum(to_string = "Satire")]
     Satire = 110,
+    #[strum(to_string = "Slow Jam")]
     SlowJam = 111,
+    #[strum(to_string = "Club")]
     Club = 112,
+    #[strum(to_string = "Tango")]
     Tango = 113,
+    #[strum(to_string = "Samba")]
     Samba = 114,
+    #[strum(to_string = "Folklore")]
     Folklore = 115,
+    #[strum(to_string = "Ballad")]
     Ballad = 116,
+    #[strum(to_string = "Power Ballad")]
     PowerBallad = 117,
+    #[strum(to_string = "Rhythmic Soul")]
     RhythmicSoul = 118,
+    #[strum(to_string = "Freestyle")]
     Freestyle = 119,
+    #[strum(to_string = "Duet")]
     Duet = 120,
+    #[strum(to_string = "Punk Rock")]
     PunkRock = 121,
+    #[strum(to_string = "Drum Solo")]
     DrumSolo = 122,
+    #[strum(to_string = "A Cappella")]
     ACappella = 123,
+    #[strum(to_string = "Euro House")]
     EuroHouse = 124,
+    #[strum(to_string = "Dancehall")]
     Dancehall = 125,
+    #[strum(to_string = "Goa")]
     Goa = 126,
+    #[strum(to_string = "Drum & Bass", serialize = "Drum 'n' Bass", serialize = "Drum and Bass")]
     DrumBass = 127,
+    #[strum(to_string = "Club House", serialize = "Club-House")]
     ClubHouse = 128,
+    #[strum(to_string = "Hardcore Techno")]
     HardcoreTechno = 129,
+    #[strum(to_string = "Terror")]
     Terror = 130,
+    #[strum(to_string = "Indie")]
     Indie = 131,
+    #[strum(to_string = "BritPop", serialize = "Brit Pop", serialize = "Brit-Pop")]
     BritPop = 132,
+    #[strum(to_string = "Negerpunk")]
     Negerpunk = 133,
+    #[strum(to_string = "Polsk Punk")]
     PolskPunk = 134,
+    #[strum(to_string = "Beat")]
     Beat = 135,
+    #[strum(to_string = "Christian Gangsta Rap")]
     ChristianGangstaRap = 136,
+    #[strum(to_string = "Heavy Metal")]
     HeavyMetal = 137,
+    #[strum(to_string = "Black Metal")]
     BlackMetal = 138,
+    #[strum(to_string = "Crossover")]
     Crossover = 139,
+    #[strum(to_string = "Contemporary Christian")]
     ContemporaryChristian = 140,
+    #[strum(to_string = "Christian Rock")]
     ChristianRock = 141,
+    #[strum(to_string = "Merengue")]
     Merengue = 142,
+    #[strum(to_string = "Salsa")]
     Salsa = 143,
+    #[strum(to_string = "Thrash Metal")]
     ThrashMetal = 144,
+    #[strum(to_string = "Anime")]
     Anime = 145,
+    #[strum(to_string = "Jpop")]
     Jpop = 146,
+    #[strum(to_string = "Synthpop")]
     Synthpop = 147,
+    #[strum(to_string = "Abstract")]
     Abstract = 148,
+    #[strum(to_string = "Art Rock")]
     ArtRock = 149,
+    #[strum(to_string = "Baroque")]
     Baroque = 150,
+    #[strum(to_string = "Bhangra")]
     Bhangra = 151,
+    #[strum(to_string = "Big Beat")]
     BigBeat = 152,
+    #[strum(to_string = "Breakbeat")]
     Breakbeat = 153,
+    #[strum(to_string = "Chillout")]
     Chillout = 154,
+    #[strum(to_string = "Downtempo")]
     Downtempo = 155,
+    #[strum(to_string = "Dub")]
     Dub = 156,
+    #[strum(to_string = "Electronic Body Music", serialize = "EBM")]
     ElectronicBodyMusic = 157,
+    #[strum(to_string = "Eclectic")]
     Eclectic = 158,
+    #[strum(to_string = "Electro")]
     Electro = 159,
+    #[strum(to_string = "Electroclash")]
     Electroclash = 160,
+    #[strum(to_string = "Emo")]
     Emo = 161,
+    #[strum(to_string = "Experimental")]
     Experimental = 162,
+    #[strum(to_string = "Garage")]
     Garage = 163,
+    #[strum(to_string = "Global")]
     Global = 164,
+    #[strum(to_string = "Intelligent Dance Music", serialize = "IDM")]
     IntelligentDanceMusic = 165,
+    #[strum(to_string = "Illbient")]
     Illbient = 166,
+    #[strum(to_string = "Industro-Goth")]
     IndustroGoth = 167,
+    #[strum(to_string = "Jam Band")]
     JamBand = 168,
+    #[strum(to_string = "Krautrock")]
     Krautrock = 169,
+    #[strum(to_string = "Leftfield")]
     Leftfield = 170,
+    #[strum(to_string = "Lounge")]
     Lounge = 171,
+    #[strum(to_string = "Math Rock")]
     MathRock = 172,
+    #[strum(to_string = "New Romantic")]
     NewRomantic = 173,
+    #[strum(to_string = "Nu Breakz")]
     NuBreakz = 174,
+    #[strum(to_string = "Post-Punk")]
     PostPunk = 175,
+    #[strum(to_string = "Post-Rock")]
     PostRock = 176,
+    #[strum(to_string = "Psytrance")]
     Psytrance = 177,
+    #[strum(to_string = "Shoegaze")]
     Shoegaze = 178,
+    #[strum(to_string = "Space Rock")]
     SpaceRock = 179,
+    #[strum(to_string = "Trop Rock")]
     TropRock = 180,
+    #[strum(to_string = "World Music")]
     WorldMusic = 181,
+    #[strum(to_string = "Neoclassical")]
     Neoclassical = 182,
+    #[strum(to_string = "Audiobook")]
     Audiobook = 183,
+    #[strum(to_string = "Audio Theatre")]
     AudioTheatre = 184,
+    #[strum(to_string = "Neue Deutche Welle")]
     NeueDeutcheWelle = 185,
+    #[strum(to_string = "Podcast")]
     Podcast = 186,
+    #[strum(to_string = "Indie-Rock")]
     IndieRock = 187,
+    #[strum(to_string = "G-Funk")]
     GFunk = 188,
+    #[strum(to_string = "Dubstep")]
     Dubstep = 189,
+    #[strum(to_string = "Garage Rock")]
     GarageRock = 190,
+    #[strum(to_string = "Psybient")]
     Psybient = 191,
-}
-
-impl Genre {
-    #[allow(dead_code)]
-    const fn default() -> Self {
-        Self::Other
-    }
-
-    #[allow(dead_code)]
-    const fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Display for Genre {
-    #[allow(clippy::too_many_lines)]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let disp = match self {
-            Self::Blues => "Blues",
-            Self::ClassicRock => "Classic Rock",
-            Self::Country => "Country",
-            Self::Dance => "Dance",
-            Self::Disco => "Disco",
-            Self::Funk => "Funk",
-            Self::Grunge => "Grunge",
-            Self::HipHop => "Hip-Hop",
-            Self::Jazz => "Jazz",
-            Self::Metal => "Metal",
-            Self::NewAge => "New Age",
-            Self::Oldies => "Oldies",
-            Self::Other => "Other",
-            Self::Pop => "Pop",
-            Self::RhythmBlues => "Rhythm and Blues",
-            Self::Rap => "Rap",
-            Self::Reggae => "Reggae",
-            Self::Rock => "Rock",
-            Self::Techno => "Techno",
-            Self::Industrial => "Industrial",
-            Self::Alternative => "Alternative",
-            Self::Ska => "Ska",
-            Self::DeathMetal => "Death Metal",
-            Self::Pranks => "Pranks",
-            Self::Soundtrack => "Soundtrack",
-            Self::EuroTechno => "Euro-Techno",
-            Self::Ambient => "Ambient",
-            Self::TripHop => "Trip-Hop",
-            Self::Vocal => "Vocal",
-            Self::JazzFunk => "Jazz & Funk",
-            Self::Fusion => "Fusion",
-            Self::Trance => "Trance",
-            Self::Classical => "Classical",
-            Self::Instrumental => "Instrumental",
-            Self::Acid => "Acid",
-            Self::House => "House",
-            Self::Game => "Game",
-            Self::SoundClip => "Sound Clip",
-            Self::Gospel => "Gospel",
-            Self::Noise => "Noise",
-            Self::AlternativeRock => "Alternative Rock",
-            Self::Bass => "Bass",
-            Self::Soul => "Soul",
-            Self::Punk => "Punk",
-            Self::Space => "Space",
-            Self::Meditative => "Meditative",
-            Self::InstrumentalPop => "Instrumental Pop",
-            Self::InstrumentalRock => "Instrumental Rock",
-            Self::Ethnic => "Ethnic",
-            Self::Gothic => "Gothic",
-            Self::Darkwave => "Darkwave",
-            Self::TechnoIndustrial => "Techno-Industrial",
-            Self::Electronic => "Electronic",
-            Self::PopFolk => "Pop-Folk",
-            Self::Eurodance => "Eurodance",
-            Self::Dream => "Dream",
-            Self::SouthernRock => "Southern Rock",
-            Self::Comedy => "Comedy",
-            Self::Cult => "Cult",
-            Self::Gangsta => "Gangsta",
-            Self::Top40 => "Top 40",
-            Self::ChristianRap => "Christian Rap",
-            Self::PopFunk => "Pop/Funk",
-            Self::Jungle => "Jungle",
-            Self::NativeUS => "Native US",
-            Self::Cabaret => "Cabaret",
-            Self::NewWave => "New Wave",
-            Self::Psychedelic => "Psychedelic",
-            Self::Rave => "Rave",
-            Self::ShowTunes => "Show Tunes",
-            Self::Trailer => "Trailer",
-            Self::LoFi => "Lo-Fi",
-            Self::Tribal => "Tribal",
-            Self::AcidPunk => "Acid Punk",
-            Self::AcidJazz => "Acid Jazz",
-            Self::Polka => "Polka",
-            Self::Retro => "Retro",
-            Self::Musical => "Musical",
-            Self::RockNRoll => "Rock 'n' Roll",
-            Self::HardRock => "Hard Rock",
-            Self::Folk => "Folk",
-            Self::FolkRock => "Folk Rock",
-            Self::NationalFolk => "National Folk",
-            Self::Swing => "Swing",
-            Self::FastFusion => "Fast Fusion",
-            Self::Bebop => "Bebop",
-            Self::Latin => "Latin",
-            Self::Revival => "Revival",
-            Self::Celtic => "Celtic",
-            Self::Bluegrass => "Bluegrass",
-            Self::Avantgarde => "Avantgarde",
-            Self::GothicRock => "Gothic Rock",
-            Self::ProgressiveRock => "Progressive Rock",
-            Self::PsychedelicRock => "Psychedelic Rock",
-            Self::SymphonicRock => "Symphonic Rock",
-            Self::SlowRock => "Slow Rock",
-            Self::BigBand => "Big Band",
-            Self::Chorus => "Chorus",
-            Self::EasyListening => "Easy Listening",
-            Self::Acoustic => "Acoustic",
-            Self::Humour => "Humour",
-            Self::Speech => "Speech",
-            Self::Chanson => "Chanson",
-            Self::Opera => "Opera",
-            Self::ChamberMusic => "Chamber Music",
-            Self::Sonata => "Sonata",
-            Self::Symphony => "Symphony",
-            Self::BootyBass => "Booty Bass",
-            Self::Primus => "Primus",
-            Self::PornGroove => "Porn Groove",
-            Self::Satire => "Satire",
-            Self::SlowJam => "Slow Jam",
-            Self::Club => "Club",
-            Self::Tango => "Tango",
-            Self::Samba => "Samba",
-            Self::Folklore => "Folklore",
-            Self::Ballad => "Ballad",
-            Self::PowerBallad => "Power Ballad",
-            Self::RhythmicSoul => "Rhythmic Soul",
-            Self::Freestyle => "Freestyle",
-            Self::Duet => "Duet",
-            Self::PunkRock => "Punk Rock",
-            Self::DrumSolo => "Drum Solo",
-            Self::ACappella => "A Cappella",
-            Self::EuroHouse => "Euro House",
-            Self::Dancehall => "Dancehall",
-            Self::Goa => "Goa",
-            Self::DrumBass => "Drum & Bass",
-            Self::ClubHouse => "Club House",
-            Self::HardcoreTechno => "Hardcore Techno",
-            Self::Terror => "Terror",
-            Self::Indie => "Indie",
-            Self::BritPop => "BritPop",
-            Self::Negerpunk => "Negerpunk",
-            Self::PolskPunk => "Polsk Punk",
-            Self::Beat => "Beat",
-            Self::ChristianGangstaRap => "Christian Gangsta Rap",
-            Self::HeavyMetal => "Heavy Metal",
-            Self::BlackMetal => "Black Metal",
-            Self::Crossover => "Crossover",
-            Self::ContemporaryChristian => "Contemporary Christian",
-            Self::ChristianRock => "Christian Rock",
-            Self::Merengue => "Merengue",
-            Self::Salsa => "Salsa",
-            Self::ThrashMetal => "Thrash Metal",
-            Self::Anime => "Anime",
-            Self::Jpop => "Jpop",
-            Self::Synthpop => "Synthpop",
-            Self::Abstract => "Abstract",
-            Self::ArtRock => "Art Rock",
-            Self::Baroque => "Baroque",
-            Self::Bhangra => "Bhangra",
-            Self::BigBeat => "Big Beat",
-            Self::Breakbeat => "Breakbeat",
-            Self::Chillout => "Chillout",
-            Self::Downtempo => "Downtempo",
-            Self::Dub => "Dub",
-            Self::ElectronicBodyMusic => "Electronic Body Music",
-            Self::Eclectic => "Eclectic",
-            Self::Electro => "Electro",
-            Self::Electroclash => "Electroclash",
-            Self::Emo => "Emo",
-            Self::Experimental => "Experimental",
-            Self::Garage => "Garage",
-            Self::Global => "Global",
-            Self::IntelligentDanceMusic => "Intelligent Dance Music",
-            Self::Illbient => "Illbient",
-            Self::IndustroGoth => "Industro-Goth",
-            Self::JamBand => "Jam Band",
-            Self::Krautrock => "Krautrock",
-            Self::Leftfield => "Leftfield",
-            Self::Lounge => "Lounge",
-            Self::MathRock => "Math Rock",
-            Self::NewRomantic => "New Romantic",
-            Self::NuBreakz => "Nu Breakz",
-            Self::PostPunk => "Post-Punk",
-            Self::PostRock => "Post-Rock",
-            Self::Psytrance => "Psytrance",
-            Self::Shoegaze => "Shoegaze",
-            Self::SpaceRock => "Space Rock",
-            Self::TropRock => "Trop Rock",
-            Self::WorldMusic => "World Music",
-            Self::Neoclassical => "Neoclassical",
-            Self::Audiobook => "Audiobook",
-            Self::AudioTheatre => "Audio Theatre",
-            Self::NeueDeutcheWelle => "Neue Deutche Welle",
-            Self::Podcast => "Podcast",
-            Self::IndieRock => "Indie-Rock",
-            Self::GFunk => "G-Funk",
-            Self::Dubstep => "Dubstep",
-            Self::GarageRock => "Garage Rock",
-            Self::Psybient => "Psybient",
-        };
-        write!(f, "{disp}")
-    }
-}
-
-impl FromStr for Genre {
-    type Err = ();
-
-    #[allow(clippy::too_many_lines)]
-    fn from_str(s: &str) -> Result<Self, ()> {
-        match s {
-            "Blues" => Ok(Self::Blues),
-            "Classic Rock" => Ok(Self::ClassicRock),
-            "Country" => Ok(Self::Country),
-            "Dance" => Ok(Self::Dance),
-            "Disco" => Ok(Self::Disco),
-            "Funk" => Ok(Self::Funk),
-            "Grunge" => Ok(Self::Grunge),
-            "Hip-Hop" => Ok(Self::HipHop),
-            "Jazz" => Ok(Self::Jazz),
-            "Metal" => Ok(Self::Metal),
-            "New Age" => Ok(Self::NewAge),
-            "Oldies" => Ok(Self::Oldies),
-            "Other" => Ok(Self::Other),
-            "Pop" => Ok(Self::Pop),
-            "Rhythm & Blues" | "Rhythm and Blues" => Ok(Self::RhythmBlues),
-            "Rap" => Ok(Self::Rap),
-            "Reggae" => Ok(Self::Reggae),
-            "Rock" => Ok(Self::Rock),
-            "Techno" => Ok(Self::Techno),
-            "Industrial" => Ok(Self::Industrial),
-            "Alternative" => Ok(Self::Alternative),
-            "Ska" => Ok(Self::Ska),
-            "Death Metal" => Ok(Self::DeathMetal),
-            "Pranks" => Ok(Self::Pranks),
-            "Soundtrack" => Ok(Self::Soundtrack),
-            "Euro-Techno" => Ok(Self::EuroTechno),
-            "Ambient" => Ok(Self::Ambient),
-            "Trip-Hop" => Ok(Self::TripHop),
-            "Vocal" => Ok(Self::Vocal),
-            "Jazz & Funk" | "Jazz and Funk" | "Jazz/Funk" => Ok(Self::JazzFunk),
-            "Fusion" => Ok(Self::Fusion),
-            "Trance" => Ok(Self::Trance),
-            "Classical" => Ok(Self::Classical),
-            "Instrumental" => Ok(Self::Instrumental),
-            "Acid" => Ok(Self::Acid),
-            "House" => Ok(Self::House),
-            "Game" => Ok(Self::Game),
-            "Sound Clip" => Ok(Self::SoundClip),
-            "Gospel" => Ok(Self::Gospel),
-            "Noise" => Ok(Self::Noise),
-            "Alternative Rock" => Ok(Self::AlternativeRock),
-            "Bass" => Ok(Self::Bass),
-            "Soul" => Ok(Self::Soul),
-            "Punk" => Ok(Self::Punk),
-            "Space" => Ok(Self::Space),
-            "Meditative" => Ok(Self::Meditative),
-            "Instrumental Pop" => Ok(Self::InstrumentalPop),
-            "Instrumental Rock" => Ok(Self::InstrumentalRock),
-            "Ethnic" => Ok(Self::Ethnic),
-            "Gothic" => Ok(Self::Gothic),
-            "Darkwave" => Ok(Self::Darkwave),
-            "Techno-Industrial" => Ok(Self::TechnoIndustrial),
-            "Electronic" => Ok(Self::Electronic),
-            "Pop-Folk" => Ok(Self::PopFolk),
-            "Eurodance" => Ok(Self::Eurodance),
-            "Dream" => Ok(Self::Dream),
-            "Southern Rock" => Ok(Self::SouthernRock),
-            "Comedy" => Ok(Self::Comedy),
-            "Cult" => Ok(Self::Cult),
-            "Gangsta" => Ok(Self::Gangsta),
-            "Top 40" => Ok(Self::Top40),
-            "Christian Rap" => Ok(Self::ChristianRap),
-            "Pop/Funk" => Ok(Self::PopFunk),
-            "Jungle" => Ok(Self::Jungle),
-            "Native US" => Ok(Self::NativeUS),
-            "Cabaret" => Ok(Self::Cabaret),
-            "New Wave" => Ok(Self::NewWave),
-            "Psychedelic" => Ok(Self::Psychedelic),
-            "Rave" => Ok(Self::Rave),
-            "Show Tunes" => Ok(Self::ShowTunes),
-            "Trailer" => Ok(Self::Trailer),
-            "Lo-Fi" => Ok(Self::LoFi),
-            "Tribal" => Ok(Self::Tribal),
-            "Acid Punk" => Ok(Self::AcidPunk),
-            "Acid Jazz" => Ok(Self::AcidJazz),
-            "Polka" => Ok(Self::Polka),
-            "Retro" => Ok(Self::Retro),
-            "Musical" => Ok(Self::Musical),
-            "Rock 'n' Roll" | "Rock and Roll" | "Rock & Roll" => Ok(Self::RockNRoll),
-            "Hard Rock" => Ok(Self::HardRock),
-            "Folk" => Ok(Self::Folk),
-            "Folk-Rock" => Ok(Self::FolkRock),
-            "National Folk" => Ok(Self::NationalFolk),
-            "Swing" => Ok(Self::Swing),
-            "Fast Fusion" => Ok(Self::FastFusion),
-            "Bebop" => Ok(Self::Bebop),
-            "Latin" => Ok(Self::Latin),
-            "Revival" => Ok(Self::Revival),
-            "Celtic" => Ok(Self::Celtic),
-            "Bluegrass" => Ok(Self::Bluegrass),
-            "Avantgarde" => Ok(Self::Avantgarde),
-            "Gothic Rock" => Ok(Self::GothicRock),
-            "Progressive Rock" => Ok(Self::ProgressiveRock),
-            "Psychedelic Rock" => Ok(Self::PsychedelicRock),
-            "Symphonic Rock" => Ok(Self::SymphonicRock),
-            "Slow Rock" => Ok(Self::SlowRock),
-            "Big Band" => Ok(Self::BigBand),
-            "Chorus" => Ok(Self::Chorus),
-            "Easy Listening" => Ok(Self::EasyListening),
-            "Acoustic" => Ok(Self::Acoustic),
-            "Humour" | "Humor" => Ok(Self::Humour),
-            "Speech" => Ok(Self::Speech),
-            "Chanson" => Ok(Self::Chanson),
-            "Opera" => Ok(Self::Opera),
-            "Chamber Music" => Ok(Self::ChamberMusic),
-            "Sonata" => Ok(Self::Sonata),
-            "Symphony" => Ok(Self::Symphony),
-            "Booty Bass" => Ok(Self::BootyBass),
-            "Primus" => Ok(Self::Primus),
-            "Porn Groove" => Ok(Self::PornGroove),
-            "Satire" => Ok(Self::Satire),
-            "Slow Jam" => Ok(Self::SlowJam),
-            "Club" => Ok(Self::Club),
-            "Tango" => Ok(Self::Tango),
-            "Samba" => Ok(Self::Samba),
-            "Folklore" => Ok(Self::Folklore),
-            "Ballad" => Ok(Self::Ballad),
-            "Power Ballad" => Ok(Self::PowerBallad),
-            "Rhythmic Soul" => Ok(Self::RhythmicSoul),
-            "Freestyle" => Ok(Self::Freestyle),
-            "Duet" => Ok(Self::Duet),
-            "Punk Rock" => Ok(Self::PunkRock),
-            "Drum Solo" => Ok(Self::DrumSolo),
-            "A Cappella" => Ok(Self::ACappella),
-            "Euro House" => Ok(Self::EuroHouse),
-            "Dancehall" => Ok(Self::Dancehall),
-            "Goa" => Ok(Self::Goa),
-            "Drum & Bass" | "Drum 'n' Bass" | "Drum and Bass" => Ok(Self::DrumBass),
-            "Club-House" => Ok(Self::ClubHouse),
-            "Hardcore Techno" => Ok(Self::HardcoreTechno),
-            "Terror" => Ok(Self::Terror),
-            "Indie" => Ok(Self::Indie),
-            "Brit Pop" | "BritPop" | "Brit-Pop" => Ok(Self::BritPop),
-            "Negerpunk" => Ok(Self::Negerpunk),
-            "Polsk Punk" => Ok(Self::PolskPunk),
-            "Beat" => Ok(Self::Beat),
-            "Christian Gangsta Rap" => Ok(Self::ChristianGangstaRap),
-            "Heavy Metal" => Ok(Self::HeavyMetal),
-            "Black Metal" => Ok(Self::BlackMetal),
-            "Crossover" => Ok(Self::Crossover),
-            "Contemporary Christian" => Ok(Self::ContemporaryChristian),
-            "Christian Rock" => Ok(Self::ChristianRock),
-            "Merengue" => Ok(Self::Merengue),
-            "Salsa" => Ok(Self::Salsa),
-            "Thrash Metal" => Ok(Self::ThrashMetal),
-            "Anime" => Ok(Self::Anime),
-            "Jpop" => Ok(Self::Jpop),
-            "Synthpop" => Ok(Self::Synthpop),
-            "Abstract" => Ok(Self::Abstract),
-            "Art Rock" => Ok(Self::ArtRock),
-            "Baroque" => Ok(Self::Baroque),
-            "Bhangra" => Ok(Self::Bhangra),
-            "Big Beat" => Ok(Self::BigBeat),
-            "Breakbeat" => Ok(Self::Breakbeat),
-            "Chillout" => Ok(Self::Chillout),
-            "Downtempo" => Ok(Self::Downtempo),
-            "Dub" => Ok(Self::Dub),
-            "Electronic Body Music" | "EBM" => Ok(Self::ElectronicBodyMusic),
-            "Eclectic" => Ok(Self::Eclectic),
-            "Electro" => Ok(Self::Electro),
-            "Electroclash" => Ok(Self::Electroclash),
-            "Emo" => Ok(Self::Emo),
-            "Experimental" => Ok(Self::Experimental),
-            "Garage" => Ok(Self::Garage),
-            "Global" => Ok(Self::Global),
-            "Intelligent Dance Music" | "IDM" => Ok(Self::IntelligentDanceMusic),
-            "Illbient" => Ok(Self::Illbient),
-            "Industro-Goth" => Ok(Self::IndustroGoth),
-            "Jam Band" => Ok(Self::JamBand),
-            "Krautrock" => Ok(Self::Krautrock),
-            "Leftfield" => Ok(Self::Leftfield),
-            "Lounge" => Ok(Self::Lounge),
-            "Math Rock" => Ok(Self::MathRock),
-            "New Romantic" => Ok(Self::NewRomantic),
-            "Nu Breakz" => Ok(Self::NuBreakz),
-            "Post-Punk" => Ok(Self::PostPunk),
-            "Post-Rock" => Ok(Self::PostRock),
-            "Psytrance" => Ok(Self::Psytrance),
-            "Shoegaze" => Ok(Self::Shoegaze),
-            "Space Rock" => Ok(Self::SpaceRock),
-            "Trop Rock" => Ok(Self::TropRock),
-            "World Music" => Ok(Self::WorldMusic),
-            "Neoclassical" => Ok(Self::Neoclassical),
-            "Audiobook" => Ok(Self::Audiobook),
-            "Audio Theatre" => Ok(Self::AudioTheatre),
-            "Neue Deutche Welle" => Ok(Self::NeueDeutcheWelle),
-            "Podcast" => Ok(Self::Podcast),
-            "Indie-Rock" => Ok(Self::IndieRock),
-            "G-Funk" => Ok(Self::GFunk),
-            "Dubstep" => Ok(Self::Dubstep),
-            "Garage Rock" => Ok(Self::GarageRock),
-            "Psybient" => Ok(Self::Psybient),
-            _ => Err(()),
-        }
-    }
 }
 
 impl TryFrom<u32> for Genre {
     type Error = ();
 
-    #[allow(clippy::too_many_lines)]
     fn try_from(v: u32) -> Result<Self, Self::Error> {
-        match v {
-            0 => Ok(Self::Blues),
-            1 => Ok(Self::ClassicRock),
-            2 => Ok(Self::Country),
-            3 => Ok(Self::Dance),
-            4 => Ok(Self::Disco),
-            5 => Ok(Self::Funk),
-            6 => Ok(Self::Grunge),
-            7 => Ok(Self::HipHop),
-            8 => Ok(Self::Jazz),
-            9 => Ok(Self::Metal),
-            10 => Ok(Self::NewAge),
-            11 => Ok(Self::Oldies),
-            12 => Ok(Self::Other),
-            13 => Ok(Self::Pop),
-            14 => Ok(Self::RhythmBlues),
-            15 => Ok(Self::Rap),
-            16 => Ok(Self::Reggae),
-            17 => Ok(Self::Rock),
-            18 => Ok(Self::Techno),
-            19 => Ok(Self::Industrial),
-            20 => Ok(Self::Alternative),
-            21 => Ok(Self::Ska),
-            22 => Ok(Self::DeathMetal),
-            23 => Ok(Self::Pranks),
-            24 => Ok(Self::Soundtrack),
-            25 => Ok(Self::EuroTechno),
-            26 => Ok(Self::Ambient),
-            27 => Ok(Self::TripHop),
-            28 => Ok(Self::Vocal),
-            29 => Ok(Self::JazzFunk),
-            30 => Ok(Self::Fusion),
-            31 => Ok(Self::Trance),
-            32 => Ok(Self::Classical),
-            33 => Ok(Self::Instrumental),
-            34 => Ok(Self::Acid),
-            35 => Ok(Self::House),
-            36 => Ok(Self::Game),
-            37 => Ok(Self::SoundClip),
-            38 => Ok(Self::Gospel),
-            39 => Ok(Self::Noise),
-            40 => Ok(Self::AlternativeRock),
-            41 => Ok(Self::Bass),
-            42 => Ok(Self::Soul),
-            43 => Ok(Self::Punk),
-            44 => Ok(Self::Space),
-            45 => Ok(Self::Meditative),
-            46 => Ok(Self::InstrumentalPop),
-            47 => Ok(Self::InstrumentalRock),
-            48 => Ok(Self::Ethnic),
-            49 => Ok(Self::Gothic),
-            50 => Ok(Self::Darkwave),
-            51 => Ok(Self::TechnoIndustrial),
-            52 => Ok(Self::Electronic),
-            53 => Ok(Self::PopFolk),
-            54 => Ok(Self::Eurodance),
-            55 => Ok(Self::Dream),
-            56 => Ok(Self::SouthernRock),
-            57 => Ok(Self::Comedy),
-            58 => Ok(Self::Cult),
-            59 => Ok(Self::Gangsta),
-            60 => Ok(Self::Top40),
-            61 => Ok(Self::ChristianRap),
-            62 => Ok(Self::PopFunk),
-            63 => Ok(Self::Jungle),
-            64 => Ok(Self::NativeUS),
-            65 => Ok(Self::Cabaret),
-            66 => Ok(Self::NewWave),
-            67 => Ok(Self::Psychedelic),
-            68 => Ok(Self::Rave),
-            69 => Ok(Self::ShowTunes),
-            70 => Ok(Self::Trailer),
-            71 => Ok(Self::LoFi),
-            72 => Ok(Self::Tribal),
-            73 => Ok(Self::AcidPunk),
-            74 => Ok(Self::AcidJazz),
-            75 => Ok(Self::Polka),
-            76 => Ok(Self::Retro),
-            77 => Ok(Self::Musical),
-            78 => Ok(Self::RockNRoll),
-            79 => Ok(Self::HardRock),
-            80 => Ok(Self::Folk),
-            81 => Ok(Self::FolkRock),
-            82 => Ok(Self::NationalFolk),
-            83 => Ok(Self::Swing),
-            84 => Ok(Self::FastFusion),
-            85 => Ok(Self::Bebop),
-            86 => Ok(Self::Latin),
-            87 => Ok(Self::Revival),
-            88 => Ok(Self::Celtic),
-            89 => Ok(Self::Bluegrass),
-            90 => Ok(Self::Avantgarde),
-            91 => Ok(Self::GothicRock),
-            92 => Ok(Self::ProgressiveRock),
-            93 => Ok(Self::PsychedelicRock),
-            94 => Ok(Self::SymphonicRock),
-            95 => Ok(Self::SlowRock),
-            96 => Ok(Self::BigBand),
-            97 => Ok(Self::Chorus),
-            98 => Ok(Self::EasyListening),
-            99 => Ok(Self::Acoustic),
-            100 => Ok(Self::Humour),
-            101 => Ok(Self::Speech),
-            102 => Ok(Self::Chanson),
-            103 => Ok(Self::Opera),
-            104 => Ok(Self::ChamberMusic),
-            105 => Ok(Self::Sonata),
-            106 => Ok(Self::Symphony),
-            107 => Ok(Self::BootyBass),
-            108 => Ok(Self::Primus),
-            109 => Ok(Self::PornGroove),
-            110 => Ok(Self::Satire),
-            111 => Ok(Self::SlowJam),
-            112 => Ok(Self::Club),
-            113 => Ok(Self::Tango),
-            114 => Ok(Self::Samba),
-            115 => Ok(Self::Folklore),
-            116 => Ok(Self::Ballad),
-            117 => Ok(Self::PowerBallad),
-            118 => Ok(Self::RhythmicSoul),
-            119 => Ok(Self::Freestyle),
-            120 => Ok(Self::Duet),
-            121 => Ok(Self::PunkRock),
-            122 => Ok(Self::DrumSolo),
-            123 => Ok(Self::ACappella),
-            124 => Ok(Self::EuroHouse),
-            125 => Ok(Self::Dancehall),
-            126 => Ok(Self::Goa),
-            127 => Ok(Self::DrumBass),
-            128 => Ok(Self::ClubHouse),
-            129 => Ok(Self::HardcoreTechno),
-            130 => Ok(Self::Terror),
-            131 => Ok(Self::Indie),
-            132 => Ok(Self::BritPop),
-            133 => Ok(Self::Negerpunk),
-            134 => Ok(Self::PolskPunk),
-            135 => Ok(Self::Beat),
-            136 => Ok(Self::ChristianGangstaRap),
-            137 => Ok(Self::HeavyMetal),
-            138 => Ok(Self::BlackMetal),
-            139 => Ok(Self::Crossover),
-            140 => Ok(Self::ContemporaryChristian),
-            141 => Ok(Self::ChristianRock),
-            142 => Ok(Self::Merengue),
-            143 => Ok(Self::Salsa),
-            144 => Ok(Self::ThrashMetal),
-            145 => Ok(Self::Anime),
-            146 => Ok(Self::Jpop),
-            147 => Ok(Self::Synthpop),
-            148 => Ok(Self::Abstract),
-            149 => Ok(Self::ArtRock),
-            150 => Ok(Self::Baroque),
-            151 => Ok(Self::Bhangra),
-            152 => Ok(Self::BigBeat),
-            153 => Ok(Self::Breakbeat),
-            154 => Ok(Self::Chillout),
-            155 => Ok(Self::Downtempo),
-            156 => Ok(Self::Dub),
-            157 => Ok(Self::ElectronicBodyMusic),
-            158 => Ok(Self::Eclectic),
-            159 => Ok(Self::Electro),
-            160 => Ok(Self::Electroclash),
-            161 => Ok(Self::Emo),
-            162 => Ok(Self::Experimental),
-            163 => Ok(Self::Garage),
-            164 => Ok(Self::Global),
-            165 => Ok(Self::IntelligentDanceMusic),
-            166 => Ok(Self::Illbient),
-            167 => Ok(Self::IndustroGoth),
-            168 => Ok(Self::JamBand),
-            169 => Ok(Self::Krautrock),
-            170 => Ok(Self::Leftfield),
-            171 => Ok(Self::Lounge),
-            172 => Ok(Self::MathRock),
-            173 => Ok(Self::NewRomantic),
-            174 => Ok(Self::NuBreakz),
-            175 => Ok(Self::PostPunk),
-            176 => Ok(Self::PostRock),
-            177 => Ok(Self::Psytrance),
-            178 => Ok(Self::Shoegaze),
-            179 => Ok(Self::SpaceRock),
-            180 => Ok(Self::TropRock),
-            181 => Ok(Self::WorldMusic),
-            182 => Ok(Self::Neoclassical),
-            183 => Ok(Self::Audiobook),
-            184 => Ok(Self::AudioTheatre),
-            185 => Ok(Self::NeueDeutcheWelle),
-            186 => Ok(Self::Podcast),
-            187 => Ok(Self::IndieRock),
-            188 => Ok(Self::GFunk),
-            189 => Ok(Self::Dubstep),
-            190 => Ok(Self::GarageRock),
-            191 => Ok(Self::Psybient),
-            _ => Err(()),
+        Genre::from_repr(v).ok_or(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // --- Display ---
+
+    #[test]
+    fn display_simple_single_word() {
+        assert_eq!(Genre::Blues.to_string(), "Blues");
+        assert_eq!(Genre::Jazz.to_string(), "Jazz");
+        assert_eq!(Genre::Reggae.to_string(), "Reggae");
+    }
+
+    #[test]
+    fn display_multi_word() {
+        assert_eq!(Genre::ClassicRock.to_string(), "Classic Rock");
+        assert_eq!(Genre::HardRock.to_string(), "Hard Rock");
+        assert_eq!(Genre::EasyListening.to_string(), "Easy Listening");
+    }
+
+    #[test]
+    fn display_hyphenated() {
+        assert_eq!(Genre::HipHop.to_string(), "Hip-Hop");
+        assert_eq!(Genre::TripHop.to_string(), "Trip-Hop");
+        assert_eq!(Genre::EuroTechno.to_string(), "Euro-Techno");
+        assert_eq!(Genre::LoFi.to_string(), "Lo-Fi");
+        assert_eq!(Genre::PostPunk.to_string(), "Post-Punk");
+        assert_eq!(Genre::PostRock.to_string(), "Post-Rock");
+    }
+
+    #[test]
+    fn display_special_characters() {
+        // RhythmBlues: canonical display is "Rhythm and Blues"; "Rhythm & Blues" is a parse alias only
+        assert_eq!(Genre::RhythmBlues.to_string(), "Rhythm and Blues");
+        assert_eq!(Genre::JazzFunk.to_string(), "Jazz & Funk");
+        assert_eq!(Genre::RockNRoll.to_string(), "Rock 'n' Roll");
+        assert_eq!(Genre::DrumBass.to_string(), "Drum & Bass");
+        assert_eq!(Genre::ACappella.to_string(), "A Cappella");
+    }
+
+    #[test]
+    fn display_default_is_other() {
+        assert_eq!(Genre::Other.to_string(), "Other");
+        assert_eq!(Genre::default().to_string(), "Other");
+    }
+
+    // --- FromStr ---
+
+    #[test]
+    fn from_str_canonical_strings() {
+        assert_eq!("Blues".parse::<Genre>(), Ok(Genre::Blues));
+        assert_eq!("Classic Rock".parse::<Genre>(), Ok(Genre::ClassicRock));
+        assert_eq!("Hip-Hop".parse::<Genre>(), Ok(Genre::HipHop));
+        assert_eq!("Jazz & Funk".parse::<Genre>(), Ok(Genre::JazzFunk));
+        assert_eq!("Rock 'n' Roll".parse::<Genre>(), Ok(Genre::RockNRoll));
+        assert_eq!("Drum & Bass".parse::<Genre>(), Ok(Genre::DrumBass));
+        assert_eq!("Other".parse::<Genre>(), Ok(Genre::Other));
+    }
+
+    #[test]
+    fn from_str_accepted_aliases() {
+        // RhythmBlues has two accepted spellings
+        assert_eq!("Rhythm & Blues".parse::<Genre>(), Ok(Genre::RhythmBlues));
+        assert_eq!("Rhythm and Blues".parse::<Genre>(), Ok(Genre::RhythmBlues));
+
+        // JazzFunk: two additional aliases ("Jazz & Funk" is the canonical, tested in from_str_canonical_strings)
+        assert_eq!("Jazz and Funk".parse::<Genre>(), Ok(Genre::JazzFunk));
+        assert_eq!("Jazz/Funk".parse::<Genre>(), Ok(Genre::JazzFunk));
+
+        // RockNRoll has two extras
+        assert_eq!("Rock and Roll".parse::<Genre>(), Ok(Genre::RockNRoll));
+        assert_eq!("Rock & Roll".parse::<Genre>(), Ok(Genre::RockNRoll));
+
+        // Humour/Humor
+        assert_eq!("Humor".parse::<Genre>(), Ok(Genre::Humour));
+
+        // DrumBass
+        assert_eq!("Drum 'n' Bass".parse::<Genre>(), Ok(Genre::DrumBass));
+        assert_eq!("Drum and Bass".parse::<Genre>(), Ok(Genre::DrumBass));
+
+        // BritPop
+        assert_eq!("Brit Pop".parse::<Genre>(), Ok(Genre::BritPop));
+        assert_eq!("Brit-Pop".parse::<Genre>(), Ok(Genre::BritPop));
+
+        // Electronic Body Music
+        assert_eq!("EBM".parse::<Genre>(), Ok(Genre::ElectronicBodyMusic));
+
+        // IDM
+        assert_eq!("IDM".parse::<Genre>(), Ok(Genre::IntelligentDanceMusic));
+
+        // FolkRock: strum also makes the to_string value ("Folk Rock") a valid parse input,
+        // so "Folk Rock" now parses successfully. Previously only "Folk-Rock" was accepted.
+        // This is an intentional backwards-compatible expansion.
+        assert_eq!("Folk Rock".parse::<Genre>(), Ok(Genre::FolkRock));
+        assert_eq!("Folk-Rock".parse::<Genre>(), Ok(Genre::FolkRock));
+    }
+
+    #[test]
+    fn from_str_unknown_string_is_err() {
+        assert!("NotAGenre".parse::<Genre>().is_err());
+        assert!("blues".parse::<Genre>().is_err()); // case-sensitive
+        assert!("".parse::<Genre>().is_err());
+    }
+
+    // --- TryFrom<u32> ---
+
+    #[test]
+    fn try_from_u32_boundaries() {
+        assert_eq!(Genre::try_from(0u32), Ok(Genre::Blues));
+        assert_eq!(Genre::try_from(12u32), Ok(Genre::Other));
+        assert_eq!(Genre::try_from(191u32), Ok(Genre::Psybient));
+    }
+
+    #[test]
+    fn try_from_u32_spot_checks() {
+        assert_eq!(Genre::try_from(17u32), Ok(Genre::Rock));
+        assert_eq!(Genre::try_from(32u32), Ok(Genre::Classical));
+        assert_eq!(Genre::try_from(80u32), Ok(Genre::Folk));
+        assert_eq!(Genre::try_from(147u32), Ok(Genre::Synthpop));
+    }
+
+    #[test]
+    fn try_from_u32_out_of_range_is_err() {
+        assert!(Genre::try_from(192u32).is_err());
+        assert!(Genre::try_from(u32::MAX).is_err());
+    }
+
+    // --- Default ---
+
+    #[test]
+    fn default_is_other() {
+        assert_eq!(Genre::default(), Genre::Other);
+    }
+
+    // --- Round-trip ---
+
+    #[test]
+    fn display_then_from_str_round_trips() {
+        let genres = [
+            Genre::Blues,
+            Genre::ClassicRock,
+            Genre::HipHop,
+            Genre::JazzFunk,
+            Genre::RockNRoll,
+            Genre::Humour,
+            Genre::DrumBass,
+            Genre::ACappella,
+            Genre::ElectronicBodyMusic,
+            Genre::IntelligentDanceMusic,
+            Genre::Psybient,
+        ];
+        for g in genres {
+            let s = g.to_string();
+            let parsed: Genre = s.parse().unwrap_or_else(|_| panic!("failed to parse '{s}'"));
+            assert_eq!(parsed, g, "round-trip failed for {g}");
         }
     }
 }
