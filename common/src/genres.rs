@@ -485,7 +485,7 @@ mod tests {
         assert_eq!("Rhythm & Blues".parse::<Genre>(), Ok(Genre::RhythmBlues));
         assert_eq!("Rhythm and Blues".parse::<Genre>(), Ok(Genre::RhythmBlues));
 
-        // JazzFunk has three
+        // JazzFunk: two additional aliases ("Jazz & Funk" is the canonical, tested in from_str_canonical_strings)
         assert_eq!("Jazz and Funk".parse::<Genre>(), Ok(Genre::JazzFunk));
         assert_eq!("Jazz/Funk".parse::<Genre>(), Ok(Genre::JazzFunk));
 
