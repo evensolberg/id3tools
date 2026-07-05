@@ -19,6 +19,8 @@ shellexpand = { workspace = true }
 infer = { workspace = true }
 serde = { workspace = true }
 glob = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
 
 [dev-dependencies]
 assay = { workspace = true }
