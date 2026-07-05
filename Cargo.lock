@@ -401,7 +401,6 @@ dependencies = [
  "serde",
  "shellexpand",
  "strum",
- "strum_macros",
 ]
 
 [[package]]

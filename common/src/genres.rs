@@ -1,6 +1,4 @@
-use std::convert::TryFrom;
-
-use strum_macros::{Display, EnumString, FromRepr};
+use strum::{Display, EnumString, FromRepr};
 
 /// ID3v1 genre list (codes 0–191).
 ///
@@ -454,6 +452,8 @@ mod tests {
 
     #[test]
     fn display_special_characters() {
+        // RhythmBlues: canonical display is "Rhythm and Blues"; "Rhythm & Blues" is a parse alias only
+        assert_eq!(Genre::RhythmBlues.to_string(), "Rhythm and Blues");
         assert_eq!(Genre::JazzFunk.to_string(), "Jazz & Funk");
         assert_eq!(Genre::RockNRoll.to_string(), "Rock 'n' Roll");
         assert_eq!(Genre::DrumBass.to_string(), "Drum & Bass");
@@ -509,6 +509,12 @@ mod tests {
 
         // IDM
         assert_eq!("IDM".parse::<Genre>(), Ok(Genre::IntelligentDanceMusic));
+
+        // FolkRock: strum also makes the to_string value ("Folk Rock") a valid parse input,
+        // so "Folk Rock" now parses successfully. Previously only "Folk-Rock" was accepted.
+        // This is an intentional backwards-compatible expansion.
+        assert_eq!("Folk Rock".parse::<Genre>(), Ok(Genre::FolkRock));
+        assert_eq!("Folk-Rock".parse::<Genre>(), Ok(Genre::FolkRock));
     }
 
     #[test]
