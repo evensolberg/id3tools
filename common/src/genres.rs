@@ -3,7 +3,7 @@ use strum::{Display, EnumString, FromRepr};
 /// ID3v1 genre list (codes 0–191).
 ///
 /// Variants map 1-to-1 with their numeric discriminant so that
-/// `Genre::try_from(n)` and `n as u32` are both O(1) operations.
+/// `Genre::try_from(n)` and `genre as u32` are both O(1) operations.
 ///
 /// `Display` / `FromStr` are derived via `strum`; the `to_string` attribute
 /// sets the canonical display string and `serialize` lists accepted parse
